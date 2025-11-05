@@ -1,3 +1,5 @@
+import { promptLogsService } from './prompt-logs-service'
+
 export type AIProvider = 'claude' | 'gemini' | 'openrouter' | 'openai' | 'deepseek'
 
 interface AIConfig {
@@ -14,7 +16,7 @@ function getConfig(): AIConfig | null {
   return null
 }
 
-export async function generateCJM(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
+export async function generateCJM(description: string, language: 'ru' | 'en' = 'ru', projectId?: string): Promise<any> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
 
@@ -23,11 +25,11 @@ export async function generateCJM(description: string, language: 'ru' | 'en' = '
     en: 'Create CJM in JSON without markdown: ' + description
   }
 
-  const response = await callAI(prompts[language], config)
+  const response = await callAIWithLogging(prompts[language], config, 'generate_cjm', projectId)
   return parseJSON(response)
 }
 
-export async function generateBusinessCanvas(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
+export async function generateBusinessCanvas(description: string, language: 'ru' | 'en' = 'ru', projectId?: string): Promise<any> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
 
@@ -68,11 +70,11 @@ JSON structure:
 Return only JSON without markdown blocks.`
   }
 
-  const response = await callAI(prompts[language], config)
+  const response = await callAIWithLogging(prompts[language], config, 'generate_business_canvas', projectId)
   return parseJSON(response)
 }
 
-export async function generateLeanCanvas(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
+export async function generateLeanCanvas(description: string, language: 'ru' | 'en' = 'ru', projectId?: string): Promise<any> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
 
@@ -113,11 +115,11 @@ JSON structure:
 Return only JSON without markdown blocks.`
   }
 
-  const response = await callAI(prompts[language], config)
+  const response = await callAIWithLogging(prompts[language], config, 'generate_lean_canvas', projectId)
   return parseJSON(response)
 }
 
-export async function generateRoadmap(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
+export async function generateRoadmap(description: string, language: 'ru' | 'en' = 'ru', projectId?: string): Promise<any> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
 
@@ -174,26 +176,105 @@ Later - future (5-7 ideas)
 Return only JSON without markdown blocks.`
   }
 
-  const response = await callAI(prompts[language], config)
+  const response = await callAIWithLogging(prompts[language], config, 'generate_roadmap', projectId)
   return parseJSON(response)
 }
 
-export async function analyzeCJM(data: any): Promise<string> {
+export async function analyzeCJM(data: any, projectId?: string): Promise<string> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
-  return callAI('Проанализируй CJM: ' + JSON.stringify(data), config)
+
+  const prompt = `Проанализируй и предложи улучшения для Customer Journey Map.
+
+Данные CJM:
+${JSON.stringify(data, null, 2)}
+
+Выполни глубокий анализ и предоставь:
+
+1. **Общая оценка**:
+   - Полнота карты путешествия
+   - Качество проработки каждого этапа
+   - Связность между этапами
+
+2. **Анализ клиентского опыта**:
+   - Критические болевые точки (negatives)
+   - Моменты истины (key moments)
+   - Эмоциональные пики и провалы (experience)
+   - Пробелы в touchpoints
+
+3. **Бизнес-перспектива**:
+   - Оценка KPIs и их релевантности
+   - Эффективность организационных активностей
+   - Технологический стек (достаточность и современность)
+   - Зоны ответственности
+
+4. **Конкретные рекомендации по улучшению**:
+   - Какие touchpoints добавить
+   - Как усилить позитивный опыт
+   - Как решить выявленные проблемы
+   - Какие идеи из ideasOpportunities приоритизировать
+   - Дополнительные метрики для отслеживания
+
+5. **Quick wins** (быстрые улучшения, которые можно внедрить сразу)
+
+6. **Долгосрочные улучшения** (стратегические изменения)
+
+Формат ответа: структурированный текст с четкими разделами и bullet points.`
+
+  return callAIWithLogging(prompt, config, 'analyze_cjm', projectId)
 }
 
-export async function analyzeBusinessCanvas(data: any): Promise<string> {
+export async function analyzeBusinessCanvas(data: any, projectId?: string): Promise<string> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
-  return callAI('Проанализируй Business Canvas: ' + JSON.stringify(data), config)
+  return callAIWithLogging('Проанализируй Business Canvas: ' + JSON.stringify(data), config, 'analyze_business_canvas', projectId)
 }
 
-export async function analyzeLeanCanvas(data: any): Promise<string> {
+export async function analyzeLeanCanvas(data: any, projectId?: string): Promise<string> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
-  return callAI('Проанализируй Lean Canvas: ' + JSON.stringify(data), config)
+  return callAIWithLogging('Проанализируй Lean Canvas: ' + JSON.stringify(data), config, 'analyze_lean_canvas', projectId)
+}
+
+/**
+ * Wrapper around callAI that logs prompts and responses to the database
+ */
+async function callAIWithLogging(
+  prompt: string,
+  config: AIConfig,
+  operationType: string,
+  projectId?: string
+): Promise<string> {
+  const startTime = performance.now()
+  let response = ''
+  let status: 'success' | 'error' = 'success'
+  let errorMessage: string | undefined
+
+  try {
+    response = await callAI(prompt, config)
+    return response
+  } catch (error) {
+    status = 'error'
+    errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    throw error
+  } finally {
+    const duration = Math.round(performance.now() - startTime)
+
+    // Log to database (fire and forget, don't block on this)
+    promptLogsService.createLog({
+      operation_type: operationType,
+      prompt,
+      response: response || undefined,
+      model_name: config.model,
+      model_provider: config.provider,
+      project_id: projectId,
+      status,
+      error_message: errorMessage,
+      duration_ms: duration,
+    }).catch(err => {
+      console.error('Failed to log prompt:', err)
+    })
+  }
 }
 
 async function callAI(prompt: string, config: AIConfig): Promise<string> {

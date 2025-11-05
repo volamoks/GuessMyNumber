@@ -11,7 +11,7 @@ import { UploadSection } from '@/components/cjm/UploadSection'
 import { ExportActions } from '@/components/cjm/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { History } from 'lucide-react'
-import { useCJMStore } from '@/store'
+import { useCJMStore, useGlobalStore } from '@/store'
 
 interface CJMStage {
   name: string
@@ -147,6 +147,9 @@ export function CJMPage() {
     toggleGenerator,
   } = useCJMStore()
 
+  // Get AI models from global store
+  const { aiModels, activeModelId } = useGlobalStore()
+
   // Загрузка проекта при монтировании
   useEffect(() => {
     const projectId = searchParams.get('projectId')
@@ -196,8 +199,9 @@ export function CJMPage() {
   }
 
   const handleGenerate = async (description: string, language: 'ru' | 'en' = 'ru') => {
-    if (!aiService.isConfigured()) {
-      alert('Пожалуйста, настройте AI в разделе AI Settings')
+    // Check new AI system first
+    if (aiModels.length === 0 || !activeModelId) {
+      alert('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
       return
     }
 
@@ -215,14 +219,20 @@ export function CJMPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!cjmData || !aiService.isConfigured()) {
-      alert('Пожалуйста, настройте AI в разделе AI Settings')
+    if (!cjmData) {
+      alert('Нет данных для анализа')
+      return
+    }
+
+    // Check new AI system first
+    if (aiModels.length === 0 || !activeModelId) {
+      alert('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
       return
     }
 
     setIsAnalyzing(true)
     try {
-      const analysis = await aiService.analyzeCJM(cjmData)
+      const analysis = await aiService.analyzeCJM(cjmData, currentProjectId || undefined)
       setAiAnalysis(analysis)
     } catch (error) {
       alert('Ошибка при анализе: ' + (error as Error).message)

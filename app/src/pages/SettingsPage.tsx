@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2 } from 'lucide-react'
+import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2, Clock, Zap, AlertCircle } from 'lucide-react'
 import type { AIProvider } from '@/lib/ai-service'
 import { useGlobalStore, useThemeStore, type AIModelConfig } from '@/store'
+import { promptLogsService, type PromptLog } from '@/lib/prompt-logs-service'
 
 export function SettingsPage() {
   // AI Models Management
@@ -105,6 +106,24 @@ export function SettingsPage() {
     { value: 'system', label: 'Системная', icon: Monitor },
   ]
 
+  // Prompt Logs
+  const [promptLogs, setPromptLogs] = useState<PromptLog[]>([])
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false)
+  const [selectedLog, setSelectedLog] = useState<PromptLog | null>(null)
+
+  // Load prompt logs when tab is opened
+  const loadPromptLogs = async () => {
+    setIsLoadingLogs(true)
+    try {
+      const logs = await promptLogsService.getLogs({ limit: 50 })
+      setPromptLogs(logs)
+    } catch (error) {
+      console.error('Failed to load prompt logs:', error)
+    } finally {
+      setIsLoadingLogs(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -118,6 +137,7 @@ export function SettingsPage() {
         <TabsList>
           <TabsTrigger value="models">AI Модели</TabsTrigger>
           <TabsTrigger value="theme">Тема</TabsTrigger>
+          <TabsTrigger value="prompt-logs">История промптов</TabsTrigger>
         </TabsList>
 
         {/* AI Models Tab - NEW */}
@@ -326,6 +346,110 @@ export function SettingsPage() {
                     : 'Светлая тема с белым фоном и темным текстом'}
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Prompt Logs Tab */}
+        <TabsContent value="prompt-logs" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>История промптов</CardTitle>
+                  <CardDescription>Просмотр всех AI запросов и ответов</CardDescription>
+                </div>
+                <Button onClick={loadPromptLogs} disabled={isLoadingLogs}>
+                  {isLoadingLogs ? 'Загрузка...' : 'Обновить'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoadingLogs ? (
+                <div className="text-center py-8 text-muted-foreground">Загрузка логов...</div>
+              ) : promptLogs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>История пуста</p>
+                  <p className="text-sm mt-2">Логи AI запросов будут отображаться здесь</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {promptLogs.map((log) => (
+                    <Card
+                      key={log.id}
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        selectedLog?.id === log.id ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setSelectedLog(selectedLog?.id === log.id ? null : log)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant={log.status === 'success' ? 'default' : 'destructive'}>
+                                {log.operation_type}
+                              </Badge>
+                              {log.model_provider && (
+                                <Badge variant="outline">{log.model_provider}</Badge>
+                              )}
+                              {log.status === 'error' && (
+                                <AlertCircle className="h-4 w-4 text-destructive" />
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(log.created_at).toLocaleString('ru-RU')}
+                              </span>
+                              {log.duration_ms && (
+                                <span className="flex items-center gap-1">
+                                  <Zap className="h-3 w-3" />
+                                  {log.duration_ms}ms
+                                </span>
+                              )}
+                              {log.model_name && (
+                                <span className="truncate">{log.model_name}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Expanded view */}
+                        {selectedLog?.id === log.id && (
+                          <div className="mt-4 space-y-4 border-t pt-4">
+                            <div>
+                              <h4 className="font-medium mb-2">Промпт:</h4>
+                              <div className="bg-muted p-3 rounded-md text-sm font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
+                                {log.prompt}
+                              </div>
+                            </div>
+
+                            {log.response && (
+                              <div>
+                                <h4 className="font-medium mb-2">Ответ:</h4>
+                                <div className="bg-muted p-3 rounded-md text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                                  {log.response.substring(0, 1000)}
+                                  {log.response.length > 1000 && '... (обрезано)'}
+                                </div>
+                              </div>
+                            )}
+
+                            {log.error_message && (
+                              <div>
+                                <h4 className="font-medium mb-2 text-destructive">Ошибка:</h4>
+                                <div className="bg-destructive/10 p-3 rounded-md text-sm text-destructive">
+                                  {log.error_message}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
