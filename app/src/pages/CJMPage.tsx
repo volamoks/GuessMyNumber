@@ -378,6 +378,7 @@ export function CJMPage() {
               <CJMVisualization
                 data={cjmData}
                 visualizationId="cjm-visualization"
+                onUpdate={setCjmData}
               />
             </CardContent>
           </Card>

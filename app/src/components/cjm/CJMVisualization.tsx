@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/accordion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { EditableList } from '@/components/shared/EditableList'
+import { EditableText } from '@/components/shared/EditableText'
 import {
   User,
   Target,
@@ -57,10 +59,18 @@ interface CJMData {
 interface CJMVisualizationProps {
   data: CJMData
   visualizationId: string
+  onUpdate?: (data: CJMData) => void
 }
 
-export function CJMVisualization({ data, visualizationId }: CJMVisualizationProps) {
+export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisualizationProps) {
   const [selectedStage, setSelectedStage] = useState<number>(0)
+
+  const handleUpdateStage = (stageIndex: number, field: keyof CJMStage, value: string | string[]) => {
+    if (!onUpdate) return
+    const newStages = [...data.stages]
+    newStages[stageIndex] = { ...newStages[stageIndex], [field]: value }
+    onUpdate({ ...data, stages: newStages })
+  }
 
   const getStageStatus = (index: number): 'completed' | 'current' | 'upcoming' => {
     if (index < selectedStage) return 'completed'
@@ -69,7 +79,7 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
   }
 
   return (
-    <div id={visualizationId} className="space-y-8 bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl">
+    <div id={visualizationId} className="space-y-8 bg-gradient-to-br from-slate-50/50 to-blue-50/50 dark:from-slate-900/30 dark:to-blue-950/30 p-6 rounded-xl">
       {/* Timeline Header */}
       <div className="text-center space-y-2 pb-4">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -148,14 +158,10 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
                           <User className="h-4 w-4" />
                           Customer Activities
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].customerActivities.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].customerActivities}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'customerActivities', items)}
+                        />
                       </div>
 
                       {/* Customer Goals */}
@@ -164,14 +170,10 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
                           <Target className="h-4 w-4" />
                           Customer Goals
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].customerGoals.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].customerGoals}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'customerGoals', items)}
+                        />
                       </div>
 
                       {/* Touchpoints */}
@@ -180,14 +182,10 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
                           <Smartphone className="h-4 w-4" />
                           Touchpoints
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].touchpoints.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].touchpoints}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'touchpoints', items)}
+                        />
                       </div>
 
                       {/* Experience */}
@@ -196,14 +194,10 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
                           <Heart className="h-4 w-4" />
                           Experience
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].experience.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].experience}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'experience', items)}
+                        />
                       </div>
                     </div>
                   </AccordionContent>
@@ -220,51 +214,39 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
                   <AccordionContent>
                     <div className="grid md:grid-cols-3 gap-4 p-4">
                       {/* Positives */}
-                      <div className="space-y-2 bg-green-50 p-4 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-2 font-medium text-green-700">
+                      <div className="space-y-2 bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-900">
+                        <div className="flex items-center gap-2 font-medium text-green-700 dark:text-green-400">
                           <ThumbsUp className="h-4 w-4" />
                           Positives
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].positives.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-green-500 mt-1">✓</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].positives}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'positives', items)}
+                        />
                       </div>
 
                       {/* Negatives */}
-                      <div className="space-y-2 bg-red-50 p-4 rounded-lg border border-red-200">
-                        <div className="flex items-center gap-2 font-medium text-red-700">
+                      <div className="space-y-2 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-900">
+                        <div className="flex items-center gap-2 font-medium text-red-700 dark:text-red-400">
                           <ThumbsDown className="h-4 w-4" />
                           Negatives
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].negatives.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-red-500 mt-1">✗</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].negatives}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'negatives', items)}
+                        />
                       </div>
 
                       {/* Ideas & Opportunities */}
-                      <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div className="flex items-center gap-2 font-medium text-yellow-700">
+                      <div className="space-y-2 bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-900">
+                        <div className="flex items-center gap-2 font-medium text-yellow-700 dark:text-yellow-400">
                           <Lightbulb className="h-4 w-4" />
                           Ideas & Opportunities
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].ideasOpportunities.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-yellow-500 mt-1">💡</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].ideasOpportunities}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'ideasOpportunities', items)}
+                        />
                       </div>
                     </div>
                   </AccordionContent>
@@ -282,77 +264,65 @@ export function CJMVisualization({ data, visualizationId }: CJMVisualizationProp
                     <div className="grid md:grid-cols-2 gap-4 p-4">
                       {/* Business Goal */}
                       <div className="space-y-2 md:col-span-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700">
+                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
                           <TrendingUp className="h-4 w-4" />
                           Business Goal
                         </div>
-                        <p className="text-sm bg-orange-50 p-3 rounded-lg border border-orange-200">
-                          {data.stages[selectedStage].businessGoal}
-                        </p>
+                        <div className="text-sm bg-orange-50 dark:bg-orange-950/20 p-3 rounded-lg border border-orange-200 dark:border-orange-900">
+                          <EditableText
+                            text={data.stages[selectedStage].businessGoal}
+                            onChange={(text) => handleUpdateStage(selectedStage, 'businessGoal', text)}
+                            placeholder="Business goal..."
+                          />
+                        </div>
                       </div>
 
                       {/* KPIs */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700">
+                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
                           <BarChart3 className="h-4 w-4" />
                           KPIs
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].kpis.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-orange-500 mt-1">📊</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].kpis}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'kpis', items)}
+                        />
                       </div>
 
                       {/* Organizational Activities */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700">
+                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
                           <Users className="h-4 w-4" />
                           Organizational Activities
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].organizationalActivities.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-orange-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].organizationalActivities}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'organizationalActivities', items)}
+                        />
                       </div>
 
                       {/* Responsibility */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700">
+                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
                           <Shield className="h-4 w-4" />
                           Responsibility
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].responsibility.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-orange-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].responsibility}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'responsibility', items)}
+                        />
                       </div>
 
                       {/* Technology Systems */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700">
+                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
                           <Cpu className="h-4 w-4" />
                           Technology Systems
                         </div>
-                        <ul className="space-y-1 text-sm">
-                          {data.stages[selectedStage].technologySystems.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-orange-500 mt-1">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <EditableList
+                          items={data.stages[selectedStage].technologySystems}
+                          onChange={(items) => handleUpdateStage(selectedStage, 'technologySystems', items)}
+                        />
                       </div>
                     </div>
                   </AccordionContent>

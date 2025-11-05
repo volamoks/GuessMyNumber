@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { exportToPDF, downloadJSON } from '@/lib/export-utils'
 import { FileJson } from 'lucide-react'
-import { useRoadmapStore, type RoadmapData, type RoadmapFeature } from '@/store'
+import { useRoadmapStore, type RoadmapData } from '@/store'
 import { ActionsBar } from '@/components/shared/ActionsBar'
+import { EditableFeatureCard } from '@/components/roadmap/EditableFeatureCard'
 
 const EXAMPLE_ROADMAP: RoadmapData = {
   title: "Продуктовая roadmap SaaS платформы",
@@ -113,62 +113,23 @@ const EXAMPLE_ROADMAP: RoadmapData = {
   ]
 }
 
-const priorityConfig = {
-  high: { label: 'High', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300' },
-  medium: { label: 'Medium', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300' },
-  low: { label: 'Low', color: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300' }
-}
-
-const categoryConfig = {
-  feature: { label: 'Feature', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' },
-  bug_fix: { label: 'Bug Fix', color: 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' },
-  tech_debt: { label: 'Tech Debt', color: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300' },
-  improvement: { label: 'Improvement', color: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' }
-}
-
-const effortConfig = {
-  small: { label: 'Small', icon: '🟢' },
-  medium: { label: 'Medium', icon: '🟡' },
-  large: { label: 'Large', icon: '🔴' }
-}
-
-const statusConfig = {
-  planning: { label: 'Planning', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
-  in_progress: { label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' },
-  done: { label: 'Done', color: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' }
-}
-
-function FeatureCard({ feature }: { feature: RoadmapFeature }) {
-  return (
-    <Card className="mb-3 hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base">{feature.title}</CardTitle>
-          <Badge className={(priorityConfig as any)[feature.priority].color}>
-            {(priorityConfig as any)[feature.priority].label}
-          </Badge>
-        </div>
-        <CardDescription className="text-sm mt-2">{feature.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className={(categoryConfig as any)[feature.category].color}>
-            {(categoryConfig as any)[feature.category].label}
-          </Badge>
-          <Badge variant="outline" className={(statusConfig as any)[feature.status].color}>
-            {(statusConfig as any)[feature.status].label}
-          </Badge>
-          <Badge variant="outline">
-            {(effortConfig as any)[feature.effort].icon} {(effortConfig as any)[feature.effort].label}
-          </Badge>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function RoadmapPage() {
   const { data: roadmapData, setData: setRoadmapData } = useRoadmapStore()
+
+  const handleUpdateFeature = (section: 'now' | 'next' | 'later', index: number, updatedFeature: any) => {
+    if (!roadmapData) return
+    const newData = { ...roadmapData }
+    newData[section][index] = updatedFeature
+    setRoadmapData(newData)
+  }
+
+  const handleDeleteFeature = (section: 'now' | 'next' | 'later', index: number) => {
+    if (!roadmapData) return
+    if (!confirm('Удалить эту фичу?')) return
+    const newData = { ...roadmapData }
+    newData[section] = newData[section].filter((_, i) => i !== index)
+    setRoadmapData(newData)
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -254,7 +215,12 @@ export function RoadmapPage() {
               </Card>
               <div className="space-y-3">
                 {roadmapData.now.map((feature, idx) => (
-                  <FeatureCard key={idx} feature={feature} />
+                  <EditableFeatureCard
+                    key={idx}
+                    feature={feature}
+                    onUpdate={(updated) => handleUpdateFeature('now', idx, updated)}
+                    onDelete={() => handleDeleteFeature('now', idx)}
+                  />
                 ))}
               </div>
             </div>
@@ -272,7 +238,12 @@ export function RoadmapPage() {
               </Card>
               <div className="space-y-3">
                 {roadmapData.next.map((feature, idx) => (
-                  <FeatureCard key={idx} feature={feature} />
+                  <EditableFeatureCard
+                    key={idx}
+                    feature={feature}
+                    onUpdate={(updated) => handleUpdateFeature('next', idx, updated)}
+                    onDelete={() => handleDeleteFeature('next', idx)}
+                  />
                 ))}
               </div>
             </div>
@@ -290,7 +261,12 @@ export function RoadmapPage() {
               </Card>
               <div className="space-y-3">
                 {roadmapData.later.map((feature, idx) => (
-                  <FeatureCard key={idx} feature={feature} />
+                  <EditableFeatureCard
+                    key={idx}
+                    feature={feature}
+                    onUpdate={(updated) => handleUpdateFeature('later', idx, updated)}
+                    onDelete={() => handleDeleteFeature('later', idx)}
+                  />
                 ))}
               </div>
             </div>
