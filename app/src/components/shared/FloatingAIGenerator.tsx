@@ -317,17 +317,32 @@ export function FloatingAIGenerator() {
           </DialogTitle>
           <DialogDescription>
             {config.description}
-            {aiConfig.isConfigured && (
-              <span className="ml-2 text-xs text-primary">
-                ({aiConfig.provider})
-              </span>
-            )}
+            {(() => {
+              // Показываем активную модель из новой системы, если есть
+              const activeModel = aiModels.find(m => m.id === activeModelId)
+              if (activeModel) {
+                return (
+                  <span className="ml-2 text-xs text-primary">
+                    ({activeModel.name})
+                  </span>
+                )
+              }
+              // Fallback на legacy config
+              if (aiConfig.isConfigured) {
+                return (
+                  <span className="ml-2 text-xs text-primary">
+                    ({aiConfig.provider})
+                  </span>
+                )
+              }
+              return null
+            })()}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* AI Model Selector - показывать только если есть несколько моделей */}
-          {aiModels.length > 1 && (
+          {/* AI Model Selector - показывать если есть модели */}
+          {aiModels.length >= 1 && (
             <div className="space-y-2">
               <label className="text-sm font-medium">
                 {language === 'ru' ? 'AI Модель' : 'AI Model'}

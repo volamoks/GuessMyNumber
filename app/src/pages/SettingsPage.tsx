@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, XCircle, Sun, Moon, Monitor, Plus, Edit2, Trash2, Check } from 'lucide-react'
-import * as aiService from '@/lib/ai-service'
+import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2 } from 'lucide-react'
 import type { AIProvider } from '@/lib/ai-service'
 import { useGlobalStore, useThemeStore, type AIModelConfig } from '@/store'
 
@@ -20,13 +19,6 @@ export function SettingsPage() {
     updateAIModel,
     deleteAIModel,
     setActiveModel,
-    ai: config,
-    setAIProvider,
-    setAIKey,
-    setAIModel,
-    setAIBaseUrl,
-    saveAIConfig,
-    clearAIConfig,
   } = useGlobalStore()
 
   // Form state for adding/editing models
@@ -39,32 +31,6 @@ export function SettingsPage() {
     model: '',
     baseUrl: '',
   })
-
-  const [showApiKey, setShowApiKey] = useState(false)
-
-  useEffect(() => {
-    if (config.provider && config.apiKey) {
-      aiService.setAIConfig({
-        provider: config.provider as AIProvider,
-        apiKey: config.apiKey,
-        model: config.model,
-        baseUrl: config.baseUrl,
-      })
-    }
-  }, [config])
-
-  const handleSaveAI = () => {
-    if (!config.provider || !config.apiKey) {
-      alert('Выберите провайдера и введите API ключ')
-      return
-    }
-    saveAIConfig()
-    alert('Настройки AI сохранены!')
-  }
-
-  const handleClearAI = () => {
-    clearAIConfig()
-  }
 
   // AI Models handlers
   const handleAddModel = () => {
@@ -151,7 +117,6 @@ export function SettingsPage() {
       <Tabs defaultValue="models" className="space-y-4">
         <TabsList>
           <TabsTrigger value="models">AI Модели</TabsTrigger>
-          <TabsTrigger value="ai">AI Настройки (Legacy)</TabsTrigger>
           <TabsTrigger value="theme">Тема</TabsTrigger>
         </TabsList>
 
@@ -317,88 +282,6 @@ export function SettingsPage() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* AI Settings Tab */}
-        <TabsContent value="ai" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle>Конфигурация AI</CardTitle>
-                {config.isConfigured ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-muted-foreground" />
-                )}
-              </div>
-              <CardDescription>Настройте AI провайдера для генерации контента</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>AI Провайдер</Label>
-                <Select value={config.provider} onValueChange={setAIProvider}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите провайдера" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="claude">Claude (Anthropic)</SelectItem>
-                    <SelectItem value="gemini">Gemini (Google)</SelectItem>
-                    <SelectItem value="openrouter">OpenRouter</SelectItem>
-                    <SelectItem value="openai">OpenAI</SelectItem>
-                    <SelectItem value="deepseek">DeepSeek</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {config.provider && (
-                <>
-                  <div className="space-y-2">
-                    <Label>API Key</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type={showApiKey ? 'text' : 'password'}
-                        value={config.apiKey}
-                        onChange={(e) => setAIKey(e.target.value)}
-                        placeholder="Введите API ключ"
-                      />
-                      <Button variant="outline" onClick={() => setShowApiKey(!showApiKey)}>
-                        {showApiKey ? 'Скрыть' : 'Показать'}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Модель (опционально)</Label>
-                    <Input
-                      value={config.model}
-                      onChange={(e) => setAIModel(e.target.value)}
-                      placeholder="Оставьте пустым для модели по умолчанию"
-                    />
-                  </div>
-
-                  {(config.provider === 'openrouter' || config.provider === 'deepseek') && (
-                    <div className="space-y-2">
-                      <Label>Base URL (опционально)</Label>
-                      <Input
-                        value={config.baseUrl}
-                        onChange={(e) => setAIBaseUrl(e.target.value)}
-                        placeholder="https://..."
-                      />
-                    </div>
-                  )}
-                </>
-              )}
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleSaveAI}>Сохранить настройки</Button>
-                {config.isConfigured && (
-                  <Button variant="outline" onClick={handleClearAI}>
-                    Очистить
-                  </Button>
-                )}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
