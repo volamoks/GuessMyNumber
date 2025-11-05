@@ -1,9 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban, Route, Moon, Sun } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban, Route } from 'lucide-react'
 import { FloatingAIGenerator } from '@/components/shared/FloatingAIGenerator'
-import { useThemeStore } from '@/store'
 
 const navigation = [
   { name: 'Projects', href: '/projects', icon: FolderKanban },
@@ -11,12 +9,11 @@ const navigation = [
   { name: 'Business Canvas', href: '/business-canvas', icon: LayoutGrid },
   { name: 'Lean Canvas', href: '/lean-canvas', icon: Lightbulb },
   { name: 'Roadmap', href: '/roadmap', icon: Route },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'AI Settings', href: '/ai-settings', icon: Settings },
 ]
 
 export function Layout() {
   const location = useLocation()
-  const { theme, toggleTheme } = useThemeStore()
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,7 +28,7 @@ export function Layout() {
               </span>
             </Link>
           </div>
-          <nav className="flex items-center space-x-6 text-sm font-medium flex-1">
+          <nav className="flex items-center space-x-6 text-sm font-medium">
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname === item.href
@@ -50,14 +47,6 @@ export function Layout() {
               )
             })}
           </nav>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Переключить на светлую тему' : 'Переключить на темную тему'}
-          >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
         </div>
       </header>
 
