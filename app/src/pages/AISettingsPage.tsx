@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { aiService, type AIProvider } from '@/lib/ai-service'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
@@ -92,16 +92,19 @@ export function AISettingsPage() {
               AI Провайдер
             </label>
             <Select
-              id="provider"
               value={provider}
-              onChange={(e) => handleProviderChange(e.target.value)}
+              onValueChange={(value) => handleProviderChange(value)}
             >
-              <option value="">-- Выберите провайдера --</option>
-              <option value="claude">Claude (Anthropic)</option>
-              <option value="gemini">Gemini (Google)</option>
-              <option value="openrouter">OpenRouter</option>
-              <option value="openai">OpenAI</option>
-              <option value="deepseek">DeepSeek</option>
+              <SelectTrigger>
+                <SelectValue placeholder="-- Выберите провайдера --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="claude">Claude (Anthropic)</SelectItem>
+                <SelectItem value="gemini">Gemini (Google)</SelectItem>
+                <SelectItem value="openrouter">OpenRouter</SelectItem>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 

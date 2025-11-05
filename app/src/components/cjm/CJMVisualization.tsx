@@ -2,15 +2,24 @@ import { CJMStageCard } from './CJMStageCard'
 
 interface CJMStage {
   name: string
+  customerActivities: string[]
+  customerGoals: string[]
   touchpoints: string[]
-  emotions: string[]
-  painPoints: string[]
-  opportunities: string[]
+  experience: string[]
+  positives: string[]
+  negatives: string[]
+  ideasOpportunities: string[]
+  businessGoal: string
+  kpis: string[]
+  organizationalActivities: string[]
+  responsibility: string[]
+  technologySystems: string[]
 }
 
 interface CJMData {
   title: string
   persona: string
+  description?: string
   stages: CJMStage[]
 }
 

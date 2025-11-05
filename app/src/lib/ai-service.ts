@@ -36,12 +36,13 @@ export class AIService {
 
   // ============= ГЕНЕРАЦИЯ =============
 
-  async generateCJM(description: string): Promise<any> {
+  async generateCJM(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
     if (!this.config) {
       throw new Error('AI не настроен. Пожалуйста, настройте AI провайдера.')
     }
 
-    const prompt = `Создай подробную Customer Journey Map в формате JSON на основе следующего описания бизнеса:
+    const prompts = {
+      ru: `Создай подробную Customer Journey Map в формате JSON на основе следующего описания бизнеса:
 
 ${description}
 
@@ -49,20 +50,59 @@ ${description}
 {
   "title": "Название CJM",
   "persona": "Описание целевой персоны",
+  "description": "Краткое описание journey map",
   "stages": [
     {
       "name": "Название этапа",
-      "touchpoints": ["Точка контакта 1", "Точка контакта 2"],
-      "emotions": ["Эмоция 1", "Эмоция 2"],
-      "painPoints": ["Проблема 1", "Проблема 2"],
-      "opportunities": ["Возможность 1", "Возможность 2"]
+      "customerActivities": ["Действие клиента 1", "Действие клиента 2", "Действие клиента 3"],
+      "customerGoals": ["Цель клиента 1", "Цель клиента 2"],
+      "touchpoints": ["Точка контакта 1", "Точка контакта 2", "Точка контакта 3"],
+      "experience": ["Эмоция/чувство 1", "Эмоция/чувство 2", "Эмоция/чувство 3"],
+      "positives": ["Положительный момент 1", "Положительный момент 2"],
+      "negatives": ["Проблема/боль 1", "Проблема/боль 2", "Проблема/боль 3"],
+      "ideasOpportunities": ["Идея/возможность 1", "Идея/возможность 2", "Идея/возможность 3"],
+      "businessGoal": "Бизнес-цель для этого этапа",
+      "kpis": ["KPI метрика 1", "KPI метрика 2", "KPI метрика 3"],
+      "organizationalActivities": ["Активность компании 1", "Активность компании 2"],
+      "responsibility": ["Ответственная роль 1", "Ответственная роль 2"],
+      "technologySystems": ["Система/инструмент 1", "Система/инструмент 2"]
     }
   ]
 }
 
-Создай 5-7 этапов пути клиента. Будь конкретным и детальным.`
+Создай 5-7 этапов пути клиента. Будь максимально конкретным и детальным для каждого поля.`,
+      en: `Create a detailed Customer Journey Map in JSON format based on the following business description:
 
-    const response = await this.callAI(prompt)
+${description}
+
+Return ONLY valid JSON in the following format (no markdown, no comments):
+{
+  "title": "CJM Title",
+  "persona": "Target persona description",
+  "description": "Brief journey map description",
+  "stages": [
+    {
+      "name": "Stage Name",
+      "customerActivities": ["Customer action 1", "Customer action 2", "Customer action 3"],
+      "customerGoals": ["Customer goal 1", "Customer goal 2"],
+      "touchpoints": ["Touchpoint 1", "Touchpoint 2", "Touchpoint 3"],
+      "experience": ["Emotion/feeling 1", "Emotion/feeling 2", "Emotion/feeling 3"],
+      "positives": ["Positive moment 1", "Positive moment 2"],
+      "negatives": ["Pain point/problem 1", "Pain point/problem 2", "Pain point/problem 3"],
+      "ideasOpportunities": ["Idea/opportunity 1", "Idea/opportunity 2", "Idea/opportunity 3"],
+      "businessGoal": "Business goal for this stage",
+      "kpis": ["KPI metric 1", "KPI metric 2", "KPI metric 3"],
+      "organizationalActivities": ["Company activity 1", "Company activity 2"],
+      "responsibility": ["Responsible role 1", "Responsible role 2"],
+      "technologySystems": ["System/tool 1", "System/tool 2"]
+    }
+  ]
+}
+
+Create 5-7 customer journey stages. Be very specific and detailed for each field.`
+    }
+
+    const response = await this.callAI(prompts[language])
     return this.parseJSON(response)
   }
 
