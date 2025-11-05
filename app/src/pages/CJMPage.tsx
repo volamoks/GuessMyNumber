@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import * as aiService from '@/lib/ai-service'
 import { projectsService } from '@/lib/projects-service'
-import { exportToPDF, downloadJSON } from '@/lib/export-utils'
 import { AIGenerator } from '@/components/cjm/AIGenerator'
 import { CJMVisualization } from '@/components/cjm/CJMVisualization'
 import { UploadSection } from '@/components/cjm/UploadSection'
@@ -13,6 +12,10 @@ import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { History } from 'lucide-react'
 import { useCJMStore, useGlobalStore } from '@/store'
 import { toast } from 'sonner'
+import { useFileUpload } from '@/hooks/useFileUpload'
+import { useExport } from '@/hooks/useExport'
+import { useLoadExample } from '@/hooks/useLoadExample'
+import { EXAMPLE_CJM } from '@/data/examples/cjm'
 
 interface CJMStage {
   name: string
@@ -37,89 +40,6 @@ interface CJMData {
   stages: CJMStage[]
 }
 
-const EXAMPLE_CJM: CJMData = {
-  title: "Покупка онлайн-курса",
-  persona: "Марина, 28 лет, маркетолог",
-  description: "Journey map для покупки образовательного онлайн-курса",
-  stages: [
-    {
-      name: "Осознание проблемы",
-      customerActivities: ["Ищет информацию в Google", "Смотрит обучающие видео", "Читает статьи"],
-      customerGoals: ["Понять текущую проблему", "Найти возможные решения"],
-      touchpoints: ["Google поиск", "YouTube", "Социальные сети", "Блоги"],
-      experience: ["Любопытство", "Неуверенность", "Растерянность"],
-      positives: ["Много бесплатной информации", "Разные форматы контента"],
-      negatives: ["Информационный шум", "Сложно выбрать качественный источник"],
-      ideasOpportunities: ["SEO оптимизация", "Полезный лид-магнит", "Вебинар для новичков"],
-      businessGoal: "Привлечь целевой трафик на сайт",
-      kpis: ["Organic traffic +30%", "Время на сайте >3 мин", "Bounce rate <50%"],
-      organizationalActivities: ["Создание SEO-контента", "Ведение блога", "SMM активности"],
-      responsibility: ["SEO-специалист", "Контент-маркетолог", "SMM-менеджер"],
-      technologySystems: ["Google Analytics", "SEMrush", "WordPress", "Social media platforms"]
-    },
-    {
-      name: "Исследование",
-      customerActivities: ["Изучает программу курса", "Читает отзывы", "Смотрит демо-урок", "Сравнивает с конкурентами"],
-      customerGoals: ["Оценить качество курса", "Понять, подходит ли курс", "Узнать цену"],
-      touchpoints: ["Сайт", "Отзывы на сторонних площадках", "Демо-урок", "Email-рассылка"],
-      experience: ["Интерес", "Сомнение", "Надежда", "Осторожность"],
-      positives: ["Детальная программа", "Бесплатный пробный урок", "Положительные отзывы"],
-      negatives: ["Высокая цена", "Мало информации о преподавателе", "Нет чёткой гарантии результата"],
-      ideasOpportunities: ["Кейсы выпускников", "Видео-отзывы", "Детальная страница о преподавателе", "FAQ секция"],
-      businessGoal: "Конвертировать посетителей в лиды",
-      kpis: ["Demo lesson views +50%", "Email subscription rate 25%", "Retargeting CTR 3%"],
-      organizationalActivities: ["Разработка лид-магнитов", "Email-маркетинг", "Retargeting кампании"],
-      responsibility: ["Email-маркетолог", "Продакт-менеджер", "Performance-маркетолог"],
-      technologySystems: ["CRM система", "Email automation", "Facebook Pixel", "Google Ads"]
-    },
-    {
-      name: "Принятие решения",
-      customerActivities: ["Выбирает тариф", "Читает условия возврата", "Общается с поддержкой"],
-      customerGoals: ["Убедиться в правильности выбора", "Понять условия покупки"],
-      touchpoints: ["Страница оплаты", "Чат поддержки", "Email", "Телефон"],
-      experience: ["Волнение", "Нервозность", "Надежда", "Предвкушение"],
-      positives: ["Разные способы оплаты", "Быстрая поддержка", "Гарантия возврата 14 дней"],
-      negatives: ["Сложная форма оплаты", "Неочевидные дополнительные условия"],
-      ideasOpportunities: ["Упрощение формы оплаты", "Чёткое указание гарантий", "Онлайн-чат 24/7"],
-      businessGoal: "Максимизировать конверсию в покупку",
-      kpis: ["Conversion rate 10%", "Cart abandonment <30%", "Support response time <2min"],
-      organizationalActivities: ["A/B тестирование страниц", "Обучение поддержки", "Оптимизация checkout"],
-      responsibility: ["UX/UI дизайнер", "Head of support", "CRO специалист"],
-      technologySystems: ["Payment gateway", "Live chat", "CRM", "Analytics"]
-    },
-    {
-      name: "Использование",
-      customerActivities: ["Проходит уроки", "Выполняет задания", "Задаёт вопросы наставнику", "Общается в сообществе"],
-      customerGoals: ["Освоить материал", "Получить практические навыки", "Завершить курс"],
-      touchpoints: ["LMS платформа", "Чат с наставником", "Сообщество студентов", "Мобильное приложение"],
-      experience: ["Удовлетворение", "Вовлечённость", "Иногда фрустрация", "Мотивация"],
-      positives: ["Структурированная программа", "Доступность наставника", "Активное сообщество"],
-      negatives: ["Периодические технические сбои", "Некоторые задания слишком сложные", "Нехватка времени"],
-      ideasOpportunities: ["Техподдержка 24/7", "Адаптивная сложность заданий", "Напоминания о дедлайнах"],
-      businessGoal: "Обеспечить высокий уровень завершения курса",
-      kpis: ["Course completion rate >70%", "Student satisfaction 4.5+/5", "Support tickets <5/day"],
-      organizationalActivities: ["Мониторинг прогресса студентов", "Обучение наставников", "Техподдержка"],
-      responsibility: ["Наставники", "Тех. поддержка", "Community менеджер"],
-      technologySystems: ["LMS", "Video hosting", "Chat system", "Mobile app", "Progress tracking"]
-    },
-    {
-      name: "Завершение и лояльность",
-      customerActivities: ["Получает сертификат", "Делится результатами", "Рекомендует друзьям", "Ищет продолжение"],
-      customerGoals: ["Применить знания на практике", "Получить признание", "Продолжить развитие"],
-      touchpoints: ["Email рассылка", "Реферальная программа", "Социальные сети", "Карьерный центр"],
-      experience: ["Гордость", "Благодарность", "Удовлетворение", "Желание большего"],
-      positives: ["Официальный сертификат", "Реальные навыки", "Поддержка комьюнити"],
-      negatives: ["Нет чёткого следующего шага", "Потеря контакта после завершения", "Сложно применить знания"],
-      ideasOpportunities: ["Продвинутые курсы", "Комьюнити выпускников", "Карьерные консультации", "Партнёрская программа"],
-      businessGoal: "Увеличить LTV и привлечь новых клиентов через рекомендации",
-      kpis: ["Referral rate 25%", "Repeat purchase 40%", "NPS >50", "Alumni engagement 30%"],
-      organizationalActivities: ["Alumni программа", "Карьерная поддержка", "Реферальная система", "Upsell кампании"],
-      responsibility: ["Alumni менеджер", "Sales team", "Career advisor"],
-      technologySystems: ["Referral platform", "Alumni portal", "Email automation", "Career center"]
-    }
-  ]
-}
-
 export function CJMPage() {
   const [searchParams] = useSearchParams()
 
@@ -131,7 +51,6 @@ export function CJMPage() {
     isGenerating,
     isAnalyzing,
     isSaving,
-    isExporting,
     showGenerator,
     showVersions,
     versions,
@@ -150,6 +69,19 @@ export function CJMPage() {
 
   // Get AI models from global store
   const { aiModels, activeModelId } = useGlobalStore()
+
+  // Custom hooks for common operations
+  const { handleFileUpload } = useFileUpload<CJMData>((data) => {
+    setCjmData(data)
+    setShowGenerator(false)
+  })
+  const { isExporting, handleExportPDF, handleExportJSON } = useExport()
+  const { loadExample } = useLoadExample(EXAMPLE_CJM, setCjmData)
+
+  // Update isExporting in store when hook changes
+  useEffect(() => {
+    setIsExporting(isExporting)
+  }, [isExporting, setIsExporting])
 
   // Загрузка проекта при монтировании
   useEffect(() => {
@@ -180,24 +112,6 @@ export function CJMPage() {
     } catch (error) {
       toast.error('Ошибка при загрузке версий')
     }
-  }
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const json = JSON.parse(e.target?.result as string)
-        setCjmData(json)
-        setShowGenerator(false)
-        toast.success('JSON файл загружен')
-      } catch (error) {
-        toast.error('Ошибка при чтении JSON файла')
-      }
-    }
-    reader.readAsText(file)
   }
 
   const handleGenerate = async (description: string, language: 'ru' | 'en' = 'ru') => {
@@ -300,33 +214,6 @@ export function CJMPage() {
     }
   }
 
-  const handleExportPDF = async () => {
-    if (!cjmData) return
-
-    setIsExporting(true)
-    const loadingToast = toast.loading('Экспорт в PDF...')
-    try {
-      await exportToPDF('cjm-visualization', `${cjmData.title}.pdf`)
-      toast.success('PDF экспортирован!', { id: loadingToast })
-    } catch (error) {
-      toast.error('Ошибка при экспорте: ' + (error as Error).message, { id: loadingToast })
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
-  const handleExportJSON = () => {
-    if (!cjmData) return
-    downloadJSON(cjmData, `${cjmData.title}.json`)
-    toast.success('JSON экспортирован!')
-  }
-
-  const loadExample = () => {
-    setCjmData(EXAMPLE_CJM)
-    setShowGenerator(false)
-    toast.success('Пример загружен')
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -384,8 +271,8 @@ export function CJMPage() {
                     </Button>
                   )}
                   <ExportActions
-                    onExportJSON={handleExportJSON}
-                    onExportPDF={handleExportPDF}
+                    onExportJSON={() => cjmData && handleExportJSON(cjmData, `${cjmData.title}.json`)}
+                    onExportPDF={() => cjmData && handleExportPDF('cjm-visualization', `${cjmData.title}.pdf`)}
                     onSave={handleSave}
                     onAnalyze={handleAnalyze}
                     isExporting={isExporting}
