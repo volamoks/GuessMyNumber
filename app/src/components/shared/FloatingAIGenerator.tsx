@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -100,8 +100,21 @@ export function FloatingAIGenerator() {
   const [language, setLanguage] = useState<'ru' | 'en'>('ru')
   const [error, setError] = useState<string | null>(null)
 
-  // Global AI config
+  // Global AI config and models
   const aiConfig = useGlobalStore((state) => state.ai)
+  const aiModels = useGlobalStore((state) => state.aiModels)
+  const activeModelId = useGlobalStore((state) => state.activeModelId)
+  const setActiveModel = useGlobalStore((state) => state.setActiveModel)
+
+  // Selected model for this generation (defaults to active model)
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null)
+
+  // Update selectedModelId when dialog opens or activeModelId changes
+  useEffect(() => {
+    if (open && activeModelId && !selectedModelId) {
+      setSelectedModelId(activeModelId)
+    }
+  }, [open, activeModelId, selectedModelId])
 
   // CJM Store
   const cjmData = useCJMStore((state) => state.data)
@@ -156,9 +169,18 @@ export function FloatingAIGenerator() {
       return
     }
 
-    if (!aiService.isConfigured()) {
-      setError(language === 'ru' ? 'AI не настроен. Перейдите в настройки AI' : 'AI not configured. Go to AI settings')
+    // Check if AI is configured (either new models or legacy)
+    const hasModels = aiModels.length > 0
+    const hasLegacyConfig = aiService.isConfigured()
+
+    if (!hasModels && !hasLegacyConfig) {
+      setError(language === 'ru' ? 'AI не настроен. Добавьте модель в настройках' : 'AI not configured. Add a model in settings')
       return
+    }
+
+    // If using new models system and a different model is selected, switch to it
+    if (hasModels && selectedModelId && selectedModelId !== activeModelId) {
+      setActiveModel(selectedModelId)
     }
 
     // Set generating state based on context
@@ -304,6 +326,31 @@ export function FloatingAIGenerator() {
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* AI Model Selector - показывать только если есть несколько моделей */}
+          {aiModels.length > 1 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {language === 'ru' ? 'AI Модель' : 'AI Model'}
+              </label>
+              <Select
+                value={selectedModelId || undefined}
+                onValueChange={(val) => setSelectedModelId(val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={language === 'ru' ? 'Выберите модель' : 'Select model'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {aiModels.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name} ({model.provider})
+                      {model.id === activeModelId && ' ✓'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Language Selector */}
           <div className="space-y-2">
             <label className="text-sm font-medium">

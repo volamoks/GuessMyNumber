@@ -5,14 +5,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CheckCircle2, XCircle, Sun, Moon, Monitor } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { CheckCircle2, XCircle, Sun, Moon, Monitor, Plus, Edit2, Trash2, Check } from 'lucide-react'
 import * as aiService from '@/lib/ai-service'
 import type { AIProvider } from '@/lib/ai-service'
-import { useGlobalStore, useThemeStore } from '@/store'
+import { useGlobalStore, useThemeStore, type AIModelConfig } from '@/store'
 
 export function SettingsPage() {
-  // AI Settings
+  // AI Models Management
   const {
+    aiModels,
+    activeModelId,
+    addAIModel,
+    updateAIModel,
+    deleteAIModel,
+    setActiveModel,
     ai: config,
     setAIProvider,
     setAIKey,
@@ -21,6 +28,17 @@ export function SettingsPage() {
     saveAIConfig,
     clearAIConfig,
   } = useGlobalStore()
+
+  // Form state for adding/editing models
+  const [isAddingModel, setIsAddingModel] = useState(false)
+  const [editingModelId, setEditingModelId] = useState<string | null>(null)
+  const [modelForm, setModelForm] = useState<Omit<AIModelConfig, 'id'>>({
+    name: '',
+    provider: 'claude',
+    apiKey: '',
+    model: '',
+    baseUrl: '',
+  })
 
   const [showApiKey, setShowApiKey] = useState(false)
 
@@ -48,6 +66,70 @@ export function SettingsPage() {
     clearAIConfig()
   }
 
+  // AI Models handlers
+  const handleAddModel = () => {
+    if (!modelForm.name || !modelForm.provider || !modelForm.apiKey) {
+      alert('Заполните обязательные поля: название, провайдер, API ключ')
+      return
+    }
+    addAIModel(modelForm)
+    setModelForm({
+      name: '',
+      provider: 'claude',
+      apiKey: '',
+      model: '',
+      baseUrl: '',
+    })
+    setIsAddingModel(false)
+    alert('Модель добавлена!')
+  }
+
+  const handleEditModel = (model: AIModelConfig) => {
+    setEditingModelId(model.id)
+    setModelForm({
+      name: model.name,
+      provider: model.provider,
+      apiKey: model.apiKey,
+      model: model.model,
+      baseUrl: model.baseUrl,
+    })
+  }
+
+  const handleUpdateModel = () => {
+    if (!editingModelId) return
+    if (!modelForm.name || !modelForm.provider || !modelForm.apiKey) {
+      alert('Заполните обязательные поля')
+      return
+    }
+    updateAIModel(editingModelId, modelForm)
+    setEditingModelId(null)
+    setModelForm({
+      name: '',
+      provider: 'claude',
+      apiKey: '',
+      model: '',
+      baseUrl: '',
+    })
+    alert('Модель обновлена!')
+  }
+
+  const handleDeleteModel = (id: string) => {
+    if (!confirm('Удалить эту модель?')) return
+    deleteAIModel(id)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingModelId(null)
+    setIsAddingModel(false)
+    setModelForm({
+      name: '',
+      provider: 'claude',
+      apiKey: '',
+      model: '',
+      baseUrl: '',
+    })
+  }
+
   // Theme Settings
   const { theme, setTheme } = useThemeStore()
 
@@ -66,11 +148,178 @@ export function SettingsPage() {
         <p className="text-muted-foreground mt-2">Настройте AI, тему и другие параметры</p>
       </div>
 
-      <Tabs defaultValue="ai" className="space-y-4">
+      <Tabs defaultValue="models" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="ai">AI Настройки</TabsTrigger>
+          <TabsTrigger value="models">AI Модели</TabsTrigger>
+          <TabsTrigger value="ai">AI Настройки (Legacy)</TabsTrigger>
           <TabsTrigger value="theme">Тема</TabsTrigger>
         </TabsList>
+
+        {/* AI Models Tab - NEW */}
+        <TabsContent value="models" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>AI Модели</CardTitle>
+                  <CardDescription>Управляйте несколькими AI моделями</CardDescription>
+                </div>
+                <Button onClick={() => setIsAddingModel(true)} disabled={isAddingModel || editingModelId !== null}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Добавить модель
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add/Edit Model Form */}
+              {(isAddingModel || editingModelId) && (
+                <Card className="border-2 border-primary">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {editingModelId ? 'Редактировать модель' : 'Новая модель'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Название модели *</Label>
+                      <Input
+                        placeholder="Например: Claude для разработки"
+                        value={modelForm.name}
+                        onChange={(e) => setModelForm({ ...modelForm, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Провайдер *</Label>
+                      <Select
+                        value={modelForm.provider}
+                        onValueChange={(val: AIProvider) => setModelForm({ ...modelForm, provider: val })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="claude">Claude (Anthropic)</SelectItem>
+                          <SelectItem value="gemini">Gemini (Google)</SelectItem>
+                          <SelectItem value="openrouter">OpenRouter</SelectItem>
+                          <SelectItem value="openai">OpenAI</SelectItem>
+                          <SelectItem value="deepseek">DeepSeek</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>API Key *</Label>
+                      <Input
+                        type="password"
+                        placeholder="sk-..."
+                        value={modelForm.apiKey}
+                        onChange={(e) => setModelForm({ ...modelForm, apiKey: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Модель (опционально)</Label>
+                      <Input
+                        placeholder="claude-3-5-sonnet-20241022, gpt-4, etc."
+                        value={modelForm.model}
+                        onChange={(e) => setModelForm({ ...modelForm, model: e.target.value })}
+                      />
+                    </div>
+
+                    {(modelForm.provider === 'openrouter' || modelForm.provider === 'deepseek') && (
+                      <div className="space-y-2">
+                        <Label>Base URL (опционально)</Label>
+                        <Input
+                          placeholder="https://..."
+                          value={modelForm.baseUrl}
+                          onChange={(e) => setModelForm({ ...modelForm, baseUrl: e.target.value })}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button onClick={editingModelId ? handleUpdateModel : handleAddModel}>
+                        <Check className="h-4 w-4 mr-2" />
+                        {editingModelId ? 'Сохранить' : 'Добавить'}
+                      </Button>
+                      <Button variant="outline" onClick={handleCancelEdit}>
+                        Отмена
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Models List */}
+              {aiModels.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                  <p className="text-muted-foreground mb-4">Нет сохраненных моделей</p>
+                  <Button onClick={() => setIsAddingModel(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить первую модель
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {aiModels.map((model) => (
+                    <Card
+                      key={model.id}
+                      className={`relative ${activeModelId === model.id ? 'ring-2 ring-primary' : ''}`}
+                    >
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-base">{model.name}</CardTitle>
+                              {activeModelId === model.id && (
+                                <Badge className="bg-green-500">
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Активна
+                                </Badge>
+                              )}
+                            </div>
+                            <CardDescription className="mt-1">
+                              {model.provider} {model.model && `• ${model.model}`}
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex gap-2">
+                          {activeModelId !== model.id && (
+                            <Button size="sm" onClick={() => setActiveModel(model.id)}>
+                              Использовать
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditModel(model)}
+                            disabled={isAddingModel || editingModelId !== null}
+                          >
+                            <Edit2 className="h-3 w-3 mr-1" />
+                            Редактировать
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive"
+                            onClick={() => handleDeleteModel(model.id)}
+                            disabled={isAddingModel || editingModelId !== null}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Удалить
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* AI Settings Tab */}
         <TabsContent value="ai" className="space-y-4">
