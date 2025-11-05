@@ -236,6 +236,44 @@ export async function analyzeLeanCanvas(data: any, projectId?: string): Promise<
   return callAIWithLogging('Проанализируй Lean Canvas: ' + JSON.stringify(data), config, 'analyze_lean_canvas', projectId)
 }
 
+export async function analyzeRoadmap(data: any, projectId?: string): Promise<string> {
+  const config = getConfig()
+  if (!config) throw new Error('AI не настроен')
+
+  const prompt = `Проанализируй Product Roadmap и предложи улучшения.
+
+Данные Roadmap:
+${JSON.stringify(data, null, 2)}
+
+Выполни анализ и предоставь:
+
+1. **Оценка стратегии**:
+   - Баланс между Now/Next/Later
+   - Приоритезация фичей
+   - Соответствие бизнес-целям
+
+2. **Анализ фичей**:
+   - Корректность оценки effort
+   - Реалистичность сроков (Now/Next/Later)
+   - Зависимости между фичами
+   - Технический долг vs новые фичи
+
+3. **Рекомендации**:
+   - Какие фичи переприоритизировать
+   - Что стоит разбить на этапы
+   - Quick wins для Now
+   - Долгосрочные инвестиции для Later
+
+4. **Риски**:
+   - Перегруженные периоды
+   - Недооцененные фичи
+   - Отсутствующие зависимости
+
+Формат ответа: структурированный текст с четкими разделами и bullet points.`
+
+  return callAIWithLogging(prompt, config, 'analyze_roadmap', projectId)
+}
+
 /**
  * Wrapper around callAI that logs prompts and responses to the database
  */
