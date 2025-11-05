@@ -4,8 +4,8 @@
 
 export { useGlobalStore, type AIModelConfig } from './globalStore'
 export { useCJMStore } from './cjmStore'
-export { useBusinessCanvasStore } from './businessCanvasStore'
-export { useLeanCanvasStore } from './leanCanvasStore'
+export { useBusinessCanvasStore, type BusinessCanvasData } from './businessCanvasStore'
+export { useLeanCanvasStore, type LeanCanvasData } from './leanCanvasStore'
 export { useRoadmapStore, type RoadmapData, type RoadmapFeature } from './roadmapStore'
 export { useProjectsStore } from './projectsStore'
 export { useThemeStore } from './themeStore'

@@ -17,6 +17,7 @@ interface LeanCanvasData {
 
 interface CanvasVisualizationProps {
   data: LeanCanvasData
+  visualizationId: string
   onUpdate: (data: LeanCanvasData) => void
 }
 
@@ -62,7 +63,7 @@ function TextBlock({ title, text, onTextChange, icon, color, className = '' }: T
   )
 }
 
-export function CanvasVisualization({ data, onUpdate }: CanvasVisualizationProps) {
+export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasVisualizationProps) {
   const handleUpdateList = (field: keyof LeanCanvasData, newItems: string[]) => {
     onUpdate({ ...data, [field]: newItems })
   }
@@ -72,7 +73,7 @@ export function CanvasVisualization({ data, onUpdate }: CanvasVisualizationProps
   }
 
   return (
-    <div className="space-y-4">
+    <div id={visualizationId} className="space-y-4">
       {/* Classic Lean Canvas Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 auto-rows-fr">
         {/* Row 1 - Problem */}

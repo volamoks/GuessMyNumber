@@ -16,6 +16,7 @@ interface BusinessCanvasData {
 
 interface CanvasVisualizationProps {
   data: BusinessCanvasData
+  visualizationId: string
   onUpdate: (data: BusinessCanvasData) => void
 }
 
@@ -40,7 +41,7 @@ function CanvasBlock({ title, items, onItemsChange, icon, color, className = '' 
   )
 }
 
-export function CanvasVisualization({ data, onUpdate }: CanvasVisualizationProps) {
+export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasVisualizationProps) {
   // Обновляет напрямую store через onUpdate callback
   const handleUpdate = (field: keyof BusinessCanvasData, newItems: string[]) => {
     onUpdate({
@@ -50,7 +51,7 @@ export function CanvasVisualization({ data, onUpdate }: CanvasVisualizationProps
   }
 
   return (
-    <div className="space-y-4">
+    <div id={visualizationId} className="space-y-4">
       {/* Classic Business Model Canvas Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 auto-rows-fr">
         {/* Left Column - Key Partners */}
