@@ -1,17 +1,25 @@
 import { create } from 'zustand'
 
-interface CanvasData {
+export interface LeanCanvasData {
   title: string
-  [key: string]: any
+  problem: string[]
+  solution: string[]
+  keyMetrics: string[]
+  uniqueValueProposition: string
+  unfairAdvantage: string[]
+  channels: string[]
+  customerSegments: string[]
+  costStructure: string[]
+  revenueStreams: string[]
 }
 
 interface LeanCanvasStore {
-  data: CanvasData | null
+  data: LeanCanvasData | null
   analysis: string
   isAnalyzing: boolean
   isSaving: boolean
 
-  setData: (data: CanvasData | null) => void
+  setData: (data: LeanCanvasData | null) => void
   setAnalysis: (analysis: string) => void
   setAnalyzing: (loading: boolean) => void
   setSaving: (loading: boolean) => void

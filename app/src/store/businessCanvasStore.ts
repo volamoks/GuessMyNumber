@@ -1,17 +1,25 @@
 import { create } from 'zustand'
 
-interface CanvasData {
+export interface BusinessCanvasData {
   title: string
-  [key: string]: any
+  keyPartners: string[]
+  keyActivities: string[]
+  keyResources: string[]
+  valueProposition: string[]
+  customerRelationships: string[]
+  channels: string[]
+  customerSegments: string[]
+  costStructure: string[]
+  revenueStreams: string[]
 }
 
 interface BusinessCanvasStore {
-  data: CanvasData | null
+  data: BusinessCanvasData | null
   analysis: string
   isAnalyzing: boolean
   isSaving: boolean
 
-  setData: (data: CanvasData | null) => void
+  setData: (data: BusinessCanvasData | null) => void
   setAnalysis: (analysis: string) => void
   setAnalyzing: (loading: boolean) => void
   setSaving: (loading: boolean) => void
