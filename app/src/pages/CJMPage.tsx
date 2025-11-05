@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { UploadSection } from '@/components/cjm/UploadSection'
 import { ExportActions } from '@/components/cjm/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { History } from 'lucide-react'
+import { useCJMStore } from '@/store'
 
 interface CJMStage {
   name: string
@@ -120,16 +121,31 @@ const EXAMPLE_CJM: CJMData = {
 
 export function CJMPage() {
   const [searchParams] = useSearchParams()
-  const [cjmData, setCjmData] = useState<CJMData | null>(null)
-  const [aiAnalysis, setAiAnalysis] = useState<string>('')
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
-  const [showGenerator, setShowGenerator] = useState(false)
-  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
-  const [showVersions, setShowVersions] = useState(false)
-  const [versions, setVersions] = useState<any[]>([])
+
+  // Use Zustand store instead of multiple useState
+  const {
+    data: cjmData,
+    analysis: aiAnalysis,
+    currentProjectId,
+    isGenerating,
+    isAnalyzing,
+    isSaving,
+    isExporting,
+    showGenerator,
+    showVersions,
+    versions,
+    setData: setCjmData,
+    setAnalysis: setAiAnalysis,
+    setCurrentProjectId,
+    setGenerating: setIsGenerating,
+    setAnalyzing: setIsAnalyzing,
+    setSaving: setIsSaving,
+    setExporting: setIsExporting,
+    setShowGenerator,
+    setShowVersions,
+    setVersions,
+    toggleGenerator,
+  } = useCJMStore()
 
   // Загрузка проекта при монтировании
   useEffect(() => {
@@ -310,7 +326,7 @@ export function CJMPage() {
           <UploadSection
             onFileUpload={handleFileUpload}
             onLoadExample={loadExample}
-            onToggleGenerator={() => setShowGenerator(!showGenerator)}
+            onToggleGenerator={toggleGenerator}
             showGenerator={showGenerator}
           />
 

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import * as aiService from '@/lib/ai-service'
 import { supabase } from '@/lib/supabase'
@@ -6,6 +5,7 @@ import { UploadSection } from '@/components/business-canvas/UploadSection'
 import { CanvasVisualization } from '@/components/business-canvas/CanvasVisualization'
 import { ExportActions } from '@/components/business-canvas/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
+import { useBusinessCanvasStore } from '@/store'
 
 interface BusinessCanvasData {
   title: string
@@ -76,10 +76,17 @@ const EXAMPLE_CANVAS: BusinessCanvasData = {
 }
 
 export function BusinessCanvasPage() {
-  const [canvasData, setCanvasData] = useState<BusinessCanvasData | null>(null)
-  const [aiAnalysis, setAiAnalysis] = useState<string>('')
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  // Use Zustand store instead of useState
+  const {
+    data: canvasData,
+    analysis: aiAnalysis,
+    isAnalyzing,
+    isSaving,
+    setData: setCanvasData,
+    setAnalysis: setAiAnalysis,
+    setAnalyzing: setIsAnalyzing,
+    setSaving: setIsSaving,
+  } = useBusinessCanvasStore()
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]

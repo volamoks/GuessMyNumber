@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import * as aiService from '@/lib/ai-service'
 import { supabase } from '@/lib/supabase'
@@ -6,6 +5,7 @@ import { UploadSection } from '@/components/lean-canvas/UploadSection'
 import { CanvasVisualization } from '@/components/lean-canvas/CanvasVisualization'
 import { ExportActions } from '@/components/lean-canvas/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
+import { useLeanCanvasStore } from '@/store'
 
 interface LeanCanvasData {
   title: string
@@ -70,10 +70,17 @@ const EXAMPLE_CANVAS: LeanCanvasData = {
 }
 
 export function LeanCanvasPage() {
-  const [canvasData, setCanvasData] = useState<LeanCanvasData | null>(null)
-  const [aiAnalysis, setAiAnalysis] = useState<string>('')
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  // Use Zustand store instead of useState
+  const {
+    data: canvasData,
+    analysis: aiAnalysis,
+    isAnalyzing,
+    isSaving,
+    setData: setCanvasData,
+    setAnalysis: setAiAnalysis,
+    setAnalyzing: setIsAnalyzing,
+    setSaving: setIsSaving,
+  } = useLeanCanvasStore()
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]

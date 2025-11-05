@@ -5,11 +5,21 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as aiService from '@/lib/ai-service'
 import type { AIProvider } from '@/lib/ai-service'
-import { useAIStore } from '@/store/aiStore'
+import { useGlobalStore } from '@/store'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 export function AISettingsPage() {
-  const { config, isConfigured, setProvider, setApiKey, setModel, setBaseUrl, saveConfig, clearConfig: clearStoreConfig } = useAIStore()
+  // Use global store for AI config
+  const {
+    ai: config,
+    setAIProvider,
+    setAIKey,
+    setAIModel,
+    setAIBaseUrl,
+    saveAIConfig,
+    clearAIConfig,
+  } = useGlobalStore()
+
   const [showApiKey, setShowApiKey] = useState(false)
 
   useEffect(() => {
@@ -28,14 +38,12 @@ export function AISettingsPage() {
       alert('Выберите провайдера и введите API ключ')
       return
     }
-    aiService.setAIConfig({ provider: config.provider as AIProvider, apiKey: config.apiKey, model: config.model, baseUrl: config.baseUrl })
-    saveConfig()
+    saveAIConfig()
     alert('Настройки сохранены!')
   }
 
   const handleClear = () => {
-    aiService.clearAIConfig()
-    clearStoreConfig()
+    clearAIConfig()
   }
 
   return (
@@ -49,13 +57,13 @@ export function AISettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <CardTitle>Конфигурация AI</CardTitle>
-            {isConfigured ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}
+            {config.isConfigured ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">AI Провайдер</label>
-            <Select value={config.provider} onValueChange={setProvider}>
+            <Select value={config.provider} onValueChange={setAIProvider}>
               <SelectTrigger><SelectValue placeholder="Выберите провайдера" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="claude">Claude</SelectItem>
@@ -71,12 +79,12 @@ export function AISettingsPage() {
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Модель (опционально)</label>
-                <Input value={config.model} onChange={(e) => setModel(e.target.value)} />
+                <Input value={config.model} onChange={(e) => setAIModel(e.target.value)} />
               </div>
               {config.provider === 'openai' && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Base URL</label>
-                  <Input value={config.baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://api.openai.com/v1" />
+                  <Input value={config.baseUrl} onChange={(e) => setAIBaseUrl(e.target.value)} placeholder="https://api.openai.com/v1" />
                 </div>
               )}
             </>
@@ -85,7 +93,7 @@ export function AISettingsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">API Ключ</label>
             <div className="flex gap-2">
-              <Input type={showApiKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => setApiKey(e.target.value)} />
+              <Input type={showApiKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => setAIKey(e.target.value)} />
               <Button variant="outline" onClick={() => setShowApiKey(!showApiKey)}>{showApiKey ? 'Скрыть' : 'Показать'}</Button>
             </div>
           </div>
