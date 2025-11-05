@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/accordion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { EditableList } from '@/components/shared/EditableList'
+import { StickyNotesList } from '@/components/shared/StickyNotesList'
 import { EditableText } from '@/components/shared/EditableText'
 import {
   User,
@@ -154,49 +154,53 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                     <div className="grid md:grid-cols-2 gap-4 p-4">
                       {/* Customer Activities */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-blue-700">
+                        <div className="flex items-center gap-2 font-medium text-blue-700 dark:text-blue-400">
                           <User className="h-4 w-4" />
                           Customer Activities
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].customerActivities}
                           onChange={(items) => handleUpdateStage(selectedStage, 'customerActivities', items)}
+                          colorScheme="blue"
                         />
                       </div>
 
                       {/* Customer Goals */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-blue-700">
+                        <div className="flex items-center gap-2 font-medium text-blue-700 dark:text-blue-400">
                           <Target className="h-4 w-4" />
                           Customer Goals
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].customerGoals}
                           onChange={(items) => handleUpdateStage(selectedStage, 'customerGoals', items)}
+                          colorScheme="blue"
                         />
                       </div>
 
                       {/* Touchpoints */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-blue-700">
+                        <div className="flex items-center gap-2 font-medium text-purple-700 dark:text-purple-400">
                           <Smartphone className="h-4 w-4" />
                           Touchpoints
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].touchpoints}
                           onChange={(items) => handleUpdateStage(selectedStage, 'touchpoints', items)}
+                          colorScheme="purple"
                         />
                       </div>
 
                       {/* Experience */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-blue-700">
+                        <div className="flex items-center gap-2 font-medium text-purple-700 dark:text-purple-400">
                           <Heart className="h-4 w-4" />
                           Experience
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].experience}
                           onChange={(items) => handleUpdateStage(selectedStage, 'experience', items)}
+                          colorScheme="purple"
                         />
                       </div>
                     </div>
@@ -214,38 +218,41 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                   <AccordionContent>
                     <div className="grid md:grid-cols-3 gap-4 p-4">
                       {/* Positives */}
-                      <div className="space-y-2 bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-900">
+                      <div className="space-y-3 p-4 rounded-lg">
                         <div className="flex items-center gap-2 font-medium text-green-700 dark:text-green-400">
                           <ThumbsUp className="h-4 w-4" />
                           Positives
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].positives}
                           onChange={(items) => handleUpdateStage(selectedStage, 'positives', items)}
+                          colorScheme="green"
                         />
                       </div>
 
                       {/* Negatives */}
-                      <div className="space-y-2 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-900">
+                      <div className="space-y-3 p-4 rounded-lg">
                         <div className="flex items-center gap-2 font-medium text-red-700 dark:text-red-400">
                           <ThumbsDown className="h-4 w-4" />
                           Negatives
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].negatives}
                           onChange={(items) => handleUpdateStage(selectedStage, 'negatives', items)}
+                          colorScheme="red"
                         />
                       </div>
 
                       {/* Ideas & Opportunities */}
-                      <div className="space-y-2 bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-900">
+                      <div className="space-y-3 p-4 rounded-lg">
                         <div className="flex items-center gap-2 font-medium text-yellow-700 dark:text-yellow-400">
                           <Lightbulb className="h-4 w-4" />
                           Ideas & Opportunities
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].ideasOpportunities}
                           onChange={(items) => handleUpdateStage(selectedStage, 'ideasOpportunities', items)}
+                          colorScheme="yellow"
                         />
                       </div>
                     </div>
@@ -283,9 +290,10 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                           <BarChart3 className="h-4 w-4" />
                           KPIs
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].kpis}
                           onChange={(items) => handleUpdateStage(selectedStage, 'kpis', items)}
+                          colorScheme="orange"
                         />
                       </div>
 
@@ -295,9 +303,10 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                           <Users className="h-4 w-4" />
                           Organizational Activities
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].organizationalActivities}
                           onChange={(items) => handleUpdateStage(selectedStage, 'organizationalActivities', items)}
+                          colorScheme="orange"
                         />
                       </div>
 
@@ -307,9 +316,10 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                           <Shield className="h-4 w-4" />
                           Responsibility
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].responsibility}
                           onChange={(items) => handleUpdateStage(selectedStage, 'responsibility', items)}
+                          colorScheme="orange"
                         />
                       </div>
 
@@ -319,9 +329,10 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                           <Cpu className="h-4 w-4" />
                           Technology Systems
                         </div>
-                        <EditableList
+                        <StickyNotesList
                           items={data.stages[selectedStage].technologySystems}
                           onChange={(items) => handleUpdateStage(selectedStage, 'technologySystems', items)}
+                          colorScheme="orange"
                         />
                       </div>
                     </div>
