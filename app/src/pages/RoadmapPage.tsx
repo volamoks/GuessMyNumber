@@ -27,6 +27,8 @@ export function RoadmapPage() {
       setIsGenerating={store.setGenerating}
       isAnalyzing={store.isAnalyzing}
       setIsAnalyzing={store.setAnalyzing}
+      isImproving={store.isImproving}
+      setIsImproving={store.setImproving}
       isSaving={store.isSaving}
       setIsSaving={store.setSaving}
       setIsExporting={store.setExporting}
@@ -42,6 +44,7 @@ export function RoadmapPage() {
       // AI functions
       generateFn={aiService.generateRoadmap}
       analyzeFn={aiService.analyzeRoadmap}
+      improveFn={aiService.improveRoadmap}
 
       // Components
       VisualizationComponent={RoadmapVisualization}

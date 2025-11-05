@@ -50,6 +50,8 @@ export function CJMPage() {
       setIsGenerating={store.setGenerating}
       isAnalyzing={store.isAnalyzing}
       setIsAnalyzing={store.setAnalyzing}
+      isImproving={store.isImproving}
+      setIsImproving={store.setImproving}
       isSaving={store.isSaving}
       setIsSaving={store.setSaving}
       setIsExporting={store.setExporting}
@@ -65,6 +67,7 @@ export function CJMPage() {
       // AI functions
       generateFn={aiService.generateCJM}
       analyzeFn={aiService.analyzeCJM}
+      improveFn={aiService.improveCJM}
 
       // Components
       VisualizationComponent={CJMVisualization}

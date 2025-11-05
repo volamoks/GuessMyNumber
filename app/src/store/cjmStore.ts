@@ -15,6 +15,7 @@ interface CJMStore {
   // Loading states
   isGenerating: boolean
   isAnalyzing: boolean
+  isImproving: boolean
   isSaving: boolean
   isExporting: boolean
 
@@ -29,6 +30,7 @@ interface CJMStore {
   setCurrentProjectId: (id: string | null) => void
   setGenerating: (loading: boolean) => void
   setAnalyzing: (loading: boolean) => void
+  setImproving: (loading: boolean) => void
   setSaving: (loading: boolean) => void
   setExporting: (loading: boolean) => void
   setShowGenerator: (show: boolean) => void
@@ -45,6 +47,7 @@ export const useCJMStore = create<CJMStore>((set) => ({
   currentProjectId: null,
   isGenerating: false,
   isAnalyzing: false,
+  isImproving: false,
   isSaving: false,
   isExporting: false,
   showGenerator: false,
@@ -56,6 +59,7 @@ export const useCJMStore = create<CJMStore>((set) => ({
   setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
   setGenerating: (isGenerating) => set({ isGenerating }),
   setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
+  setImproving: (isImproving) => set({ isImproving }),
   setSaving: (isSaving) => set({ isSaving }),
   setExporting: (isExporting) => set({ isExporting }),
   setShowGenerator: (showGenerator) => set({ showGenerator }),
@@ -71,6 +75,7 @@ export const useCJMStore = create<CJMStore>((set) => ({
       currentProjectId: null,
       isGenerating: false,
       isAnalyzing: false,
+      isImproving: false,
       isSaving: false,
       isExporting: false,
       showGenerator: false,

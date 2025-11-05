@@ -37,6 +37,8 @@ interface CanvasPageLayoutProps<T> {
   setIsGenerating: (value: boolean) => void
   isAnalyzing: boolean
   setIsAnalyzing: (value: boolean) => void
+  isImproving: boolean
+  setIsImproving: (value: boolean) => void
   isSaving: boolean
   setIsSaving: (value: boolean) => void
   setIsExporting: (value: boolean) => void
@@ -53,6 +55,7 @@ interface CanvasPageLayoutProps<T> {
   // AI functions
   generateFn: (description: string, language: 'ru' | 'en', projectId?: string) => Promise<T>
   analyzeFn: (data: T, projectId?: string) => Promise<string>
+  improveFn: (data: T, analysis?: string, projectId?: string) => Promise<T>
 
   // Components
   VisualizationComponent: React.ComponentType<{
@@ -85,6 +88,8 @@ export function CanvasPageLayout<T>({
   setIsGenerating,
   isAnalyzing,
   setIsAnalyzing,
+  isImproving,
+  setIsImproving,
   isSaving,
   setIsSaving,
   setIsExporting,
@@ -97,6 +102,7 @@ export function CanvasPageLayout<T>({
   setVersions,
   generateFn,
   analyzeFn,
+  improveFn,
   VisualizationComponent,
   GeneratorComponent,
   getTitle,
@@ -190,6 +196,30 @@ export function CanvasPageLayout<T>({
       toast.error('Ошибка при анализе: ' + (error as Error).message, { id: loadingToast })
     } finally {
       setIsAnalyzing(false)
+    }
+  }
+
+  const handleImprove = async () => {
+    if (!data) {
+      toast.error('Нет данных для улучшения')
+      return
+    }
+
+    if (aiModels.length === 0 || !activeModelId) {
+      toast.error('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
+      return
+    }
+
+    setIsImproving(true)
+    const loadingToast = toast.loading('Улучшение данных на основе анализа...')
+    try {
+      const improvedData = await improveFn(data, analysis || undefined, currentProjectId || undefined)
+      setData(improvedData)
+      toast.success('Данные успешно улучшены! Не забудьте сохранить изменения.', { id: loadingToast })
+    } catch (error) {
+      toast.error('Ошибка при улучшении: ' + (error as Error).message, { id: loadingToast })
+    } finally {
+      setIsImproving(false)
     }
   }
 
@@ -361,7 +391,13 @@ export function CanvasPageLayout<T>({
           )}
 
           {/* AI Analysis Result */}
-          {analysis && <AIAnalysisResult analysis={analysis} />}
+          {analysis && (
+            <AIAnalysisResult
+              analysis={analysis}
+              onImprove={handleImprove}
+              isImproving={isImproving}
+            />
+          )}
         </>
       )}
     </div>

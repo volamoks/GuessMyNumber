@@ -275,6 +275,107 @@ ${JSON.stringify(data, null, 2)}
 }
 
 /**
+ * Improve functions - enhance existing data based on AI analysis
+ */
+
+export async function improveCJM(data: any, analysis?: string, projectId?: string): Promise<any> {
+  const config = getConfig()
+  if (!config) throw new Error('AI не настроен')
+
+  const prompt = `Улучши Customer Journey Map на основе анализа и рекомендаций.
+
+Текущие данные CJM:
+${JSON.stringify(data, null, 2)}
+
+${analysis ? `Анализ и рекомендации:\n${analysis}\n` : ''}
+
+Задача:
+1. Сохрани структуру и основную логику
+2. Дополни недостающие элементы
+3. Улучши формулировки
+4. Добавь детали на основе рекомендаций
+5. Исправь выявленные проблемы
+
+Верни ТОЛЬКО улучшенный JSON в той же структуре, без markdown блоков и пояснений.`
+
+  const response = await callAIWithLogging(prompt, config, 'improve_cjm', projectId)
+  return parseJSON(response)
+}
+
+export async function improveBusinessCanvas(data: any, analysis?: string, projectId?: string): Promise<any> {
+  const config = getConfig()
+  if (!config) throw new Error('AI не настроен')
+
+  const prompt = `Улучши Business Model Canvas на основе анализа и рекомендаций.
+
+Текущие данные Business Canvas:
+${JSON.stringify(data, null, 2)}
+
+${analysis ? `Анализ и рекомендации:\n${analysis}\n` : ''}
+
+Задача:
+1. Сохрани структуру и ключевые блоки
+2. Дополни каждый блок релевантными элементами
+3. Улучши формулировки для большей конкретности
+4. Добавь детали на основе рекомендаций
+5. Исправь несоответствия между блоками
+
+Верни ТОЛЬКО улучшенный JSON в той же структуре, без markdown блоков и пояснений.`
+
+  const response = await callAIWithLogging(prompt, config, 'improve_business_canvas', projectId)
+  return parseJSON(response)
+}
+
+export async function improveLeanCanvas(data: any, analysis?: string, projectId?: string): Promise<any> {
+  const config = getConfig()
+  if (!config) throw new Error('AI не настроен')
+
+  const prompt = `Улучши Lean Canvas на основе анализа и рекомендаций.
+
+Текущие данные Lean Canvas:
+${JSON.stringify(data, null, 2)}
+
+${analysis ? `Анализ и рекомендации:\n${analysis}\n` : ''}
+
+Задача:
+1. Сохрани структуру и ключевые блоки
+2. Уточни Problem-Solution Fit
+3. Конкретизируй метрики и каналы
+4. Усиль Unique Value Proposition
+5. Добавь детали на основе рекомендаций
+
+Верни ТОЛЬКО улучшенный JSON в той же структуре, без markdown блоков и пояснений.`
+
+  const response = await callAIWithLogging(prompt, config, 'improve_lean_canvas', projectId)
+  return parseJSON(response)
+}
+
+export async function improveRoadmap(data: any, analysis?: string, projectId?: string): Promise<any> {
+  const config = getConfig()
+  if (!config) throw new Error('AI не настроен')
+
+  const prompt = `Улучши Product Roadmap на основе анализа и рекомендаций.
+
+Текущие данные Roadmap:
+${JSON.stringify(data, null, 2)}
+
+${analysis ? `Анализ и рекомендации:\n${analysis}\n` : ''}
+
+Задача:
+1. Сохрани структуру Now/Next/Later
+2. Переприоритизируй фичи если нужно
+3. Разбей крупные фичи на этапы
+4. Добавь quick wins
+5. Исправь оценки effort и зависимости
+6. Добавь детали на основе рекомендаций
+
+Верни ТОЛЬКО улучшенный JSON в той же структуре, без markdown блоков и пояснений.`
+
+  const response = await callAIWithLogging(prompt, config, 'improve_roadmap', projectId)
+  return parseJSON(response)
+}
+
+/**
  * Wrapper around callAI that logs prompts and responses to the database
  */
 async function callAIWithLogging(

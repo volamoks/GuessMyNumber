@@ -27,6 +27,8 @@ export function BusinessCanvasPage() {
       setIsGenerating={store.setGenerating}
       isAnalyzing={store.isAnalyzing}
       setIsAnalyzing={store.setAnalyzing}
+      isImproving={store.isImproving}
+      setIsImproving={store.setImproving}
       isSaving={store.isSaving}
       setIsSaving={store.setSaving}
       setIsExporting={store.setExporting}
@@ -42,6 +44,7 @@ export function BusinessCanvasPage() {
       // AI functions
       generateFn={aiService.generateBusinessCanvas}
       analyzeFn={aiService.analyzeBusinessCanvas}
+      improveFn={aiService.improveBusinessCanvas}
 
       // Components
       VisualizationComponent={CanvasVisualization}

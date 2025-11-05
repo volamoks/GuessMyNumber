@@ -27,6 +27,8 @@ export function LeanCanvasPage() {
       setIsGenerating={store.setGenerating}
       isAnalyzing={store.isAnalyzing}
       setIsAnalyzing={store.setAnalyzing}
+      isImproving={store.isImproving}
+      setIsImproving={store.setImproving}
       isSaving={store.isSaving}
       setIsSaving={store.setSaving}
       setIsExporting={store.setExporting}
@@ -42,6 +44,7 @@ export function LeanCanvasPage() {
       // AI functions
       generateFn={aiService.generateLeanCanvas}
       analyzeFn={aiService.analyzeLeanCanvas}
+      improveFn={aiService.improveLeanCanvas}
 
       // Components
       VisualizationComponent={CanvasVisualization}
