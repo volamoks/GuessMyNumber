@@ -9,6 +9,8 @@ import { CheckCircle2, XCircle } from 'lucide-react'
 export function AISettingsPage() {
   const [provider, setProvider] = useState<AIProvider | ''>('')
   const [apiKey, setApiKey] = useState('')
+  const [model, setModel] = useState('')
+  const [baseUrl, setBaseUrl] = useState('')
   const [isConfigured, setIsConfigured] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
 
@@ -16,7 +18,9 @@ export function AISettingsPage() {
     const config = aiService.loadConfig()
     if (config) {
       setProvider(config.provider)
-      setApiKey('••••••••••••••••') // Скрываем ключ
+      setApiKey('••••••••••••••••')
+      setModel(config.model || '')
+      setBaseUrl(config.baseUrl || '')
       setIsConfigured(true)
     }
   }, [])
@@ -27,7 +31,7 @@ export function AISettingsPage() {
       return
     }
 
-    aiService.configure(provider as AIProvider, apiKey)
+    aiService.configure(provider as AIProvider, apiKey, model || undefined, baseUrl || undefined)
     setIsConfigured(true)
     alert('Настройки сохранены!')
   }
@@ -36,6 +40,8 @@ export function AISettingsPage() {
     aiService.clearConfig()
     setProvider('')
     setApiKey('')
+    setModel('')
+    setBaseUrl('')
     setIsConfigured(false)
   }
 
@@ -46,12 +52,30 @@ export function AISettingsPage() {
     }
   }
 
+  const getDefaultModel = (provider: AIProvider) => {
+    switch (provider) {
+      case 'claude': return 'claude-3-5-sonnet-20241022'
+      case 'gemini': return 'gemini-pro'
+      case 'openrouter': return 'anthropic/claude-3.5-sonnet'
+      case 'openai': return 'gpt-4o'
+      case 'deepseek': return 'deepseek-chat'
+      default: return ''
+    }
+  }
+
+  const handleProviderChange = (newProvider: string) => {
+    setProvider(newProvider as AIProvider)
+    if (newProvider) {
+      setModel(getDefaultModel(newProvider as AIProvider))
+    }
+  }
+
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">AI Settings</h1>
         <p className="text-muted-foreground">
-          Настройте интеграцию с AI для анализа ваших проектов
+          Настройте интеграцию с AI для генерации и анализа ваших проектов
         </p>
       </div>
 
@@ -59,7 +83,7 @@ export function AISettingsPage() {
         <CardHeader>
           <CardTitle>Настройка AI провайдера</CardTitle>
           <CardDescription>
-            Выберите AI провайдера и введите API ключ для включения AI-анализа
+            Выберите AI провайдера и введите API ключ для включения AI-функций
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -70,13 +94,54 @@ export function AISettingsPage() {
             <Select
               id="provider"
               value={provider}
-              onChange={(e) => setProvider(e.target.value as AIProvider)}
+              onChange={(e) => handleProviderChange(e.target.value)}
             >
               <option value="">-- Выберите провайдера --</option>
               <option value="claude">Claude (Anthropic)</option>
               <option value="gemini">Gemini (Google)</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="openai">OpenAI</option>
+              <option value="deepseek">DeepSeek</option>
             </Select>
           </div>
+
+          {provider && (
+            <>
+              <div className="space-y-2">
+                <label htmlFor="model" className="text-sm font-medium">
+                  Модель (опционально)
+                </label>
+                <Input
+                  id="model"
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder={`По умолчанию: ${getDefaultModel(provider as AIProvider)}`}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Оставьте пустым для использования модели по умолчанию
+                </p>
+              </div>
+
+              {provider === 'openai' && (
+                <div className="space-y-2">
+                  <label htmlFor="baseUrl" className="text-sm font-medium">
+                    Base URL (опционально)
+                  </label>
+                  <Input
+                    id="baseUrl"
+                    type="text"
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder="https://api.openai.com/v1"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Для использования кастомного API endpoint
+                  </p>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="space-y-2">
             <label htmlFor="apiKey" className="text-sm font-medium">
@@ -141,7 +206,7 @@ export function AISettingsPage() {
               <li>Зарегистрируйтесь или войдите в аккаунт</li>
               <li>Перейдите в раздел "API Keys"</li>
               <li>Создайте новый API ключ</li>
-              <li>Скопируйте ключ и вставьте его выше</li>
+              <li>Модели: claude-3-5-sonnet-20241022, claude-3-opus-20240229</li>
             </ol>
           </div>
 
@@ -152,9 +217,54 @@ export function AISettingsPage() {
               <li>Войдите с Google аккаунтом</li>
               <li>Нажмите "Get API Key"</li>
               <li>Создайте новый ключ</li>
-              <li>Скопируйте ключ и вставьте его выше</li>
+              <li>Модели: gemini-pro, gemini-1.5-pro</li>
             </ol>
           </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">OpenRouter</h3>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+              <li>Перейдите на <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">openrouter.ai</a></li>
+              <li>Зарегистрируйтесь</li>
+              <li>Перейдите в Keys</li>
+              <li>Создайте новый ключ</li>
+              <li>Модели: anthropic/claude-3.5-sonnet, google/gemini-pro, openai/gpt-4o</li>
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">OpenAI</h3>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+              <li>Перейдите на <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">platform.openai.com</a></li>
+              <li>Войдите в аккаунт</li>
+              <li>Создайте новый API ключ</li>
+              <li>Модели: gpt-4o, gpt-4-turbo, gpt-3.5-turbo</li>
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">DeepSeek</h3>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+              <li>Перейдите на <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">platform.deepseek.com</a></li>
+              <li>Зарегистрируйтесь</li>
+              <li>Создайте API ключ</li>
+              <li>Модели: deepseek-chat, deepseek-coder</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+        <CardHeader>
+          <CardTitle className="text-blue-900 dark:text-blue-100">💡 Новые возможности</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+            <li>✨ <strong>AI Генерация</strong> - создавайте CJM и Canvas из описания бизнеса</li>
+            <li>🔍 <strong>AI Анализ</strong> - получайте рекомендации и инсайты</li>
+            <li>📊 <strong>Экспорт в PDF</strong> - скачивайте красивые отчёты</li>
+            <li>🎨 <strong>5 AI провайдеров</strong> - выбирайте лучший для вас</li>
+          </ul>
         </CardContent>
       </Card>
     </div>

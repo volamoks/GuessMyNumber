@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Upload, Sparkles, Save } from 'lucide-react'
+import { Upload, Sparkles, Save, Download, FileDown, Wand2 } from 'lucide-react'
 import { aiService } from '@/lib/ai-service'
 import { supabase } from '@/lib/supabase'
+import { exportToPDF, downloadJSON } from '@/lib/export-utils'
 
 interface CJMStage {
   name: string
@@ -24,6 +25,10 @@ export function CJMPage() {
   const [aiAnalysis, setAiAnalysis] = useState<string>('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [businessDescription, setBusinessDescription] = useState('')
+  const [showGenerator, setShowGenerator] = useState(false)
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -34,11 +39,36 @@ export function CJMPage() {
       try {
         const json = JSON.parse(e.target?.result as string)
         setCjmData(json)
+        setShowGenerator(false)
       } catch (error) {
         alert('Ошибка при чтении JSON файла')
       }
     }
     reader.readAsText(file)
+  }
+
+  const handleGenerate = async () => {
+    if (!businessDescription.trim()) {
+      alert('Пожалуйста, опишите ваш бизнес')
+      return
+    }
+
+    if (!aiService.isConfigured()) {
+      alert('Пожалуйста, настройте AI в разделе AI Settings')
+      return
+    }
+
+    setIsGenerating(true)
+    try {
+      const generated = await aiService.generateCJM(businessDescription)
+      setCjmData(generated)
+      setShowGenerator(false)
+      alert('CJM успешно сгенерирована!')
+    } catch (error) {
+      alert('Ошибка при генерации: ' + (error as Error).message)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleAnalyze = async () => {
@@ -80,6 +110,24 @@ export function CJMPage() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleExportPDF = async () => {
+    if (!cjmData) return
+
+    setIsExporting(true)
+    try {
+      await exportToPDF('cjm-visualization', `${cjmData.title}.pdf`)
+    } catch (error) {
+      alert('Ошибка при экспорте: ' + (error as Error).message)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExportJSON = () => {
+    if (!cjmData) return
+    downloadJSON(cjmData, `${cjmData.title}.json`)
   }
 
   const loadExample = () => {
@@ -125,6 +173,7 @@ export function CJMPage() {
       ]
     }
     setCjmData(example)
+    setShowGenerator(false)
   }
 
   return (
@@ -136,39 +185,83 @@ export function CJMPage() {
         </p>
       </div>
 
-      {/* Upload Section */}
+      {/* Upload / Generate Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Загрузка данных</CardTitle>
+          <CardTitle>Загрузка или генерация CJM</CardTitle>
           <CardDescription>
-            Загрузите JSON файл с данными CJM или используйте пример
+            Загрузите JSON файл, используйте пример или создайте с помощью AI
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex gap-4">
-          <div className="flex-1">
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <div className="flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
-                <div className="text-center">
-                  <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Нажмите для загрузки JSON
-                  </p>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <div className="flex items-center justify-center w-full h-24 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                  <div className="text-center">
+                    <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Загрузить JSON
+                    </p>
+                  </div>
                 </div>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button onClick={loadExample} variant="outline" className="h-24">
+                <div className="flex flex-col items-center">
+                  <FileDown className="h-6 w-6 mb-1" />
+                  <span>Загрузить пример</span>
+                </div>
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => setShowGenerator(!showGenerator)}
+                variant={showGenerator ? "default" : "outline"}
+                className="h-24"
+              >
+                <div className="flex flex-col items-center">
+                  <Wand2 className="h-6 w-6 mb-1" />
+                  <span>Создать с AI</span>
+                </div>
+              </Button>
+            </div>
+          </div>
+
+          {/* AI Generator Form */}
+          {showGenerator && (
+            <div className="p-4 border rounded-lg bg-muted/50 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Опишите ваш бизнес и целевую аудиторию
+                </label>
+                <textarea
+                  className="w-full min-h-[120px] p-3 rounded-md border bg-background"
+                  placeholder="Например: Мы продаем онлайн-курсы по программированию для начинающих разработчиков. Наша целевая аудитория - люди 20-35 лет, которые хотят сменить профессию..."
+                  value={businessDescription}
+                  onChange={(e) => setBusinessDescription(e.target.value)}
+                />
               </div>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </label>
-          </div>
-          <div className="flex items-center">
-            <Button onClick={loadExample} variant="outline">
-              Загрузить пример
-            </Button>
-          </div>
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating || !businessDescription.trim()}
+                className="w-full"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {isGenerating ? 'Генерирую CJM...' : 'Сгенерировать CJM с AI'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -177,17 +270,30 @@ export function CJMPage() {
         <>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <CardTitle>{cjmData.title}</CardTitle>
                   <CardDescription>Персона: {cjmData.persona}</CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSave} disabled={isSaving} variant="outline">
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={handleExportJSON} variant="outline" size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    JSON
+                  </Button>
+                  <Button
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <FileDown className="mr-2 h-4 w-4" />
+                    {isExporting ? 'Экспорт...' : 'PDF'}
+                  </Button>
+                  <Button onClick={handleSave} disabled={isSaving} variant="outline" size="sm">
                     <Save className="mr-2 h-4 w-4" />
                     {isSaving ? 'Сохранение...' : 'Сохранить'}
                   </Button>
-                  <Button onClick={handleAnalyze} disabled={isAnalyzing}>
+                  <Button onClick={handleAnalyze} disabled={isAnalyzing} size="sm">
                     <Sparkles className="mr-2 h-4 w-4" />
                     {isAnalyzing ? 'Анализирую...' : 'Анализ с AI'}
                   </Button>
@@ -195,14 +301,14 @@ export function CJMPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <div className="flex gap-4 pb-4">
+              <div id="cjm-visualization" className="overflow-x-auto bg-white p-4 rounded-lg">
+                <div className="flex gap-4 pb-4 min-w-max">
                   {cjmData.stages.map((stage, index) => (
                     <div
                       key={index}
-                      className="flex-shrink-0 w-64 p-4 border rounded-lg bg-card"
+                      className="flex-shrink-0 w-64 p-4 border rounded-lg bg-card shadow-sm"
                     >
-                      <h3 className="font-semibold mb-3">{stage.name}</h3>
+                      <h3 className="font-semibold mb-3 text-lg">{stage.name}</h3>
 
                       <div className="space-y-3 text-sm">
                         <div>
@@ -258,7 +364,7 @@ export function CJMPage() {
               </CardHeader>
               <CardContent>
                 <div className="prose dark:prose-invert max-w-none">
-                  <pre className="whitespace-pre-wrap text-sm">{aiAnalysis}</pre>
+                  <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg">{aiAnalysis}</pre>
                 </div>
               </CardContent>
             </Card>
