@@ -100,12 +100,33 @@ export function SettingsPage() {
   }
 
   // Theme Settings
-  const { theme, setTheme } = useThemeStore()
+  const { theme, setTheme, colorScheme, setColorScheme } = useThemeStore()
 
   const themeOptions = [
     { value: 'light', label: 'Светлая', icon: Sun },
     { value: 'dark', label: 'Темная', icon: Moon },
     { value: 'system', label: 'Системная', icon: Monitor },
+  ]
+
+  const colorSchemeOptions = [
+    {
+      value: 'default',
+      label: 'По умолчанию',
+      description: 'Классическая сине-фиолетовая палитра',
+      colors: ['#6366f1', '#818cf8', '#4f46e5']
+    },
+    {
+      value: 'bubblegum',
+      label: 'Bubblegum',
+      description: 'Игривая розово-пурпурная палитра',
+      colors: ['#ec4899', '#f472b6', '#d946ef']
+    },
+    {
+      value: 'clean-slate',
+      label: 'Clean Slate',
+      description: 'Минималистичная серая палитра',
+      colors: ['#525252', '#737373', '#a3a3a3']
+    },
   ]
 
   // Prompt Logs
@@ -347,6 +368,48 @@ export function SettingsPage() {
                     ? 'Темная тема с темным фоном и светлым текстом'
                     : 'Светлая тема с белым фоном и темным текстом'}
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Цветовая схема</CardTitle>
+              <CardDescription>Выберите цветовую палитру для интерфейса</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                {colorSchemeOptions.map((option) => {
+                  const isActive = colorScheme === option.value
+                  return (
+                    <Card
+                      key={option.value}
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        isActive ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setColorScheme(option.value as any)}
+                    >
+                      <CardContent className="flex items-center justify-between p-4">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className={`font-medium ${isActive ? 'text-primary' : ''}`}>{option.label}</p>
+                            {isActive && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{option.description}</p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          {option.colors.map((color, idx) => (
+                            <div
+                              key={idx}
+                              className="w-8 h-8 rounded-full border-2 border-background shadow-sm"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
