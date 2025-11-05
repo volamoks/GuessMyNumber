@@ -5,6 +5,7 @@ import { BusinessCanvasPage } from '@/pages/BusinessCanvasPage'
 import { LeanCanvasPage } from '@/pages/LeanCanvasPage'
 import { AISettingsPage } from '@/pages/AISettingsPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
+import { TestSupabasePage } from '@/pages/TestSupabasePage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="business-canvas" element={<BusinessCanvasPage />} />
           <Route path="lean-canvas" element={<LeanCanvasPage />} />
           <Route path="ai-settings" element={<AISettingsPage />} />
+          <Route path="test-supabase" element={<TestSupabasePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

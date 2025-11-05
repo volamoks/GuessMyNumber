@@ -1,8 +1,8 @@
--- Таблица для проектов (CJM, Business Canvas, Lean Canvas)
+-- Таблица для проектов (CJM, Business Canvas, Lean Canvas, Roadmap)
 CREATE TABLE IF NOT EXISTS projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('cjm', 'business_canvas', 'lean_canvas')),
+  type TEXT NOT NULL CHECK (type IN ('cjm', 'business_canvas', 'lean_canvas', 'roadmap')),
   description TEXT,
   data JSONB NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
