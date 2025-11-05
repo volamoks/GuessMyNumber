@@ -184,7 +184,7 @@ export function LeanCanvasPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <CanvasVisualization data={canvasData} />
+              <CanvasVisualization data={canvasData} onUpdate={setCanvasData} />
             </CardContent>
           </Card>
 

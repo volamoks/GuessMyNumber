@@ -190,7 +190,7 @@ export function BusinessCanvasPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <CanvasVisualization data={canvasData} />
+              <CanvasVisualization data={canvasData} onUpdate={setCanvasData} />
             </CardContent>
           </Card>
 
