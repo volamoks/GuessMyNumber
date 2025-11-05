@@ -7,7 +7,7 @@ import { AIGenerator } from '@/components/cjm/AIGenerator'
 import { CJMVisualization } from '@/components/cjm/CJMVisualization'
 import { UploadSection } from '@/components/cjm/UploadSection'
 import { ExportActions } from '@/components/cjm/ExportActions'
-import { AIAnalysisResult } from '@/components/cjm/AIAnalysisResult'
+import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 
 interface CJMStage {
   name: string
