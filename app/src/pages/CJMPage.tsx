@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { aiService } from '@/lib/ai-service'
-import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import * as aiService from '@/lib/ai-service'
+import { projectsService } from '@/lib/projects-service'
 import { exportToPDF, downloadJSON } from '@/lib/export-utils'
 import { AIGenerator } from '@/components/cjm/AIGenerator'
 import { CJMVisualization } from '@/components/cjm/CJMVisualization'
 import { UploadSection } from '@/components/cjm/UploadSection'
 import { ExportActions } from '@/components/cjm/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
+import { History } from 'lucide-react'
 
 interface CJMStage {
   name: string
@@ -116,6 +119,7 @@ const EXAMPLE_CJM: CJMData = {
 }
 
 export function CJMPage() {
+  const [searchParams] = useSearchParams()
   const [cjmData, setCjmData] = useState<CJMData | null>(null)
   const [aiAnalysis, setAiAnalysis] = useState<string>('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -123,6 +127,40 @@ export function CJMPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
+  const [showVersions, setShowVersions] = useState(false)
+  const [versions, setVersions] = useState<any[]>([])
+
+  // Загрузка проекта при монтировании
+  useEffect(() => {
+    const projectId = searchParams.get('projectId')
+    if (projectId) {
+      loadProject(projectId)
+    }
+  }, [searchParams])
+
+  const loadProject = async (projectId: string) => {
+    try {
+      const project = await projectsService.getProject(projectId)
+      if (project) {
+        setCjmData(project.data)
+        setCurrentProjectId(project.id)
+      }
+    } catch (error) {
+      alert('Ошибка при загрузке проекта')
+    }
+  }
+
+  const loadVersions = async () => {
+    if (!currentProjectId) return
+    try {
+      const vers = await projectsService.getProjectVersions(currentProjectId)
+      setVersions(vers)
+      setShowVersions(true)
+    } catch (error) {
+      alert('Ошибка при загрузке версий')
+    }
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -182,20 +220,50 @@ export function CJMPage() {
 
     setIsSaving(true)
     try {
-      const { error } = await supabase
-        .from('projects')
-        .insert({
+      if (currentProjectId) {
+        // Обновляем существующий проект
+        await projectsService.updateProject(currentProjectId, {
           title: cjmData.title,
-          type: 'cjm',
-          data: cjmData
+          data: cjmData,
+          description: cjmData.description,
         })
-
-      if (error) throw error
-      alert('Проект сохранён!')
+        alert('Проект обновлён и создана новая версия!')
+      } else {
+        // Создаём новый проект
+        const project = await projectsService.createProject(
+          cjmData.title,
+          'cjm',
+          cjmData,
+          cjmData.description
+        )
+        if (project) {
+          setCurrentProjectId(project.id)
+          // Обновляем URL с ID проекта
+          window.history.pushState({}, '', `/cjm?projectId=${project.id}`)
+        }
+        alert('Проект сохранён!')
+      }
     } catch (error) {
       alert('Ошибка при сохранении: ' + (error as Error).message)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleRestoreVersion = async (versionNumber: number) => {
+    if (!currentProjectId) return
+
+    if (!confirm(`Восстановить версию ${versionNumber}? Текущие изменения будут заменены.`)) return
+
+    try {
+      const restored = await projectsService.restoreVersion(currentProjectId, versionNumber)
+      if (restored) {
+        setCjmData(restored.data)
+        alert('Версия успешно восстановлена!')
+        setShowVersions(false)
+      }
+    } catch (error) {
+      alert('Ошибка при восстановлении версии')
     }
   }
 
@@ -263,16 +331,31 @@ export function CJMPage() {
                 <div>
                   <CardTitle>{cjmData.title}</CardTitle>
                   <CardDescription>Персона: {cjmData.persona}</CardDescription>
+                  {cjmData.description && (
+                    <CardDescription className="mt-1">{cjmData.description}</CardDescription>
+                  )}
                 </div>
-                <ExportActions
-                  onExportJSON={handleExportJSON}
-                  onExportPDF={handleExportPDF}
-                  onSave={handleSave}
-                  onAnalyze={handleAnalyze}
-                  isExporting={isExporting}
-                  isSaving={isSaving}
-                  isAnalyzing={isAnalyzing}
-                />
+                <div className="flex gap-2">
+                  {currentProjectId && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadVersions}
+                    >
+                      <History className="mr-2 h-4 w-4" />
+                      Версии
+                    </Button>
+                  )}
+                  <ExportActions
+                    onExportJSON={handleExportJSON}
+                    onExportPDF={handleExportPDF}
+                    onSave={handleSave}
+                    onAnalyze={handleAnalyze}
+                    isExporting={isExporting}
+                    isSaving={isSaving}
+                    isAnalyzing={isAnalyzing}
+                  />
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -282,6 +365,52 @@ export function CJMPage() {
               />
             </CardContent>
           </Card>
+
+          {/* История версий */}
+          {showVersions && versions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>История версий</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => setShowVersions(false)}>
+                    Закрыть
+                  </Button>
+                </div>
+                <CardDescription>
+                  Выберите версию для восстановления
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {versions.map((version) => (
+                    <div
+                      key={version.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
+                    >
+                      <div>
+                        <p className="font-medium">Версия #{version.version_number}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(version.created_at).toLocaleString('ru-RU')}
+                        </p>
+                        {version.change_description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {version.change_description}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRestoreVersion(version.version_number)}
+                      >
+                        Восстановить
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {aiAnalysis && <AIAnalysisResult analysis={aiAnalysis} />}
         </>

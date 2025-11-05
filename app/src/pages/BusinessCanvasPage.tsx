@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { aiService } from '@/lib/ai-service'
+import * as aiService from '@/lib/ai-service'
 import { supabase } from '@/lib/supabase'
 import { UploadSection } from '@/components/business-canvas/UploadSection'
 import { CanvasVisualization } from '@/components/business-canvas/CanvasVisualization'

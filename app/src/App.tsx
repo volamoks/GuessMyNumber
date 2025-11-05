@@ -4,13 +4,15 @@ import { CJMPage } from '@/pages/CJMPage'
 import { BusinessCanvasPage } from '@/pages/BusinessCanvasPage'
 import { LeanCanvasPage } from '@/pages/LeanCanvasPage'
 import { AISettingsPage } from '@/pages/AISettingsPage'
+import { ProjectsPage } from '@/pages/ProjectsPage'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/cjm" replace />} />
+          <Route index element={<Navigate to="/projects" replace />} />
+          <Route path="projects" element={<ProjectsPage />} />
           <Route path="cjm" element={<CJMPage />} />
           <Route path="business-canvas" element={<BusinessCanvasPage />} />
           <Route path="lean-canvas" element={<LeanCanvasPage />} />

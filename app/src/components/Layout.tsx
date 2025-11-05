@@ -1,8 +1,9 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Map, LayoutGrid, Lightbulb, Settings } from 'lucide-react'
+import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban } from 'lucide-react'
 
 const navigation = [
+  { name: 'Projects', href: '/projects', icon: FolderKanban },
   { name: 'Customer Journey Map', href: '/cjm', icon: Map },
   { name: 'Business Canvas', href: '/business-canvas', icon: LayoutGrid },
   { name: 'Lean Canvas', href: '/lean-canvas', icon: Lightbulb },
