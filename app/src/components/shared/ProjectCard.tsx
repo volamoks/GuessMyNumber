@@ -10,7 +10,8 @@ import {
   ExternalLink,
   FileJson,
   LayoutGrid,
-  Target
+  Target,
+  Route
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -21,7 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
-export type ProjectType = 'cjm' | 'business_canvas' | 'lean_canvas'
+export type ProjectType = 'cjm' | 'business_canvas' | 'lean_canvas' | 'roadmap'
 
 interface ProjectCardProps {
   id: string
@@ -55,6 +56,12 @@ const typeConfig = {
     icon: FileJson,
     color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-900',
     badgeVariant: 'outline' as const,
+  },
+  roadmap: {
+    label: 'Product Roadmap',
+    icon: Route,
+    color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-900',
+    badgeVariant: 'secondary' as const,
   },
 }
 

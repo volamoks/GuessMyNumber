@@ -60,12 +60,14 @@ export function ProjectsPage() {
     const cjmCount = projects.filter(p => p.type === 'cjm' && !p.is_archived).length
     const businessCanvasCount = projects.filter(p => p.type === 'business_canvas' && !p.is_archived).length
     const leanCanvasCount = projects.filter(p => p.type === 'lean_canvas' && !p.is_archived).length
+    const roadmapCount = projects.filter(p => p.type === 'roadmap' && !p.is_archived).length
 
     return {
       total,
       cjm: cjmCount,
       businessCanvas: businessCanvasCount,
       leanCanvas: leanCanvasCount,
+      roadmap: roadmapCount,
     }
   }, [projects])
 
@@ -102,6 +104,7 @@ export function ProjectsPage() {
       cjm: '/cjm',
       business_canvas: '/business-canvas',
       lean_canvas: '/lean-canvas',
+      roadmap: '/roadmap',
     }
     navigate(`${routes[project.type]}?projectId=${project.id}`)
   }
@@ -176,6 +179,7 @@ export function ProjectsPage() {
                 <SelectItem value="cjm">Customer Journey Map</SelectItem>
                 <SelectItem value="business_canvas">Business Canvas</SelectItem>
                 <SelectItem value="lean_canvas">Lean Canvas</SelectItem>
+                <SelectItem value="roadmap">Product Roadmap</SelectItem>
               </SelectContent>
             </Select>
 

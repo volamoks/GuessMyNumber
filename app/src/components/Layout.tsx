@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban } from 'lucide-react'
+import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban, Route } from 'lucide-react'
 import { FloatingAIGenerator } from '@/components/shared/FloatingAIGenerator'
 
 const navigation = [
@@ -8,6 +8,7 @@ const navigation = [
   { name: 'Customer Journey Map', href: '/cjm', icon: Map },
   { name: 'Business Canvas', href: '/business-canvas', icon: LayoutGrid },
   { name: 'Lean Canvas', href: '/lean-canvas', icon: Lightbulb },
+  { name: 'Roadmap', href: '/roadmap', icon: Route },
   { name: 'AI Settings', href: '/ai-settings', icon: Settings },
 ]
 

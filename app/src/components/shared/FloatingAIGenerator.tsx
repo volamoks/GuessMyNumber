@@ -15,7 +15,7 @@ import {
 import { Sparkles, Loader2 } from 'lucide-react'
 import * as aiService from '@/lib/ai-service'
 import { projectsService } from '@/lib/projects-service'
-import { useCJMStore, useBusinessCanvasStore, useLeanCanvasStore } from '@/store'
+import { useCJMStore, useBusinessCanvasStore, useLeanCanvasStore, useRoadmapStore } from '@/store'
 
 type PageContext = 'cjm' | 'business_canvas' | 'lean_canvas' | 'roadmap' | null
 
@@ -99,6 +99,7 @@ export function FloatingAIGenerator() {
   const setCJMData = useCJMStore((state) => state.setData)
   const setBusinessCanvasData = useBusinessCanvasStore((state) => state.setData)
   const setLeanCanvasData = useLeanCanvasStore((state) => state.setData)
+  const setRoadmapData = useRoadmapStore((state) => state.setData)
 
   // Determine current page context
   const getPageContext = (): PageContext => {
@@ -149,8 +150,7 @@ export function FloatingAIGenerator() {
           break
         case 'roadmap':
           generatedData = await aiService.generateRoadmap(description, language)
-          // TODO: Set roadmap data when store is created
-          console.log('Generated roadmap:', generatedData)
+          setRoadmapData(generatedData)
           break
       }
 

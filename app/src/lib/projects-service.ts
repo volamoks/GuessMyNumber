@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export type ProjectType = 'cjm' | 'business_canvas' | 'lean_canvas'
+export type ProjectType = 'cjm' | 'business_canvas' | 'lean_canvas' | 'roadmap'
 
 export interface Project {
   id: string
