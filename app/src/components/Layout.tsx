@@ -51,7 +51,7 @@ export function Layout() {
       </header>
 
       {/* Main Content */}
-      <main className="container py-6">
+      <main className="container mx-auto py-6 px-4">
         <Outlet />
       </main>
 
