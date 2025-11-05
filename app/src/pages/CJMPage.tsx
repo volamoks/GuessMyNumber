@@ -12,6 +12,7 @@ import { ExportActions } from '@/components/cjm/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { History } from 'lucide-react'
 import { useCJMStore, useGlobalStore } from '@/store'
+import { toast } from 'sonner'
 
 interface CJMStage {
   name: string
@@ -166,7 +167,7 @@ export function CJMPage() {
         setCurrentProjectId(project.id)
       }
     } catch (error) {
-      alert('Ошибка при загрузке проекта')
+      toast.error('Ошибка при загрузке проекта')
     }
   }
 
@@ -177,7 +178,7 @@ export function CJMPage() {
       setVersions(vers)
       setShowVersions(true)
     } catch (error) {
-      alert('Ошибка при загрузке версий')
+      toast.error('Ошибка при загрузке версий')
     }
   }
 
@@ -191,8 +192,9 @@ export function CJMPage() {
         const json = JSON.parse(e.target?.result as string)
         setCjmData(json)
         setShowGenerator(false)
+        toast.success('JSON файл загружен')
       } catch (error) {
-        alert('Ошибка при чтении JSON файла')
+        toast.error('Ошибка при чтении JSON файла')
       }
     }
     reader.readAsText(file)
@@ -201,18 +203,19 @@ export function CJMPage() {
   const handleGenerate = async (description: string, language: 'ru' | 'en' = 'ru') => {
     // Check new AI system first
     if (aiModels.length === 0 || !activeModelId) {
-      alert('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
+      toast.error('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
       return
     }
 
     setIsGenerating(true)
+    const loadingToast = toast.loading('Генерация CJM...')
     try {
       const generated = await aiService.generateCJM(description, language)
       setCjmData(generated)
       setShowGenerator(false)
-      alert('CJM успешно сгенерирована!')
+      toast.success('CJM успешно сгенерирована!', { id: loadingToast })
     } catch (error) {
-      alert('Ошибка при генерации: ' + (error as Error).message)
+      toast.error('Ошибка при генерации: ' + (error as Error).message, { id: loadingToast })
     } finally {
       setIsGenerating(false)
     }
@@ -220,22 +223,24 @@ export function CJMPage() {
 
   const handleAnalyze = async () => {
     if (!cjmData) {
-      alert('Нет данных для анализа')
+      toast.error('Нет данных для анализа')
       return
     }
 
     // Check new AI system first
     if (aiModels.length === 0 || !activeModelId) {
-      alert('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
+      toast.error('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
       return
     }
 
     setIsAnalyzing(true)
+    const loadingToast = toast.loading('Анализ CJM...')
     try {
       const analysis = await aiService.analyzeCJM(cjmData, currentProjectId || undefined)
       setAiAnalysis(analysis)
+      toast.success('Анализ завершен!', { id: loadingToast })
     } catch (error) {
-      alert('Ошибка при анализе: ' + (error as Error).message)
+      toast.error('Ошибка при анализе: ' + (error as Error).message, { id: loadingToast })
     } finally {
       setIsAnalyzing(false)
     }
@@ -245,6 +250,7 @@ export function CJMPage() {
     if (!cjmData) return
 
     setIsSaving(true)
+    const loadingToast = toast.loading('Сохранение...')
     try {
       if (currentProjectId) {
         // Обновляем существующий проект
@@ -253,7 +259,7 @@ export function CJMPage() {
           data: cjmData,
           description: cjmData.description,
         })
-        alert('Проект обновлён и создана новая версия!')
+        toast.success('Проект обновлён и создана новая версия!', { id: loadingToast })
       } else {
         // Создаём новый проект
         const project = await projectsService.createProject(
@@ -267,10 +273,10 @@ export function CJMPage() {
           // Обновляем URL с ID проекта
           window.history.pushState({}, '', `/cjm?projectId=${project.id}`)
         }
-        alert('Проект сохранён!')
+        toast.success('Проект сохранён!', { id: loadingToast })
       }
     } catch (error) {
-      alert('Ошибка при сохранении: ' + (error as Error).message)
+      toast.error('Ошибка при сохранении: ' + (error as Error).message, { id: loadingToast })
     } finally {
       setIsSaving(false)
     }
@@ -281,15 +287,16 @@ export function CJMPage() {
 
     if (!confirm(`Восстановить версию ${versionNumber}? Текущие изменения будут заменены.`)) return
 
+    const loadingToast = toast.loading('Восстановление версии...')
     try {
       const restored = await projectsService.restoreVersion(currentProjectId, versionNumber)
       if (restored) {
         setCjmData(restored.data)
-        alert('Версия успешно восстановлена!')
+        toast.success('Версия успешно восстановлена!', { id: loadingToast })
         setShowVersions(false)
       }
     } catch (error) {
-      alert('Ошибка при восстановлении версии')
+      toast.error('Ошибка при восстановлении версии', { id: loadingToast })
     }
   }
 
@@ -297,10 +304,12 @@ export function CJMPage() {
     if (!cjmData) return
 
     setIsExporting(true)
+    const loadingToast = toast.loading('Экспорт в PDF...')
     try {
       await exportToPDF('cjm-visualization', `${cjmData.title}.pdf`)
+      toast.success('PDF экспортирован!', { id: loadingToast })
     } catch (error) {
-      alert('Ошибка при экспорте: ' + (error as Error).message)
+      toast.error('Ошибка при экспорте: ' + (error as Error).message, { id: loadingToast })
     } finally {
       setIsExporting(false)
     }
@@ -309,11 +318,13 @@ export function CJMPage() {
   const handleExportJSON = () => {
     if (!cjmData) return
     downloadJSON(cjmData, `${cjmData.title}.json`)
+    toast.success('JSON экспортирован!')
   }
 
   const loadExample = () => {
     setCjmData(EXAMPLE_CJM)
     setShowGenerator(false)
+    toast.success('Пример загружен')
   }
 
   return (

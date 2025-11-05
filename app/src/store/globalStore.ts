@@ -199,6 +199,20 @@ export const useGlobalStore = create<GlobalStore>()(
     }),
     {
       name: 'global-storage',
+      onRehydrateStorage: () => (state) => {
+        // После восстановления из localStorage, инициализируем AI конфигурацию
+        if (state?.activeModelId && state?.aiModels) {
+          const activeModel = state.aiModels.find((m) => m.id === state.activeModelId)
+          if (activeModel) {
+            aiService.setAIConfig({
+              provider: activeModel.provider,
+              apiKey: activeModel.apiKey,
+              model: activeModel.model,
+              baseUrl: activeModel.baseUrl,
+            })
+          }
+        }
+      },
     }
   )
 )

@@ -10,6 +10,7 @@ import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2, Clock, Za
 import type { AIProvider } from '@/lib/ai-service'
 import { useGlobalStore, useThemeStore, type AIModelConfig } from '@/store'
 import { promptLogsService, type PromptLog } from '@/lib/prompt-logs-service'
+import { toast } from 'sonner'
 
 export function SettingsPage() {
   // AI Models Management
@@ -36,7 +37,7 @@ export function SettingsPage() {
   // AI Models handlers
   const handleAddModel = () => {
     if (!modelForm.name || !modelForm.provider || !modelForm.apiKey) {
-      alert('Заполните обязательные поля: название, провайдер, API ключ')
+      toast.error('Заполните обязательные поля: название, провайдер, API ключ')
       return
     }
     addAIModel(modelForm)
@@ -48,7 +49,7 @@ export function SettingsPage() {
       baseUrl: '',
     })
     setIsAddingModel(false)
-    alert('Модель добавлена!')
+    toast.success('Модель добавлена!')
   }
 
   const handleEditModel = (model: AIModelConfig) => {
@@ -65,7 +66,7 @@ export function SettingsPage() {
   const handleUpdateModel = () => {
     if (!editingModelId) return
     if (!modelForm.name || !modelForm.provider || !modelForm.apiKey) {
-      alert('Заполните обязательные поля')
+      toast.error('Заполните обязательные поля')
       return
     }
     updateAIModel(editingModelId, modelForm)
@@ -77,12 +78,13 @@ export function SettingsPage() {
       model: '',
       baseUrl: '',
     })
-    alert('Модель обновлена!')
+    toast.success('Модель обновлена!')
   }
 
   const handleDeleteModel = (id: string) => {
     if (!confirm('Удалить эту модель?')) return
     deleteAIModel(id)
+    toast.success('Модель удалена')
   }
 
   const handleCancelEdit = () => {

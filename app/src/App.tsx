@@ -7,10 +7,12 @@ import { RoadmapPage } from '@/pages/RoadmapPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { TestSupabasePage } from '@/pages/TestSupabasePage'
+import { Toaster } from '@/components/ui/toaster'
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/projects" replace />} />
