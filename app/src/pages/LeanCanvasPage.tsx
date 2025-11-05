@@ -1,10 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import * as aiService from '@/lib/ai-service'
 import { supabase } from '@/lib/supabase'
-import { UploadSection } from '@/components/lean-canvas/UploadSection'
+import { downloadJSON } from '@/lib/export-utils'
 import { CanvasVisualization } from '@/components/lean-canvas/CanvasVisualization'
 import { ExportActions } from '@/components/lean-canvas/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
+import { ActionsBar } from '@/components/shared/ActionsBar'
 import { useLeanCanvasStore } from '@/store'
 
 interface LeanCanvasData {
@@ -143,6 +144,11 @@ export function LeanCanvasPage() {
     setCanvasData(EXAMPLE_CANVAS)
   }
 
+  const handleExportJSON = () => {
+    if (!canvasData) return
+    downloadJSON(canvasData, `${canvasData.title}.json`)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -152,20 +158,15 @@ export function LeanCanvasPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Загрузка данных</CardTitle>
-          <CardDescription>
-            Загрузите JSON файл с данными Lean Canvas или используйте пример
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UploadSection
-            onFileUpload={handleFileUpload}
-            onLoadExample={loadExample}
-          />
-        </CardContent>
-      </Card>
+      <ActionsBar
+        onLoadExample={loadExample}
+        onFileUpload={handleFileUpload}
+        onExportJSON={handleExportJSON}
+        hasData={!!canvasData}
+        exampleLabel="Загрузить пример"
+        title="Действия"
+        description="Загрузите JSON файл с данными Lean Canvas или используйте пример"
+      />
 
       {canvasData && (
         <>

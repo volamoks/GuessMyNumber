@@ -2,8 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { exportToPDF, downloadJSON } from '@/lib/export-utils'
-import { Download, FileJson, Upload } from 'lucide-react'
+import { FileJson } from 'lucide-react'
 import { useRoadmapStore, type RoadmapData, type RoadmapFeature } from '@/store'
+import { ActionsBar } from '@/components/shared/ActionsBar'
 
 const EXAMPLE_ROADMAP: RoadmapData = {
   title: "Продуктовая roadmap SaaS платформы",
@@ -218,48 +219,16 @@ export function RoadmapPage() {
       </div>
 
       {/* Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Действия</CardTitle>
-          <CardDescription>
-            Загрузите JSON с roadmap или создайте с помощью AI
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Button onClick={handleLoadExample} variant="outline">
-            <FileJson className="mr-2 h-4 w-4" />
-            Загрузить пример
-          </Button>
-
-          <label>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button variant="outline" asChild>
-              <span>
-                <Upload className="mr-2 h-4 w-4" />
-                Загрузить JSON
-              </span>
-            </Button>
-          </label>
-
-          {roadmapData && (
-            <>
-              <Button onClick={handleExportJSON} variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Скачать JSON
-              </Button>
-              <Button onClick={handleExportPDF} variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Экспорт в PDF
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <ActionsBar
+        onLoadExample={handleLoadExample}
+        onFileUpload={handleFileUpload}
+        onExportJSON={handleExportJSON}
+        onExportPDF={handleExportPDF}
+        hasData={!!roadmapData}
+        exampleLabel="Загрузить пример"
+        title="Действия"
+        description="Загрузите JSON с roadmap или создайте с помощью AI"
+      />
 
       {/* Roadmap Visualization */}
       {roadmapData && (

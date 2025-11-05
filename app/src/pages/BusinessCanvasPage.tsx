@@ -1,10 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import * as aiService from '@/lib/ai-service'
 import { supabase } from '@/lib/supabase'
-import { UploadSection } from '@/components/business-canvas/UploadSection'
+import { downloadJSON } from '@/lib/export-utils'
 import { CanvasVisualization } from '@/components/business-canvas/CanvasVisualization'
 import { ExportActions } from '@/components/business-canvas/ExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
+import { ActionsBar } from '@/components/shared/ActionsBar'
 import { useBusinessCanvasStore } from '@/store'
 
 interface BusinessCanvasData {
@@ -149,6 +150,11 @@ export function BusinessCanvasPage() {
     setCanvasData(EXAMPLE_CANVAS)
   }
 
+  const handleExportJSON = () => {
+    if (!canvasData) return
+    downloadJSON(canvasData, `${canvasData.title}.json`)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -158,20 +164,15 @@ export function BusinessCanvasPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Загрузка данных</CardTitle>
-          <CardDescription>
-            Загрузите JSON файл с данными Business Canvas или используйте пример
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UploadSection
-            onFileUpload={handleFileUpload}
-            onLoadExample={loadExample}
-          />
-        </CardContent>
-      </Card>
+      <ActionsBar
+        onLoadExample={loadExample}
+        onFileUpload={handleFileUpload}
+        onExportJSON={handleExportJSON}
+        hasData={!!canvasData}
+        exampleLabel="Загрузить пример"
+        title="Действия"
+        description="Загрузите JSON файл с данными Business Canvas или используйте пример"
+      />
 
       {canvasData && (
         <>
