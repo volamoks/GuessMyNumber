@@ -27,17 +27,154 @@ export async function generateCJM(description: string, language: 'ru' | 'en' = '
   return parseJSON(response)
 }
 
-export async function generateBusinessCanvas(description: string): Promise<any> {
+export async function generateBusinessCanvas(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
-  const response = await callAI('Создай Business Canvas в JSON: ' + description, config)
+
+  const prompts: Record<string, string> = {
+    ru: `Создай Business Model Canvas в JSON формате для: ${description}
+
+Структура JSON:
+{
+  "title": "название продукта/услуги",
+  "keyPartners": ["партнер 1", "партнер 2", ...],
+  "keyActivities": ["активность 1", "активность 2", ...],
+  "keyResources": ["ресурс 1", "ресурс 2", ...],
+  "valueProposition": ["ценность 1", "ценность 2", ...],
+  "customerRelationships": ["взаимоотношение 1", "взаимоотношение 2", ...],
+  "channels": ["канал 1", "канал 2", ...],
+  "customerSegments": ["сегмент 1", "сегмент 2", ...],
+  "costStructure": ["статья расходов 1", "статья расходов 2", ...],
+  "revenueStreams": ["источник дохода 1", "источник дохода 2", ...]
+}
+
+Верни только JSON без markdown блоков.`,
+    en: `Create a Business Model Canvas in JSON format for: ${description}
+
+JSON structure:
+{
+  "title": "product/service name",
+  "keyPartners": ["partner 1", "partner 2", ...],
+  "keyActivities": ["activity 1", "activity 2", ...],
+  "keyResources": ["resource 1", "resource 2", ...],
+  "valueProposition": ["value 1", "value 2", ...],
+  "customerRelationships": ["relationship 1", "relationship 2", ...],
+  "channels": ["channel 1", "channel 2", ...],
+  "customerSegments": ["segment 1", "segment 2", ...],
+  "costStructure": ["cost 1", "cost 2", ...],
+  "revenueStreams": ["revenue stream 1", "revenue stream 2", ...]
+}
+
+Return only JSON without markdown blocks.`
+  }
+
+  const response = await callAI(prompts[language], config)
   return parseJSON(response)
 }
 
-export async function generateLeanCanvas(description: string): Promise<any> {
+export async function generateLeanCanvas(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
   const config = getConfig()
   if (!config) throw new Error('AI не настроен')
-  const response = await callAI('Создай Lean Canvas в JSON: ' + description, config)
+
+  const prompts: Record<string, string> = {
+    ru: `Создай Lean Canvas в JSON формате для: ${description}
+
+Структура JSON:
+{
+  "title": "название продукта/услуги",
+  "problem": ["проблема 1", "проблема 2", "проблема 3"],
+  "solution": ["решение 1", "решение 2", "решение 3"],
+  "keyMetrics": ["метрика 1", "метрика 2", ...],
+  "uniqueValueProposition": "уникальное ценностное предложение (одна строка)",
+  "unfairAdvantage": ["преимущество 1", "преимущество 2", ...],
+  "channels": ["канал 1", "канал 2", ...],
+  "customerSegments": ["сегмент 1", "сегмент 2", ...],
+  "costStructure": ["статья расходов 1", "статья расходов 2", ...],
+  "revenueStreams": ["источник дохода 1", "источник дохода 2", ...]
+}
+
+Верни только JSON без markdown блоков.`,
+    en: `Create a Lean Canvas in JSON format for: ${description}
+
+JSON structure:
+{
+  "title": "product/service name",
+  "problem": ["problem 1", "problem 2", "problem 3"],
+  "solution": ["solution 1", "solution 2", "solution 3"],
+  "keyMetrics": ["metric 1", "metric 2", ...],
+  "uniqueValueProposition": "unique value proposition (one line)",
+  "unfairAdvantage": ["advantage 1", "advantage 2", ...],
+  "channels": ["channel 1", "channel 2", ...],
+  "customerSegments": ["segment 1", "segment 2", ...],
+  "costStructure": ["cost 1", "cost 2", ...],
+  "revenueStreams": ["revenue stream 1", "revenue stream 2", ...]
+}
+
+Return only JSON without markdown blocks.`
+  }
+
+  const response = await callAI(prompts[language], config)
+  return parseJSON(response)
+}
+
+export async function generateRoadmap(description: string, language: 'ru' | 'en' = 'ru'): Promise<any> {
+  const config = getConfig()
+  if (!config) throw new Error('AI не настроен')
+
+  const prompts: Record<string, string> = {
+    ru: `Создай Product Roadmap в формате Now-Next-Later для: ${description}
+
+Структура JSON:
+{
+  "title": "название продукта",
+  "description": "краткое описание",
+  "now": [
+    {
+      "title": "название фичи",
+      "description": "описание",
+      "priority": "high" | "medium" | "low",
+      "category": "feature" | "bug_fix" | "tech_debt" | "improvement",
+      "effort": "small" | "medium" | "large",
+      "status": "planning" | "in_progress" | "done"
+    }
+  ],
+  "next": [ /* та же структура */ ],
+  "later": [ /* та же структура */ ]
+}
+
+Now - текущий квартал (2-4 фичи)
+Next - следующий квартал (3-5 фичи)
+Later - будущее (5-7 идей)
+
+Верни только JSON без markdown блоков.`,
+    en: `Create a Product Roadmap in Now-Next-Later format for: ${description}
+
+JSON structure:
+{
+  "title": "product name",
+  "description": "brief description",
+  "now": [
+    {
+      "title": "feature title",
+      "description": "description",
+      "priority": "high" | "medium" | "low",
+      "category": "feature" | "bug_fix" | "tech_debt" | "improvement",
+      "effort": "small" | "medium" | "large",
+      "status": "planning" | "in_progress" | "done"
+    }
+  ],
+  "next": [ /* same structure */ ],
+  "later": [ /* same structure */ ]
+}
+
+Now - current quarter (2-4 features)
+Next - next quarter (3-5 features)
+Later - future (5-7 ideas)
+
+Return only JSON without markdown blocks.`
+  }
+
+  const response = await callAI(prompts[language], config)
   return parseJSON(response)
 }
 

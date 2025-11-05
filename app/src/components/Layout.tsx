@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban } from 'lucide-react'
+import { FloatingAIGenerator } from '@/components/shared/FloatingAIGenerator'
 
 const navigation = [
   { name: 'Projects', href: '/projects', icon: FolderKanban },
@@ -52,6 +53,9 @@ export function Layout() {
       <main className="container py-6">
         <Outlet />
       </main>
+
+      {/* Floating AI Generator - context-aware */}
+      <FloatingAIGenerator />
     </div>
   )
 }
