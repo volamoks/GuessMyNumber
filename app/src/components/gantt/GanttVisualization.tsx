@@ -90,17 +90,26 @@ export function GanttVisualization({
           task.details?.assignee
         )
 
+        // Определяем тип задачи для gantt-task-react
+        let taskType: 'project' | 'task' | 'milestone' = 'task'
+        if (task.details?.issueType === 'Epic') {
+          taskType = 'project' // Epic отображается как project с возможностью сворачивания
+        } else if (task.type === 'milestone') {
+          taskType = 'milestone'
+        }
+
         return {
           start: new Date(task.start_date),
           end: new Date(task.end_date),
           name: task.text,
           id: task.id,
-          type: task.type === 'project' ? 'project' : 'task',
+          type: taskType,
           progress: Math.min(100, Math.max(0, task.progress * 100)),
           isDisabled: readonly,
-          project: task.parent,
+          project: task.parent || undefined, // parent ID для иерархии
           dependencies: [],
           styles: colors,
+          hideChildren: false, // Показываем детей по умолчанию
         } as Task
       })
   }, [data?.tasks, colorScheme, readonly])

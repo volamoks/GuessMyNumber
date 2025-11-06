@@ -130,9 +130,15 @@ class JiraService {
       const duration = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
 
       // Add main issue as task
+      // Добавляем эмодзи для типов задач
+      const typeEmoji = issue.issueType === 'Epic' ? '📦' :
+                        issue.issueType === 'Story' ? '📖' :
+                        issue.issueType === 'Bug' ? '🐛' :
+                        issue.issueType === 'Task' ? '✓' : '•'
+
       tasks.push({
         id: issue.key,
-        text: `${issue.key}: ${issue.summary}`,
+        text: `${typeEmoji} ${issue.key}: ${issue.summary}`,
         start_date: startDate,
         end_date: endDate,
         duration,
@@ -161,7 +167,7 @@ class JiraService {
 
           tasks.push({
             id: subtask.key,
-            text: `${subtask.key}: ${subtask.summary}`,
+            text: `  └ 📝 ${subtask.key}: ${subtask.summary}`, // Subtask с отступом и иконкой
             start_date: subtaskStart,
             end_date: subtaskEnd,
             duration: subtaskDuration,
@@ -173,6 +179,9 @@ class JiraService {
               key: subtask.key,
               status: subtask.status,
               issueType: subtask.issueType,
+              // Наследуем приоритет и assignee от родителя если нет своих
+              priority: issue.priority,
+              assignee: issue.assignee,
             },
           })
         })
