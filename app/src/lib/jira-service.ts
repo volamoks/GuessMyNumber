@@ -95,10 +95,12 @@ class JiraService {
   }
 
   /**
-   * Transform JIRA issues to Gantt tasks
+   * Transform JIRA issues to Gantt tasks (including subtasks)
    */
   transformToGanttTasks(issues: JiraIssue[]): GanttTask[] {
-    return issues.map((issue) => {
+    const tasks: GanttTask[] = []
+
+    issues.forEach((issue) => {
       const startDate = issue.startDate ? parseISO(issue.startDate) : new Date()
       const endDate = issue.dueDate
         ? parseISO(issue.dueDate)
@@ -106,13 +108,14 @@ class JiraService {
 
       const duration = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
 
-      return {
+      // Add main issue as task
+      tasks.push({
         id: issue.key,
         text: `${issue.key}: ${issue.summary}`,
         start_date: startDate,
         end_date: endDate,
         duration,
-        progress: (issue.progress || 0) / 100,
+        progress: this.calculateProgress(issue.status),
         parent: issue.parentKey,
         type: this.getTaskType(issue.issueType),
         open: true,
@@ -125,8 +128,37 @@ class JiraService {
           description: issue.description,
           labels: issue.labels,
         },
+      })
+
+      // Add subtasks
+      if (issue.subtasks && issue.subtasks.length > 0) {
+        issue.subtasks.forEach((subtask, index) => {
+          // Subtasks inherit parent's timeframe but divided proportionally
+          const subtaskDuration = Math.max(1, Math.floor(duration / issue.subtasks!.length))
+          const subtaskStart = addDays(startDate, index * subtaskDuration)
+          const subtaskEnd = addDays(subtaskStart, subtaskDuration)
+
+          tasks.push({
+            id: subtask.key,
+            text: `${subtask.key}: ${subtask.summary}`,
+            start_date: subtaskStart,
+            end_date: subtaskEnd,
+            duration: subtaskDuration,
+            progress: this.calculateProgress(subtask.status),
+            parent: issue.key, // Link to parent task
+            type: 'task',
+            open: true,
+            details: {
+              key: subtask.key,
+              status: subtask.status,
+              issueType: subtask.issueType,
+            },
+          })
+        })
       }
     })
+
+    return tasks
   }
 
   /**

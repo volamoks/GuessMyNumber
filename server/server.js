@@ -116,6 +116,7 @@ app.post('/api/jira/issues', async (req, res) => {
         'updated',
         'parent',
         'labels',
+        'subtasks',
       ],
     });
 
@@ -133,6 +134,13 @@ app.post('/api/jira/issues', async (req, res) => {
       estimatedHours: undefined, // Will be calculated from date range
       parentKey: issue.fields.parent?.key,
       labels: issue.fields.labels || [],
+      subtasks: issue.fields.subtasks?.map(subtask => ({
+        id: subtask.id,
+        key: subtask.key,
+        summary: subtask.fields.summary,
+        status: subtask.fields.status.name,
+        issueType: subtask.fields.issuetype.name,
+      })) || [],
     })) || [];
 
     res.json({

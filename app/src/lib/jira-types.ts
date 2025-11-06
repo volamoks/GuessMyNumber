@@ -5,6 +5,15 @@ export interface JiraConfig {
   apiToken: string
 }
 
+// JIRA Subtask (simplified)
+export interface JiraSubtask {
+  id: string
+  key: string
+  summary: string
+  status: string
+  issueType: string
+}
+
 // JIRA Issue (simplified for Gantt)
 export interface JiraIssue {
   id: string
@@ -22,6 +31,7 @@ export interface JiraIssue {
   parentKey?: string
   labels?: string[]
   epic?: string
+  subtasks?: JiraSubtask[]
 }
 
 // Gantt Task (transformed from JIRA)

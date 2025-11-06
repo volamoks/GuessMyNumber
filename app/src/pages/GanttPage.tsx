@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useGanttStore } from '@/store'
 import { GanttVisualization } from '@/components/gantt/GanttVisualization'
 import { JiraConnection } from '@/components/gantt/JiraConnection'
 import { JiraSync } from '@/components/gantt/JiraSync'
+import { GanttSettings, type GanttSettingsConfig } from '@/components/gantt/GanttSettings'
 import { Button } from '@/components/ui/button'
 import { Download, FileJson } from 'lucide-react'
 import { jiraService } from '@/lib/jira-service'
@@ -9,6 +11,10 @@ import { toast } from 'sonner'
 
 export function GanttPage() {
   const store = useGanttStore()
+  const [settings, setSettings] = useState<GanttSettingsConfig>({
+    colorScheme: 'type',
+    timeScale: 'day',
+  })
 
   const handleTaskUpdate = async (taskId: string, updates: any) => {
     try {
@@ -54,9 +60,10 @@ export function GanttPage() {
       </div>
 
       {/* Connection & Sync Section */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <JiraConnection />
         <JiraSync />
+        <GanttSettings settings={settings} onSettingsChange={setSettings} />
       </div>
 
       {/* Gantt Visualization */}
@@ -85,6 +92,8 @@ export function GanttPage() {
             data={store.data}
             onTaskUpdate={handleTaskUpdate}
             readonly={false}
+            colorScheme={settings.colorScheme}
+            timeScale={settings.timeScale}
           />
         </div>
       ) : (
