@@ -108,21 +108,30 @@ export function GanttVisualization({
   }
 
   // Transform tasks to gantt-task-react format
-  const ganttTasks: Task[] = data.tasks.map(task => {
-    const colors = getTaskColor(task)
-    return {
-      start: task.start_date,
-      end: task.end_date,
-      name: task.text,
-      id: task.id,
-      type: task.parent ? 'task' : (task.type === 'project' ? 'project' : 'task'),
-      progress: task.progress * 100,
-      isDisabled: readonly,
-      project: task.parent,
-      dependencies: [],
-      styles: colors,
-    }
-  })
+  const ganttTasks: Task[] = data.tasks
+    .filter(task => {
+      // Filter out tasks with invalid dates
+      return task.start_date && task.end_date &&
+             task.start_date instanceof Date &&
+             task.end_date instanceof Date &&
+             !isNaN(task.start_date.getTime()) &&
+             !isNaN(task.end_date.getTime())
+    })
+    .map(task => {
+      const colors = getTaskColor(task)
+      return {
+        start: task.start_date,
+        end: task.end_date,
+        name: task.text,
+        id: task.id,
+        type: task.parent ? 'task' : (task.type === 'project' ? 'project' : 'task'),
+        progress: Math.min(100, Math.max(0, task.progress * 100)), // Ensure 0-100
+        isDisabled: readonly,
+        project: task.parent || undefined,
+        dependencies: [],
+        styles: colors,
+      }
+    })
 
   const handleTaskChange = (task: Task) => {
     if (onTaskUpdate && !readonly) {
@@ -150,6 +159,20 @@ export function GanttVisualization({
     }
   }
 
+  // Check if we have any valid tasks to display
+  if (ganttTasks.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-lg">
+        <div className="text-center">
+          <p className="text-lg font-medium text-muted-foreground">No valid tasks to display</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Tasks must have valid start and end dates
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="gantt-container">
       <div className="mb-4">
@@ -159,7 +182,7 @@ export function GanttVisualization({
         )}
         {data.lastSync && (
           <p className="text-xs text-muted-foreground mt-1">
-            Last synced: {format(data.lastSync, 'PPpp')}
+            Last synced: {format(data.lastSync, 'PPpp')} • {ganttTasks.length} tasks
           </p>
         )}
       </div>
