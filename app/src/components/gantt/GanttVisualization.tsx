@@ -1,4 +1,5 @@
-import { Gantt, Task, ViewMode } from 'gantt-task-react'
+import { Gantt, ViewMode } from 'gantt-task-react'
+import type { Task } from 'gantt-task-react'
 import 'gantt-task-react/dist/index.css'
 import type { GanttData } from '@/store'
 import { format } from 'date-fns'
