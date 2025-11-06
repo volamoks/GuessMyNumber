@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban, Route, Moon, Sun } from 'lucide-react'
+import { Map, LayoutGrid, Lightbulb, Settings, FolderKanban, Route, Moon, Sun, GanttChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FloatingAIGenerator } from '@/components/shared/FloatingAIGenerator'
 import { useThemeStore } from '@/store'
@@ -11,6 +11,7 @@ const navigation = [
   { name: 'Business Canvas', href: '/business-canvas', icon: LayoutGrid },
   { name: 'Lean Canvas', href: '/lean-canvas', icon: Lightbulb },
   { name: 'Roadmap', href: '/roadmap', icon: Route },
+  { name: 'JIRA Gantt', href: '/gantt', icon: GanttChart },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 

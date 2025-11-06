@@ -4,6 +4,7 @@ import { CJMPage } from '@/pages/CJMPage'
 import { BusinessCanvasPage } from '@/pages/BusinessCanvasPage'
 import { LeanCanvasPage } from '@/pages/LeanCanvasPage'
 import { RoadmapPage } from '@/pages/RoadmapPage'
+import { GanttPage } from '@/pages/GanttPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { TestSupabasePage } from '@/pages/TestSupabasePage'
@@ -21,6 +22,7 @@ function App() {
           <Route path="business-canvas" element={<BusinessCanvasPage />} />
           <Route path="lean-canvas" element={<LeanCanvasPage />} />
           <Route path="roadmap" element={<RoadmapPage />} />
+          <Route path="gantt" element={<GanttPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="ai-settings" element={<Navigate to="/settings" replace />} />
           <Route path="test-supabase" element={<TestSupabasePage />} />
