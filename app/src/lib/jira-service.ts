@@ -101,10 +101,31 @@ class JiraService {
     const tasks: GanttTask[] = []
 
     issues.forEach((issue) => {
-      const startDate = issue.startDate ? parseISO(issue.startDate) : new Date()
-      const endDate = issue.dueDate
-        ? parseISO(issue.dueDate)
-        : addDays(startDate, issue.estimatedHours ? Math.ceil(issue.estimatedHours / 8) : 5)
+      // Parse and validate dates
+      let startDate: Date
+      if (issue.startDate) {
+        const parsed = parseISO(issue.startDate)
+        startDate = isNaN(parsed.getTime()) ? new Date() : parsed
+      } else {
+        startDate = new Date()
+      }
+
+      let endDate: Date
+      if (issue.dueDate) {
+        const parsed = parseISO(issue.dueDate)
+        if (isNaN(parsed.getTime())) {
+          endDate = addDays(startDate, issue.estimatedHours ? Math.ceil(issue.estimatedHours / 8) : 5)
+        } else {
+          endDate = parsed
+        }
+      } else {
+        endDate = addDays(startDate, issue.estimatedHours ? Math.ceil(issue.estimatedHours / 8) : 5)
+      }
+
+      // Ensure end date is after start date
+      if (endDate <= startDate) {
+        endDate = addDays(startDate, 1)
+      }
 
       const duration = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
 
