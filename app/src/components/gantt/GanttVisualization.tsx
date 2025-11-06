@@ -1,5 +1,5 @@
 import { Gantt } from '@svar-ui/react-gantt'
-import '@svar-ui/react-gantt/dist/all.css'
+import '@svar-ui/react-gantt/dist/index.css'
 import type { GanttData } from '@/store'
 import { format } from 'date-fns'
 
