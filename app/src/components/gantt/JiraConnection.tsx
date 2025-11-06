@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, CheckCircle2, Loader2, Link2, Info } from 'lucide-react'
@@ -10,6 +10,7 @@ export function JiraConnection() {
   const store = useGanttStore()
   const [testing, setTesting] = useState(false)
   const [error, setError] = useState('')
+  const hasAttemptedConnect = useRef(false)
 
   // Load credentials from environment variables
   const envConfig: JiraConfig = {
@@ -22,10 +23,11 @@ export function JiraConnection() {
 
   // Auto-connect on mount if env variables are set
   useEffect(() => {
-    if (hasEnvConfig && !store.connectionStatus.connected) {
+    if (hasEnvConfig && !store.connectionStatus.connected && !hasAttemptedConnect.current) {
+      hasAttemptedConnect.current = true
       handleConnect()
     }
-  }, [])
+  }, [hasEnvConfig, store.connectionStatus.connected])
 
   const handleConnect = async () => {
     if (!hasEnvConfig) {

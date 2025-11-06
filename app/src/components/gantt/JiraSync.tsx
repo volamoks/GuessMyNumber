@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -12,9 +12,11 @@ export function JiraSync() {
   const store = useGanttStore()
   const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([])
   const [loading, setLoading] = useState(false)
+  const hasLoadedProjects = useRef(false)
 
   useEffect(() => {
-    if (store.connectionStatus.connected) {
+    if (store.connectionStatus.connected && !hasLoadedProjects.current) {
+      hasLoadedProjects.current = true
       loadProjects()
     }
   }, [store.connectionStatus.connected])
