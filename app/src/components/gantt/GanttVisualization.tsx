@@ -1,5 +1,5 @@
-import { Gantt } from '@svar-ui/react-gantt'
-import '@svar-ui/react-gantt/style.css'
+import { Gantt, Task, ViewMode } from 'gantt-task-react'
+import 'gantt-task-react/dist/index.css'
 import type { GanttData } from '@/store'
 import { format } from 'date-fns'
 import type { ColorScheme, TimeScale } from './GanttSettings'
@@ -35,7 +35,9 @@ export function GanttVisualization({
   // Get color based on color scheme
   const getTaskColor = (task: any) => {
     const details = task.details
-    if (!details) return undefined
+    if (!details) return { backgroundColor: '#6b7280', backgroundSelectedColor: '#4b5563' }
+
+    let color = '#6b7280'
 
     switch (colorScheme) {
       case 'type':
@@ -46,7 +48,8 @@ export function GanttVisualization({
           'Bug': '#ef4444', // red-500
           'Sub-task': '#6366f1', // indigo-500
         }
-        return typeColors[details.issueType] || '#6b7280' // gray-500 default
+        color = typeColors[details.issueType] || '#6b7280'
+        break
 
       case 'status':
         const statusColors: Record<string, string> = {
@@ -55,7 +58,8 @@ export function GanttVisualization({
           'Done': '#10b981', // green-500
           'Closed': '#3b82f6', // blue-500
         }
-        return statusColors[details.status] || '#6b7280'
+        color = statusColors[details.status] || '#6b7280'
+        break
 
       case 'priority':
         const priorityColors: Record<string, string> = {
@@ -65,7 +69,8 @@ export function GanttVisualization({
           'Low': '#3b82f6', // blue-500
           'Lowest': '#6b7280', // gray-500
         }
-        return priorityColors[details.priority || 'Medium'] || '#6b7280'
+        color = priorityColors[details.priority || 'Medium'] || '#6b7280'
+        break
 
       case 'assignee':
         // Generate color from assignee name hash
@@ -74,66 +79,73 @@ export function GanttVisualization({
             return char.charCodeAt(0) + ((acc << 5) - acc)
           }, 0)
           const hue = Math.abs(hash) % 360
-          return `hsl(${hue}, 65%, 55%)`
+          color = `hsl(${hue}, 65%, 55%)`
         }
-        return '#6b7280'
+        break
+    }
 
-      default:
-        return undefined
+    // Return color with darker shade for selected state
+    return {
+      backgroundColor: color,
+      backgroundSelectedColor: adjustColorBrightness(color, -20),
+      progressColor: adjustColorBrightness(color, 20),
+      progressSelectedColor: color,
     }
   }
 
-  // Transform tasks to SVAR Gantt format
-  const ganttTasks = data.tasks.map(task => ({
-    id: task.id,
-    text: task.text,
-    start: format(task.start_date, 'yyyy-MM-dd'),
-    end: format(task.end_date, 'yyyy-MM-dd'),
-    duration: task.duration,
-    progress: task.progress * 100, // SVAR expects 0-100
-    parent: task.parent || 0,
-    type: task.type || 'task',
-    color: getTaskColor(task),
-  }))
+  // Helper to adjust color brightness
+  const adjustColorBrightness = (color: string, percent: number) => {
+    const num = parseInt(color.replace('#', ''), 16)
+    const amt = Math.round(2.55 * percent)
+    const R = (num >> 16) + amt
+    const G = (num >> 8 & 0x00FF) + amt
+    const B = (num & 0x0000FF) + amt
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255))
+      .toString(16).slice(1)
+  }
 
-  const handleTaskUpdate = (id: string, task: any) => {
-    if (onTaskUpdate) {
-      onTaskUpdate(id, {
-        start_date: new Date(task.start),
-        end_date: new Date(task.end),
+  // Transform tasks to gantt-task-react format
+  const ganttTasks: Task[] = data.tasks.map(task => {
+    const colors = getTaskColor(task)
+    return {
+      start: task.start_date,
+      end: task.end_date,
+      name: task.text,
+      id: task.id,
+      type: task.parent ? 'task' : (task.type === 'project' ? 'project' : 'task'),
+      progress: task.progress * 100,
+      isDisabled: readonly,
+      project: task.parent,
+      dependencies: [],
+      styles: colors,
+    }
+  })
+
+  const handleTaskChange = (task: Task) => {
+    if (onTaskUpdate && !readonly) {
+      onTaskUpdate(task.id, {
+        start_date: task.start,
+        end_date: task.end,
         progress: task.progress / 100,
       })
     }
   }
 
-  // Get timeline scales based on timeScale setting
-  const getScales = (scale: TimeScale) => {
+  // Get ViewMode based on timeScale setting
+  const getViewMode = (scale: TimeScale): ViewMode => {
     switch (scale) {
       case 'day':
-        return [
-          { unit: 'month', step: 1, format: 'MMMM yyyy' },
-          { unit: 'day', step: 1, format: 'd' },
-        ]
+        return ViewMode.Day
       case 'week':
-        return [
-          { unit: 'month', step: 1, format: 'MMMM yyyy' },
-          { unit: 'week', step: 1, format: 'w' },
-        ]
+        return ViewMode.Week
       case 'month':
-        return [
-          { unit: 'year', step: 1, format: 'yyyy' },
-          { unit: 'month', step: 1, format: 'MMM' },
-        ]
+        return ViewMode.Month
       case 'quarter':
-        return [
-          { unit: 'year', step: 1, format: 'yyyy' },
-          { unit: 'quarter', step: 1, format: 'QQQ' },
-        ]
+        return ViewMode.QuarterYear
       default:
-        return [
-          { unit: 'month', step: 1, format: 'MMMM yyyy' },
-          { unit: 'day', step: 1, format: 'd' },
-        ]
+        return ViewMode.Day
     }
   }
 
@@ -150,13 +162,15 @@ export function GanttVisualization({
           </p>
         )}
       </div>
-      <div className="gantt-chart border rounded-lg bg-background" style={{ height: '600px', width: '100%' }}>
+      <div className="gantt-chart border rounded-lg bg-background overflow-hidden" style={{ height: '600px' }}>
         <Gantt
           tasks={ganttTasks}
-          links={[]}
-          scales={getScales(timeScale)}
-          readonly={readonly}
-          onUpdateTask={handleTaskUpdate}
+          viewMode={getViewMode(timeScale)}
+          onDateChange={handleTaskChange}
+          onProgressChange={handleTaskChange}
+          onDoubleClick={(task) => console.log('Double click:', task)}
+          listCellWidth="200px"
+          columnWidth={timeScale === 'day' ? 60 : timeScale === 'week' ? 100 : 120}
         />
       </div>
     </div>

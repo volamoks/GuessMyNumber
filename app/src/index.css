@@ -294,3 +294,50 @@
 .animate-accordion-up {
   animation: accordion-up 0.2s ease-out;
 }
+
+/* Gantt Chart Dark Theme Support */
+.dark {
+  --gtr-back: hsl(var(--background));
+  --gtr-even-back: hsl(var(--muted));
+  --gtr-grid-row-line: hsl(var(--border));
+  --gtr-border: hsl(var(--border));
+  --gtr-label: hsl(var(--foreground));
+  --gtr-calendar-bottom-text: hsl(var(--muted-foreground));
+  --gtr-calendar-stroke: hsl(var(--border));
+  --gtr-tooltip-default-container-paragraph: hsl(var(--muted-foreground));
+  --gtr-bar-handle: hsl(var(--border));
+  --gtr-scroll-wrapper: rgba(255, 255, 255, 0.1);
+  --gtr-scroll-wrapper-hover: rgba(255, 255, 255, 0.2);
+}
+
+/* Light theme for Gantt */
+:root {
+  --gtr-back: hsl(var(--background));
+  --gtr-even-back: hsl(var(--muted));
+  --gtr-grid-row-line: hsl(var(--border));
+  --gtr-border: hsl(var(--border));
+  --gtr-label: hsl(var(--foreground));
+  --gtr-calendar-bottom-text: hsl(var(--muted-foreground));
+  --gtr-calendar-stroke: hsl(var(--border));
+  --gtr-tooltip-default-container-paragraph: hsl(var(--muted-foreground));
+  --gtr-bar-handle: hsl(var(--border));
+  --gtr-scroll-wrapper: rgba(0, 0, 0, 0.1);
+  --gtr-scroll-wrapper-hover: rgba(0, 0, 0, 0.2);
+}
+
+/* Gantt container adjustments */
+.gantt-chart {
+  font-family: var(--font-sans);
+}
+
+.gantt-chart text {
+  fill: hsl(var(--foreground)) !important;
+}
+
+.gantt-chart .gridBody {
+  fill: hsl(var(--background)) !important;
+}
+
+.gantt-chart .gridRow:nth-child(even) {
+  fill: hsl(var(--muted)) !important;
+}
