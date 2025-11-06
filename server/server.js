@@ -111,8 +111,8 @@ app.post('/api/jira/issues', async (req, res) => {
         'priority',
         'issuetype',
         'duedate',
-        'customfield_10015', // Start date
-        'customfield_10016', // Story points
+        'created',
+        'updated',
         'parent',
         'labels',
       ],
@@ -128,8 +128,8 @@ app.post('/api/jira/issues', async (req, res) => {
       priority: issue.fields.priority?.name,
       issueType: issue.fields.issuetype.name,
       dueDate: issue.fields.duedate,
-      startDate: issue.fields.customfield_10015,
-      estimatedHours: issue.fields.customfield_10016 ? issue.fields.customfield_10016 * 8 : undefined,
+      startDate: issue.fields.created, // Use created date as fallback
+      estimatedHours: undefined, // Will be calculated from date range
       parentKey: issue.fields.parent?.key,
       labels: issue.fields.labels || [],
     })) || [];
@@ -140,9 +140,15 @@ app.post('/api/jira/issues', async (req, res) => {
     });
   } catch (error) {
     console.error('Failed to fetch issues:', error);
-    res.status(500).json({
+
+    // Provide more detailed error information
+    const errorMessage = error.response?.data?.errorMessages?.[0] || error.message || 'Failed to fetch issues';
+    const statusCode = error.status || 500;
+
+    res.status(statusCode).json({
       success: false,
-      error: error.message || 'Failed to fetch issues'
+      error: errorMessage,
+      details: error.response?.data || null
     });
   }
 });
@@ -156,7 +162,7 @@ app.post('/api/jira/update-issue', async (req, res) => {
     const fields = {};
     if (updates.summary) fields.summary = updates.summary;
     if (updates.dueDate) fields.duedate = updates.dueDate;
-    if (updates.startDate) fields.customfield_10015 = updates.startDate;
+    // Don't try to update start date as it may not exist
 
     await client.issues.editIssue({
       issueIdOrKey: issueKey,
