@@ -100,7 +100,8 @@ app.post('/api/jira/issues', async (req, res) => {
 
     const query = jql || `project = ${projectKey} ORDER BY created DESC`;
 
-    const response = await client.issueSearch.searchForIssuesUsingJql({
+    // Use the new Enhanced Search method which uses /rest/api/3/search/jql endpoint
+    const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
       jql: query,
       maxResults,
       fields: [
