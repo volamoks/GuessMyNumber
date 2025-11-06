@@ -120,7 +120,7 @@ export function GanttVisualization({
       case 'day': return ViewMode.Day
       case 'week': return ViewMode.Week
       case 'month': return ViewMode.Month
-      case 'quarter': return ViewMode.QuarterYear
+      case 'quarter': return ViewMode.Month // Используем Month для квартального вида
       default: return ViewMode.Day
     }
   }, [timeScale])
