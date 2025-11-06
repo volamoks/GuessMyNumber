@@ -46,17 +46,32 @@ npm run dev
 ```
 App will start on `http://localhost:5174`
 
-### 3. Use the JIRA-Gantt Feature
+### 3. Configure JIRA Credentials
+
+**Create `.env.local` file:**
+```bash
+cd app
+cp .env.example .env.local
+```
+
+**Edit `app/.env.local` with your JIRA credentials:**
+```bash
+VITE_JIRA_HOST=https://ucmg.atlassian.net
+VITE_JIRA_EMAIL=your-email@uzcard.uz
+VITE_JIRA_API_TOKEN=ATATT3xFfGF0jhqp...
+```
+
+**Generate API token:** https://id.atlassian.com/manage-profile/security/api-tokens
+
+⚠️ **Security:** `.env.local` is in `.gitignore` - your credentials will NOT be committed to Git!
+
+### 4. Use the JIRA-Gantt Feature
 
 1. Open `http://localhost:5174` in your browser
 2. Navigate to **JIRA Gantt** in the menu
-3. Enter your JIRA credentials:
-   - **Host**: `https://your-domain.atlassian.net`
-   - **Email**: your JIRA email
-   - **API Token**: Generate at https://id.atlassian.com/manage-profile/security/api-tokens
-4. Click **Connect to JIRA**
-5. Select a project and click **Sync Tasks**
-6. View and interact with your Gantt chart!
+3. Connection will happen **automatically** using `.env.local` credentials
+4. Select a project and click **Sync Tasks**
+5. View and interact with your Gantt chart!
 
 ## Features
 
