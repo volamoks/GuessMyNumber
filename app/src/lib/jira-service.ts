@@ -150,12 +150,22 @@ class JiraService {
         open: true,
         details: {
           key: issue.key,
+          summary: issue.summary,
           status: issue.status,
           assignee: issue.assignee,
+          reporter: issue.reporter,
           priority: issue.priority,
           issueType: issue.issueType,
           description: issue.description,
           labels: issue.labels,
+          components: issue.components,
+          resolution: issue.resolution,
+          epic: issue.epic,
+          sprint: issue.sprint,
+          createdDate: issue.createdDate,
+          updatedDate: issue.updatedDate,
+          estimatedHours: issue.estimatedHours,
+          remainingHours: issue.remainingHours,
         },
       })
 
@@ -169,7 +179,7 @@ class JiraService {
 
           tasks.push({
             id: subtask.key,
-            text: `  └ 📝 ${subtask.key}: ${subtask.summary}`, // Subtask с отступом и иконкой
+            text: `  └ 📝 ${subtask.key}: ${subtask.summary}`,
             start_date: subtaskStart,
             end_date: subtaskEnd,
             duration: subtaskDuration,
@@ -179,11 +189,15 @@ class JiraService {
             open: true,
             details: {
               key: subtask.key,
+              summary: subtask.summary,
               status: subtask.status,
               issueType: subtask.issueType,
-              // Наследуем приоритет и assignee от родителя если нет своих
+              // Наследуем от родителя
               priority: issue.priority,
               assignee: issue.assignee,
+              reporter: issue.reporter,
+              labels: issue.labels,
+              components: issue.components,
             },
           })
         })

@@ -14,23 +14,30 @@ export interface JiraSubtask {
   issueType: string
 }
 
-// JIRA Issue (simplified for Gantt)
+// JIRA Issue (complete with all fields)
 export interface JiraIssue {
   id: string
   key: string
   summary: string
   description?: string
   status: string
-  assignee?: string
-  priority?: string
+  assignee?: string | null
+  reporter?: string | null
+  priority?: string | null
   issueType: string
-  startDate?: string
   dueDate?: string
-  estimatedHours?: number
+  startDate?: string
+  createdDate?: string
+  updatedDate?: string
+  estimatedHours?: number | null
+  remainingHours?: number | null
   progress?: number // 0-100
   parentKey?: string
   labels?: string[]
-  epic?: string
+  components?: string[]
+  resolution?: string | null
+  epic?: string | null
+  sprint?: string | null
   subtasks?: JiraSubtask[]
 }
 
@@ -47,12 +54,22 @@ export interface GanttTask {
   open?: boolean
   details?: {
     key: string
+    summary: string
     status: string
-    assignee?: string
-    priority?: string
+    assignee?: string | null
+    reporter?: string | null
+    priority?: string | null
     issueType: string
     description?: string
     labels?: string[]
+    components?: string[]
+    resolution?: string | null
+    epic?: string | null
+    sprint?: string | null
+    createdDate?: string
+    updatedDate?: string
+    estimatedHours?: number | null
+    remainingHours?: number | null
   }
 }
 

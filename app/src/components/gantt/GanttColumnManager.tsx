@@ -27,7 +27,7 @@ interface GanttColumnManagerProps {
   onColumnsChange: (columns: GanttColumn[]) => void
 }
 
-// Все доступные колонки из JIRA
+// Все доступные колонки из JIRA (21 fields)
 const AVAILABLE_COLUMNS: Omit<GanttColumn, 'visible'>[] = [
   { id: 'text', name: 'text', label: 'Task Name', width: 250, resize: true, align: 'left' },
   { id: 'key', name: 'key', label: 'Key', width: 100, resize: true, align: 'left' },
@@ -36,13 +36,20 @@ const AVAILABLE_COLUMNS: Omit<GanttColumn, 'visible'>[] = [
   { id: 'duration', name: 'duration', label: 'Duration (days)', width: 80, resize: true, align: 'center' },
   { id: 'progress', name: 'progress', label: 'Progress %', width: 80, resize: true, align: 'center' },
   { id: 'assignee', name: 'assignee', label: 'Assignee', width: 120, resize: true, align: 'left' },
+  { id: 'reporter', name: 'reporter', label: 'Reporter', width: 120, resize: true, align: 'left' },
   { id: 'priority', name: 'priority', label: 'Priority', width: 90, resize: true, align: 'center' },
   { id: 'status', name: 'status', label: 'Status', width: 110, resize: true, align: 'center' },
   { id: 'issueType', name: 'issueType', label: 'Issue Type', width: 100, resize: true, align: 'center' },
   { id: 'labels', name: 'labels', label: 'Labels', width: 150, resize: true, align: 'left' },
+  { id: 'components', name: 'components', label: 'Components', width: 150, resize: true, align: 'left' },
   { id: 'description', name: 'description', label: 'Description', width: 200, resize: true, align: 'left' },
   { id: 'epic', name: 'epic', label: 'Epic', width: 120, resize: true, align: 'left' },
+  { id: 'sprint', name: 'sprint', label: 'Sprint', width: 120, resize: true, align: 'left' },
+  { id: 'resolution', name: 'resolution', label: 'Resolution', width: 100, resize: true, align: 'center' },
   { id: 'estimatedHours', name: 'estimatedHours', label: 'Estimate (h)', width: 90, resize: true, align: 'center' },
+  { id: 'remainingHours', name: 'remainingHours', label: 'Remaining (h)', width: 100, resize: true, align: 'center' },
+  { id: 'createdDate', name: 'createdDate', label: 'Created', width: 100, resize: true, align: 'center' },
+  { id: 'updatedDate', name: 'updatedDate', label: 'Updated', width: 100, resize: true, align: 'center' },
 ]
 
 export function GanttColumnManager({ columns, onColumnsChange }: GanttColumnManagerProps) {
@@ -174,21 +181,29 @@ export function GanttColumnManager({ columns, onColumnsChange }: GanttColumnMana
 
           {/* Info */}
           <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="font-semibold mb-1">💡 Available JIRA Fields:</div>
+            <div className="font-semibold mb-1">💡 Available JIRA Fields (21 total):</div>
             <div className="grid grid-cols-2 gap-1">
               <span>• Task Name</span>
               <span>• Key</span>
-              <span>• Start/Due Date</span>
+              <span>• Start Date</span>
+              <span>• Due Date</span>
               <span>• Duration</span>
               <span>• Progress</span>
               <span>• Assignee</span>
+              <span>• Reporter</span>
               <span>• Priority</span>
               <span>• Status</span>
               <span>• Issue Type</span>
               <span>• Labels</span>
+              <span>• Components</span>
               <span>• Description</span>
               <span>• Epic</span>
-              <span>• Estimate (hours)</span>
+              <span>• Sprint</span>
+              <span>• Resolution</span>
+              <span>• Estimate (h)</span>
+              <span>• Remaining (h)</span>
+              <span>• Created</span>
+              <span>• Updated</span>
             </div>
           </div>
         </CardContent>
