@@ -33,12 +33,13 @@ export default async function handler(req, res) {
 
     const query = jql || `project = ${projectKey} ORDER BY created DESC`;
 
-    // Try without fields parameter - should return all fields by default
-    console.log('Making JIRA API request...');
+    // Request all fields and expand all nested resources
+    console.log('Making JIRA API request with expand...');
     const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
       jql: query,
       maxResults,
-      // fields: ['*all'], // Removed - test if omitting returns more fields
+      fields: ['*all'],
+      expand: ['renderedFields', 'names', 'schema', 'transitions', 'operations', 'changelog'],
     });
     console.log('JIRA API request completed');
 
