@@ -36,28 +36,7 @@ export default async function handler(req, res) {
     const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
       jql: query,
       maxResults,
-      fields: [
-        'summary',
-        'description',
-        'status',
-        'assignee',
-        'reporter',
-        'priority',
-        'issuetype',
-        'duedate',
-        'created',
-        'updated',
-        'parent',
-        'labels',
-        'subtasks',
-        'components',
-        'resolution',
-        'timetracking',
-        'timeestimate',
-        'timeoriginalestimate',
-        'customfield_10014', // Epic Link (может отличаться)
-        'customfield_10020', // Sprint (может отличаться)
-      ],
+      fields: ['*all'], // Request ALL fields including custom fields
     });
 
     // DEBUG: Log first issue raw from JIRA
@@ -65,13 +44,18 @@ export default async function handler(req, res) {
       console.log('===== RAW JIRA RESPONSE (first issue) =====');
       console.log('ID:', response.issues[0].id);
       console.log('Key:', response.issues[0].key);
-      console.log('Fields:', Object.keys(response.issues[0].fields));
+      console.log('Total fields count:', Object.keys(response.issues[0].fields).length);
+      console.log('All field names:', Object.keys(response.issues[0].fields).join(', '));
+      console.log('\n--- Standard fields ---');
       console.log('assignee:', response.issues[0].fields.assignee);
       console.log('reporter:', response.issues[0].fields.reporter);
       console.log('components:', response.issues[0].fields.components);
+      console.log('timeoriginalestimate:', response.issues[0].fields.timeoriginalestimate);
+      console.log('timeestimate:', response.issues[0].fields.timeestimate);
+      console.log('resolution:', response.issues[0].fields.resolution);
+      console.log('\n--- Custom fields ---');
       console.log('customfield_10014 (epic):', response.issues[0].fields.customfield_10014);
       console.log('customfield_10020 (sprint):', response.issues[0].fields.customfield_10020);
-      console.log('timeoriginalestimate:', response.issues[0].fields.timeoriginalestimate);
       console.log('==========================================');
     }
 
