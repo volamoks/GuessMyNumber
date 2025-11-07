@@ -34,17 +34,18 @@ export default async function handler(req, res) {
 
     const query = jql || `project = ${projectKey} ORDER BY created DESC`;
 
-    // For JIRA Cloud, try the standard search method with string fields parameter
+    // Use new Enhanced Search API (required by JIRA Cloud as of 2024)
     console.log('Making JIRA Cloud API request...');
     console.log('JQL:', query);
     console.log('Max results:', maxResults);
 
     let response;
     try {
-      response = await client.issueSearch.searchForIssuesUsingJql({
+      response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
         jql: query,
         maxResults,
-        fields: '*all', // Use string '*all' instead of array
+        // Omit fields parameter to get all fields
+        // Enhanced Search returns all fields by default
       });
       console.log('JIRA API request completed successfully');
       console.log('Response has issues?', !!response.issues);

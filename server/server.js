@@ -100,12 +100,14 @@ app.post('/api/jira/issues', async (req, res) => {
 
     const query = jql || `project = ${projectKey} ORDER BY created DESC`;
 
-    // Use searchForIssuesUsingJql with '*all' to get all fields including components, epic, sprint
+    // Use new Enhanced Search API (required by JIRA Cloud as of 2024)
+    // Old searchForIssuesUsingJql was deprecated and removed
     console.log('Making JIRA Cloud API request...');
-    const response = await client.issueSearch.searchForIssuesUsingJql({
+    const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
       jql: query,
       maxResults,
-      fields: '*all', // Request ALL fields
+      // For Enhanced Search, omit fields parameter or use empty array to get all fields
+      // '*all' doesn't work with this endpoint
     });
     console.log('JIRA API response received, issues count:', response.issues?.length || 0);
 
