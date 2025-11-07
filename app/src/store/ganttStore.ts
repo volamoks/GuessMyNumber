@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import type { GanttTask, JiraConfig, ConnectionStatus, JiraQuery } from '@/lib/jira-types'
+import type { GanttColumn } from '@/components/gantt/GanttColumnManager'
+import type { TaskTypeColor } from '@/components/gantt/ColorCustomizer'
 
 export interface GanttData {
   title: string
@@ -19,6 +21,20 @@ export interface GanttFilters {
   }
 }
 
+export const DEFAULT_COLUMNS: GanttColumn[] = [
+  { id: 'text', name: 'text', label: 'Task', width: 250, visible: true, resize: true, align: 'left' },
+  { id: 'start_date', name: 'start_date', label: 'Start Date', width: 90, visible: true, resize: true, align: 'center' },
+  { id: 'duration', name: 'duration', label: 'Duration', width: 70, visible: true, resize: true, align: 'center' },
+]
+
+export const DEFAULT_COLORS: TaskTypeColor[] = [
+  { type: 'Epic', color: '#9333ea', label: 'Epic' },
+  { type: 'Story', color: '#3b82f6', label: 'Story' },
+  { type: 'Task', color: '#10b981', label: 'Task' },
+  { type: 'Bug', color: '#ef4444', label: 'Bug' },
+  { type: 'Sub-task', color: '#6366f1', label: 'Sub-task' },
+]
+
 interface GanttStore {
   data: GanttData | null
   currentProjectId: string | null
@@ -30,6 +46,10 @@ interface GanttStore {
   selectedProjectKeys: string[]   // Multiple projects for portfolio analysis
   jiraQuery: JiraQuery | null
   filters: GanttFilters
+
+  // Customization
+  columns: GanttColumn[]
+  customColors: TaskTypeColor[]
 
   // Loading states
   isConnecting: boolean
@@ -56,6 +76,8 @@ interface GanttStore {
   setJiraQuery: (query: JiraQuery | null) => void
   setFilters: (filters: GanttFilters) => void
   clearFilters: () => void
+  setColumns: (columns: GanttColumn[]) => void
+  setCustomColors: (colors: TaskTypeColor[]) => void
 
   setConnecting: (loading: boolean) => void
   setSyncing: (loading: boolean) => void
@@ -83,6 +105,8 @@ const initialState = {
   selectedProjectKeys: [],
   jiraQuery: null,
   filters: {},
+  columns: DEFAULT_COLUMNS,
+  customColors: DEFAULT_COLORS,
   isConnecting: false,
   isSyncing: false,
   isLoading: false,
@@ -112,6 +136,8 @@ export const useGanttStore = create<GanttStore>((set) => ({
   setJiraQuery: (jiraQuery) => set({ jiraQuery }),
   setFilters: (filters) => set({ filters }),
   clearFilters: () => set({ filters: {} }),
+  setColumns: (columns) => set({ columns }),
+  setCustomColors: (customColors) => set({ customColors }),
 
   setConnecting: (isConnecting) => set({ isConnecting }),
   setSyncing: (isSyncing) => set({ isSyncing }),

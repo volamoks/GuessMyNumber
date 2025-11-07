@@ -5,6 +5,8 @@ import { JiraConnection } from '@/components/gantt/JiraConnection'
 import { JiraSync } from '@/components/gantt/JiraSync'
 import { GanttFilters } from '@/components/gantt/GanttFilters'
 import { GanttSettings, type GanttSettingsConfig } from '@/components/gantt/GanttSettings'
+import { GanttColumnManager } from '@/components/gantt/GanttColumnManager'
+import { ColorCustomizer } from '@/components/gantt/ColorCustomizer'
 import { Button } from '@/components/ui/button'
 import { Download, FileJson } from 'lucide-react'
 import { toast } from 'sonner'
@@ -48,12 +50,24 @@ export function GanttPage() {
         </p>
       </div>
 
-      {/* Connection & Sync Section */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Connection & Sync Section - Top Row */}
+      <div className="grid gap-6 md:grid-cols-2">
         <JiraConnection />
         <JiraSync />
+      </div>
+
+      {/* Filters & Settings - Full Width Bottom Section */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <GanttFilters />
         <GanttSettings settings={settings} onSettingsChange={setSettings} />
+        <GanttColumnManager
+          columns={store.columns}
+          onColumnsChange={store.setColumns}
+        />
+        <ColorCustomizer
+          colors={store.customColors}
+          onColorsChange={store.setCustomColors}
+        />
       </div>
 
       {/* Gantt Visualization */}

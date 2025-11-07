@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { gantt } from 'dhtmlx-gantt'
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css'
 import { useGanttData, useJiraSync } from '@/hooks'
+import { useGanttStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Upload, Maximize2, Minimize2 } from 'lucide-react'
 import type { ColorScheme, TimeScale } from './GanttSettings'
@@ -22,6 +23,7 @@ export function GanttVisualization({
   readonly = false,
 }: GanttVisualizationProps) {
   const ganttContainer = useRef<HTMLDivElement>(null)
+  const store = useGanttStore()
   const { ganttData, tasks, updateTask } = useGanttData()
   const { syncTasks, isSyncing } = useJiraSync()
 
@@ -43,14 +45,12 @@ export function GanttVisualization({
   // Функция для получения цвета задачи
   const getTaskColor = (task: any): string => {
     if (colorScheme === 'type') {
-      const colors: Record<string, string> = {
-        'Epic': '#9333ea',
-        'Story': '#3b82f6',
-        'Task': '#10b981',
-        'Bug': '#ef4444',
-        'Sub-task': '#6366f1',
+      // Используем кастомные цвета из store
+      const customColor = store.customColors.find(c => c.type === task.details?.issueType)
+      if (customColor) {
+        return customColor.color
       }
-      return colors[task.details?.issueType || ''] || '#6b7280'
+      return '#6b7280' // Default gray
     }
     else if (colorScheme === 'status') {
       const colors: Record<string, string> = {
@@ -96,8 +96,8 @@ export function GanttVisualization({
     gantt.config.drag_progress = !readonly
     gantt.config.drag_resize = !readonly
     gantt.config.drag_move = !readonly
-    gantt.config.autosize = 'xy' // Автоматический размер
-    gantt.config.scroll_size = 20 // Размер скроллбара
+    gantt.config.autosize = false // Отключаем autosize для фиксированной ширины
+    gantt.config.fit_tasks = true // Автоматически подгонять таймлайн под задачи
 
     // Настройка шкалы времени
     if (timeScale === 'day') {
@@ -126,35 +126,31 @@ export function GanttVisualization({
       gantt.config.scale_height = 50
     }
 
-    // Настройка колонок
-    gantt.config.columns = [
-      {
-        name: 'text',
-        label: 'Task',
-        tree: true,
-        width: 250,
-        resize: true
-      },
-      {
-        name: 'start_date',
-        label: 'Start',
-        align: 'center',
-        width: 80,
-        resize: true
-      },
-      {
-        name: 'duration',
-        label: 'Duration',
-        align: 'center',
-        width: 70,
-        resize: true
-      },
-      {
+    // Настройка колонок - используем кастомные колонки из store
+    const visibleColumns = store.columns
+      .filter(col => col.visible)
+      .map(col => ({
+        name: col.name,
+        label: col.label,
+        tree: col.id === 'text', // Только первая колонка с деревом
+        width: col.width,
+        resize: col.resize,
+        align: col.align
+      }))
+
+    // Добавляем колонку "add" в конец если не readonly
+    if (!readonly) {
+      visibleColumns.push({
         name: 'add',
         label: '',
-        width: 44
-      }
-    ]
+        tree: false,
+        width: 44,
+        resize: false,
+        align: 'center'
+      })
+    }
+
+    gantt.config.columns = visibleColumns as any
 
     // Применение цветовой схемы через template
     gantt.templates.task_class = (_start, _end, task) => {
@@ -183,7 +179,7 @@ export function GanttVisualization({
     return () => {
       gantt.clearAll()
     }
-  }, [timeScale, readonly, colorScheme])
+  }, [timeScale, readonly, colorScheme, store.columns, store.customColors])
 
   // Обработчик изменения задач (2-way sync)
   useEffect(() => {
