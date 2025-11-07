@@ -1,7 +1,9 @@
 import { parseISO, addDays } from 'date-fns'
 import type { JiraConfig, JiraIssue, GanttTask, JiraQuery, ConnectionStatus } from './jira-types'
 
-const API_BASE_URL = import.meta.env.VITE_JIRA_PROXY_URL || 'http://localhost:3001/api/jira'
+// Use Vercel API routes in production, localhost in development
+const API_BASE_URL = import.meta.env.VITE_JIRA_PROXY_URL ||
+                     (import.meta.env.PROD ? '/api/jira' : 'http://localhost:3001/api/jira')
 
 class JiraService {
   private config: JiraConfig | null = null

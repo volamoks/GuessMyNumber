@@ -3,5 +3,8 @@
   "outputDirectory": "app/dist",
   "framework": null,
   "devCommand": "cd app && npm run dev",
-  "installCommand": "cd app && npm install"
+  "installCommand": "cd app && npm install && cd ../api && npm install",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
 }
