@@ -36,12 +36,23 @@ export default async function handler(req, res) {
 
     // For JIRA Cloud, try the standard search method with string fields parameter
     console.log('Making JIRA Cloud API request...');
-    const response = await client.issueSearch.searchForIssuesUsingJql({
-      jql: query,
-      maxResults,
-      fields: '*all', // Use string '*all' instead of array
-    });
-    console.log('JIRA API request completed');
+    console.log('JQL:', query);
+    console.log('Max results:', maxResults);
+
+    let response;
+    try {
+      response = await client.issueSearch.searchForIssuesUsingJql({
+        jql: query,
+        maxResults,
+        fields: '*all', // Use string '*all' instead of array
+      });
+      console.log('JIRA API request completed successfully');
+      console.log('Response has issues?', !!response.issues);
+      console.log('Issues count:', response.issues?.length || 0);
+    } catch (apiError) {
+      console.error('JIRA API call failed:', apiError);
+      throw apiError;
+    }
 
     // DEBUG: Log first issue raw from JIRA
     if (response.issues && response.issues.length > 0) {
@@ -121,15 +132,22 @@ export default async function handler(req, res) {
       return mapped;
     }) || [];
 
+    const debugInfo = {
+      rawFirstIssue: response.issues?.[0] || null,
+      rawFieldsCount: response.issues?.[0] ? Object.keys(response.issues[0].fields).length : 0,
+      rawFieldNames: response.issues?.[0] ? Object.keys(response.issues[0].fields) : [],
+    };
+
+    console.log('===== SENDING RESPONSE =====');
+    console.log('Issues count:', issues.length);
+    console.log('Debug info fields count:', debugInfo.rawFieldsCount);
+    console.log('============================');
+
     res.json({
       success: true,
       issues,
       // DEBUG: Return raw first issue for inspection
-      debug: {
-        rawFirstIssue: response.issues?.[0] || null,
-        rawFieldsCount: response.issues?.[0] ? Object.keys(response.issues[0].fields).length : 0,
-        rawFieldNames: response.issues?.[0] ? Object.keys(response.issues[0].fields) : [],
-      },
+      debug: debugInfo,
     });
   } catch (error) {
     console.error('Failed to fetch issues:', error);

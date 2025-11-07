@@ -85,6 +85,12 @@ class JiraService {
 
       const data = await response.json()
 
+      console.log('===== FULL API RESPONSE =====')
+      console.log('Response keys:', Object.keys(data))
+      console.log('Has debug?', 'debug' in data)
+      console.log('Full data:', data)
+      console.log('============================')
+
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to fetch issues')
       }
@@ -101,6 +107,8 @@ class JiraService {
         console.log('Raw first issue from JIRA:', data.debug.rawFirstIssue)
         console.log('Raw components:', data.debug.rawFirstIssue?.fields?.components)
         console.log('================================')
+      } else {
+        console.log('⚠️ No debug section in response - API may have failed or not deployed')
       }
 
       return data.issues || []
