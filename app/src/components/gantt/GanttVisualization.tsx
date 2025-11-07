@@ -124,6 +124,10 @@ export function GanttVisualization({ readonly = false }: GanttVisualizationProps
     gantt.config.order_branch = true
     gantt.config.order_branch_free = false
 
+    // Enable column resizing
+    gantt.config.grid_resize = true // Enable grid resizing
+    gantt.config.min_column_width = 50 // Minimum column width
+
     // Настройка шкалы времени
     if (timeScale === 'day') {
       gantt.config.scales = [
@@ -183,7 +187,16 @@ export function GanttVisualization({ readonly = false }: GanttVisualizationProps
             columnConfig.template = (task: any) => task.details?.status || ''
             break
           case 'issueType':
-            columnConfig.template = (task: any) => task.details?.issueType || ''
+            columnConfig.template = (task: any) => {
+              const issueType = task.details?.issueType || ''
+              if (!issueType) return ''
+
+              // Get color for this issue type
+              const color = getTaskColor(task)
+
+              // Return HTML with colored background
+              return `<div style="background-color: ${color}; color: white; padding: 4px 8px; border-radius: 4px; text-align: center; font-weight: 500; display: inline-block; min-width: 80px;">${issueType}</div>`
+            }
             break
           case 'labels':
             columnConfig.template = (task: any) => {
@@ -193,6 +206,7 @@ export function GanttVisualization({ readonly = false }: GanttVisualizationProps
             break
           case 'components':
             columnConfig.template = (task: any) => {
+              console.log(`Components for ${task.id}:`, task.details?.components)
               const components = task.details?.components || []
               return Array.isArray(components) ? components.join(', ') : ''
             }

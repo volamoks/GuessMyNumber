@@ -89,6 +89,10 @@ class JiraService {
         throw new Error(data.error || 'Failed to fetch issues')
       }
 
+      console.log('===== JIRA API RESPONSE =====')
+      console.log('First issue from API:', data.issues?.[0])
+      console.log('Fields available:', data.issues?.[0] ? Object.keys(data.issues[0]) : 'no issues')
+
       return data.issues || []
     } catch (error) {
       console.error('Failed to fetch JIRA issues:', error)
@@ -101,6 +105,9 @@ class JiraService {
    */
   transformToGanttTasks(issues: JiraIssue[]): GanttTask[] {
     const tasks: GanttTask[] = []
+
+    console.log('===== TRANSFORM TO GANTT =====')
+    console.log('First issue to transform:', issues[0])
 
     issues.forEach((issue) => {
       // Parse and validate dates
@@ -138,6 +145,30 @@ class JiraService {
                         issue.issueType === 'Bug' ? '🐛' :
                         issue.issueType === 'Task' ? '✓' : '•'
 
+      const taskDetails = {
+        key: issue.key,
+        summary: issue.summary,
+        status: issue.status,
+        assignee: issue.assignee,
+        reporter: issue.reporter,
+        priority: issue.priority,
+        issueType: issue.issueType,
+        description: issue.description,
+        labels: issue.labels,
+        components: issue.components,
+        resolution: issue.resolution,
+        epic: issue.epic,
+        sprint: issue.sprint,
+        createdDate: issue.createdDate,
+        updatedDate: issue.updatedDate,
+        estimatedHours: issue.estimatedHours,
+        remainingHours: issue.remainingHours,
+      }
+
+      if (tasks.length === 0) {
+        console.log('First task details:', taskDetails)
+      }
+
       tasks.push({
         id: issue.key,
         text: `${typeEmoji} ${issue.key}: ${issue.summary}`,
@@ -148,25 +179,7 @@ class JiraService {
         parent: issue.parentKey,
         type: this.getTaskType(issue.issueType),
         open: true,
-        details: {
-          key: issue.key,
-          summary: issue.summary,
-          status: issue.status,
-          assignee: issue.assignee,
-          reporter: issue.reporter,
-          priority: issue.priority,
-          issueType: issue.issueType,
-          description: issue.description,
-          labels: issue.labels,
-          components: issue.components,
-          resolution: issue.resolution,
-          epic: issue.epic,
-          sprint: issue.sprint,
-          createdDate: issue.createdDate,
-          updatedDate: issue.updatedDate,
-          estimatedHours: issue.estimatedHours,
-          remainingHours: issue.remainingHours,
-        },
+        details: taskDetails,
       })
 
       // Add subtasks
