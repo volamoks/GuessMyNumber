@@ -50,9 +50,10 @@ export default async function handler(req, res) {
       console.log('assignee:', response.issues[0].fields.assignee);
       console.log('reporter:', response.issues[0].fields.reporter);
       console.log('components:', response.issues[0].fields.components);
-      console.log('timeoriginalestimate:', response.issues[0].fields.timeoriginalestimate);
-      console.log('timeestimate:', response.issues[0].fields.timeestimate);
+      console.log('timetracking:', response.issues[0].fields.timetracking);
       console.log('resolution:', response.issues[0].fields.resolution);
+      console.log('parent:', response.issues[0].fields.parent);
+      console.log('labels:', response.issues[0].fields.labels);
       console.log('\n--- Custom fields ---');
       console.log('customfield_10014 (epic):', response.issues[0].fields.customfield_10014);
       console.log('customfield_10020 (sprint):', response.issues[0].fields.customfield_10020);
@@ -65,18 +66,23 @@ export default async function handler(req, res) {
         key: issue.key,
         summary: issue.fields.summary,
         description: issue.fields.description,
-        status: issue.fields.status.name,
+        status: issue.fields.status?.name || null,
         assignee: issue.fields.assignee?.displayName || null,
         reporter: issue.fields.reporter?.displayName || null,
         priority: issue.fields.priority?.name || null,
-        issueType: issue.fields.issuetype.name,
-        dueDate: issue.fields.duedate,
+        issueType: issue.fields.issuetype?.name || null,
+        dueDate: issue.fields.duedate || null,
         startDate: issue.fields.created,
         createdDate: issue.fields.created,
         updatedDate: issue.fields.updated,
-        estimatedHours: issue.fields.timeoriginalestimate ? issue.fields.timeoriginalestimate / 3600 : null,
-        remainingHours: issue.fields.timeestimate ? issue.fields.timeestimate / 3600 : null,
-        parentKey: issue.fields.parent?.key,
+        // timetracking is an object with nested fields
+        estimatedHours: issue.fields.timetracking?.originalEstimateSeconds
+          ? issue.fields.timetracking.originalEstimateSeconds / 3600
+          : null,
+        remainingHours: issue.fields.timetracking?.remainingEstimateSeconds
+          ? issue.fields.timetracking.remainingEstimateSeconds / 3600
+          : null,
+        parentKey: issue.fields.parent?.key || null,
         labels: issue.fields.labels || [],
         components: issue.fields.components?.map(c => c.name) || [],
         resolution: issue.fields.resolution?.name || null,
@@ -85,9 +91,9 @@ export default async function handler(req, res) {
         subtasks: issue.fields.subtasks?.map(subtask => ({
           id: subtask.id,
           key: subtask.key,
-          summary: subtask.fields.summary,
-          status: subtask.fields.status.name,
-          issueType: subtask.fields.issuetype.name,
+          summary: subtask.fields?.summary || '',
+          status: subtask.fields?.status?.name || '',
+          issueType: subtask.fields?.issuetype?.name || '',
         })) || [],
       };
 
