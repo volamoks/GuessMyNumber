@@ -1,11 +1,11 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { gantt } from 'dhtmlx-gantt'
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css'
-import { useGanttData, useJiraSync } from '@/hooks'
+import { useGanttData } from '@/hooks'
 import { useGanttStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Upload, Maximize2, Minimize2 } from 'lucide-react'
+import { Maximize2, Minimize2 } from 'lucide-react'
 import type { ColorScheme, TimeScale } from './GanttSettings'
 
 interface GanttVisualizationProps {
@@ -26,7 +26,6 @@ export function GanttVisualization({
   const ganttContainer = useRef<HTMLDivElement>(null)
   const store = useGanttStore()
   const { ganttData, tasks, updateTask } = useGanttData()
-  const { syncTasks, isSyncing } = useJiraSync()
   const [viewLevel, setViewLevel] = useState<string>('all')
 
   // Функции для управления деревом
@@ -418,17 +417,6 @@ export function GanttVisualization({
               <SelectItem value="all">🌳 Show All (with Subtasks)</SelectItem>
             </SelectContent>
           </Select>
-
-          {/* Import Button */}
-          <Button
-            onClick={() => syncTasks()}
-            disabled={isSyncing}
-            variant="outline"
-            size="sm"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {isSyncing ? 'Importing...' : 'Import'}
-          </Button>
 
           {/* Expand/Collapse Buttons */}
           <Button

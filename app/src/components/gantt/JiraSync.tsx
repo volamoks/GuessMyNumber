@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { RefreshCw, Download, ChevronDown, ChevronUp, X } from 'lucide-react'
-import { useJiraProjects, useJiraSync } from '@/hooks'
+import { Button } from '@/components/ui/button'
+import { Download, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { useJiraProjects } from '@/hooks'
 import { useGanttStore } from '@/store'
 
 /**
@@ -19,13 +19,6 @@ export function JiraSync() {
     autoLoadProjects,
   } = useJiraProjects()
 
-  const {
-    isSyncing,
-    lastSync,
-    tasksCount,
-    syncTasks,
-  } = useJiraSync()
-
   const [isCollapsed, setIsCollapsed] = useState(false)
   const selectedProjects = store.selectedProjectKeys
 
@@ -33,13 +26,6 @@ export function JiraSync() {
   useEffect(() => {
     autoLoadProjects()
   }, [autoLoadProjects])
-
-  // Auto-collapse после успешной синхронизации
-  useEffect(() => {
-    if (lastSync && tasksCount > 0) {
-      setIsCollapsed(true)
-    }
-  }, [lastSync, tasksCount])
 
   const toggleProject = (projectKey: string) => {
     if (selectedProjects.includes(projectKey)) {
@@ -51,11 +37,6 @@ export function JiraSync() {
 
   const clearSelection = () => {
     store.setSelectedProjectKeys([])
-  }
-
-  const handleSync = async () => {
-    // Синхронизация с множественными проектами
-    await syncTasks()
   }
 
   if (!store.connectionStatus.connected) {
@@ -141,30 +122,13 @@ export function JiraSync() {
                 💼 Portfolio Mode: Analyzing {selectedProjects.length} projects together
               </p>
             )}
+
+            {selectedProjects.length > 0 && (
+              <p className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950 p-2 rounded">
+                ✓ {selectedProjects.length} project{selectedProjects.length > 1 ? 's' : ''} selected. Use "Import Tasks" button below the chart to sync.
+              </p>
+            )}
           </div>
-
-          {/* Sync Button */}
-          <Button
-            onClick={handleSync}
-            disabled={isSyncing || selectedProjects.length === 0}
-            className="w-full"
-          >
-            {isSyncing && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-            {isSyncing ? 'Syncing...' : `Import Tasks ${selectedProjects.length > 0 ? `(${selectedProjects.length} projects)` : ''}`}
-          </Button>
-
-          {/* Sync Stats */}
-          {lastSync && (
-            <div className="text-xs text-muted-foreground text-center space-y-1 pt-2 border-t">
-              <p>Last synced: {new Date(lastSync).toLocaleString()}</p>
-              {tasksCount > 0 && (
-                <p className="font-medium text-foreground">
-                  {tasksCount} tasks loaded
-                  {selectedProjects.length > 1 && ` from ${selectedProjects.length} projects`}
-                </p>
-              )}
-            </div>
-          )}
         </CardContent>
       )}
     </Card>

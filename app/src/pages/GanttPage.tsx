@@ -7,8 +7,9 @@ import { GanttFilters } from '@/components/gantt/GanttFilters'
 import { GanttSettings, type GanttSettingsConfig } from '@/components/gantt/GanttSettings'
 import { GanttColumnManager } from '@/components/gantt/GanttColumnManager'
 import { ColorCustomizer } from '@/components/gantt/ColorCustomizer'
+import { useJiraSync } from '@/hooks'
 import { Button } from '@/components/ui/button'
-import { Download, FileJson } from 'lucide-react'
+import { Download, FileJson, Upload, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
 /**
@@ -17,6 +18,7 @@ import { toast } from 'sonner'
  */
 export function GanttPage() {
   const store = useGanttStore()
+  const { syncTasks, isSyncing } = useJiraSync()
   const [settings, setSettings] = useState<GanttSettingsConfig>({
     colorScheme: 'type',
     timeScale: 'day',
@@ -77,10 +79,28 @@ export function GanttPage() {
             <div>
               <h2 className="text-2xl font-semibold">{store.data.title}</h2>
               <p className="text-sm text-muted-foreground">
-                {store.data.tasks.length} tasks
+                {store.data.tasks.length} tasks · Last synced: {new Date(store.data.lastSync || '').toLocaleString()}
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => syncTasks()}
+                disabled={isSyncing || store.selectedProjectKeys.length === 0}
+              >
+                {isSyncing ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import Tasks
+                  </>
+                )}
+              </Button>
               <Button variant="outline" size="sm" onClick={handleExportJSON}>
                 <FileJson className="mr-2 h-4 w-4" />
                 Export JSON
