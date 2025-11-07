@@ -60,36 +60,62 @@ export default async function handler(req, res) {
       ],
     });
 
-    const issues = response.issues?.map(issue => ({
-      id: issue.id,
-      key: issue.key,
-      summary: issue.fields.summary,
-      description: issue.fields.description,
-      status: issue.fields.status.name,
-      assignee: issue.fields.assignee?.displayName || null,
-      reporter: issue.fields.reporter?.displayName || null,
-      priority: issue.fields.priority?.name || null,
-      issueType: issue.fields.issuetype.name,
-      dueDate: issue.fields.duedate,
-      startDate: issue.fields.created,
-      createdDate: issue.fields.created,
-      updatedDate: issue.fields.updated,
-      estimatedHours: issue.fields.timeoriginalestimate ? issue.fields.timeoriginalestimate / 3600 : null,
-      remainingHours: issue.fields.timeestimate ? issue.fields.timeestimate / 3600 : null,
-      parentKey: issue.fields.parent?.key,
-      labels: issue.fields.labels || [],
-      components: issue.fields.components?.map(c => c.name) || [],
-      resolution: issue.fields.resolution?.name || null,
-      epic: issue.fields.customfield_10014 || null,
-      sprint: issue.fields.customfield_10020?.[0]?.name || null,
-      subtasks: issue.fields.subtasks?.map(subtask => ({
-        id: subtask.id,
-        key: subtask.key,
-        summary: subtask.fields.summary,
-        status: subtask.fields.status.name,
-        issueType: subtask.fields.issuetype.name,
-      })) || [],
-    })) || [];
+    // DEBUG: Log first issue raw from JIRA
+    if (response.issues && response.issues.length > 0) {
+      console.log('===== RAW JIRA RESPONSE (first issue) =====');
+      console.log('ID:', response.issues[0].id);
+      console.log('Key:', response.issues[0].key);
+      console.log('Fields:', Object.keys(response.issues[0].fields));
+      console.log('assignee:', response.issues[0].fields.assignee);
+      console.log('reporter:', response.issues[0].fields.reporter);
+      console.log('components:', response.issues[0].fields.components);
+      console.log('customfield_10014 (epic):', response.issues[0].fields.customfield_10014);
+      console.log('customfield_10020 (sprint):', response.issues[0].fields.customfield_10020);
+      console.log('timeoriginalestimate:', response.issues[0].fields.timeoriginalestimate);
+      console.log('==========================================');
+    }
+
+    const issues = response.issues?.map(issue => {
+      const mapped = {
+        id: issue.id,
+        key: issue.key,
+        summary: issue.fields.summary,
+        description: issue.fields.description,
+        status: issue.fields.status.name,
+        assignee: issue.fields.assignee?.displayName || null,
+        reporter: issue.fields.reporter?.displayName || null,
+        priority: issue.fields.priority?.name || null,
+        issueType: issue.fields.issuetype.name,
+        dueDate: issue.fields.duedate,
+        startDate: issue.fields.created,
+        createdDate: issue.fields.created,
+        updatedDate: issue.fields.updated,
+        estimatedHours: issue.fields.timeoriginalestimate ? issue.fields.timeoriginalestimate / 3600 : null,
+        remainingHours: issue.fields.timeestimate ? issue.fields.timeestimate / 3600 : null,
+        parentKey: issue.fields.parent?.key,
+        labels: issue.fields.labels || [],
+        components: issue.fields.components?.map(c => c.name) || [],
+        resolution: issue.fields.resolution?.name || null,
+        epic: issue.fields.customfield_10014 || null,
+        sprint: issue.fields.customfield_10020?.[0]?.name || null,
+        subtasks: issue.fields.subtasks?.map(subtask => ({
+          id: subtask.id,
+          key: subtask.key,
+          summary: subtask.fields.summary,
+          status: subtask.fields.status.name,
+          issueType: subtask.fields.issuetype.name,
+        })) || [],
+      };
+
+      // DEBUG: Log first mapped issue
+      if (issue.key === response.issues[0].key) {
+        console.log('===== MAPPED ISSUE (being returned) =====');
+        console.log(JSON.stringify(mapped, null, 2));
+        console.log('=========================================');
+      }
+
+      return mapped;
+    }) || [];
 
     res.json({
       success: true,
