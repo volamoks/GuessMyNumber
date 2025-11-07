@@ -6,30 +6,18 @@ import { JiraSync } from '@/components/gantt/JiraSync'
 import { GanttSettings, type GanttSettingsConfig } from '@/components/gantt/GanttSettings'
 import { Button } from '@/components/ui/button'
 import { Download, FileJson } from 'lucide-react'
-import { jiraService } from '@/lib/jira-service'
 import { toast } from 'sonner'
 
+/**
+ * Gantt Page (Presentational Component)
+ * Бизнес-логика вынесена в hooks, компонент только отображает UI
+ */
 export function GanttPage() {
   const store = useGanttStore()
   const [settings, setSettings] = useState<GanttSettingsConfig>({
     colorScheme: 'type',
     timeScale: 'day',
   })
-
-  const handleTaskUpdate = async (taskId: string, updates: any) => {
-    try {
-      // Update JIRA (2-way sync)
-      await jiraService.updateIssue(taskId, {
-        startDate: updates.start_date?.toISOString().split('T')[0],
-        dueDate: updates.end_date?.toISOString().split('T')[0],
-      })
-
-      toast.success(`Updated ${taskId} in JIRA`)
-    } catch (error) {
-      console.error('Failed to update JIRA:', error)
-      toast.error('Failed to sync changes to JIRA')
-    }
-  }
 
   const handleExportJSON = () => {
     if (!store.data) {
@@ -89,8 +77,6 @@ export function GanttPage() {
           </div>
 
           <GanttVisualization
-            data={store.data}
-            onTaskUpdate={handleTaskUpdate}
             readonly={false}
             colorScheme={settings.colorScheme}
             timeScale={settings.timeScale}

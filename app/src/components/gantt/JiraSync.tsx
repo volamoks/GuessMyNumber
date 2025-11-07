@@ -1,73 +1,37 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { RefreshCw, Download } from 'lucide-react'
-import { jiraService } from '@/lib/jira-service'
+import { useJiraProjects, useJiraSync } from '@/hooks'
 import { useGanttStore } from '@/store'
-import { toast } from 'sonner'
 
+/**
+ * Компонент синхронизации с JIRA (Presentational Component)
+ * Вся логика вынесена в useJiraProjects и useJiraSync hooks
+ */
 export function JiraSync() {
   const store = useGanttStore()
-  const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([])
-  const [loading, setLoading] = useState(false)
-  const hasLoadedProjects = useRef(false)
+  const {
+    projects,
+    isLoading: isLoadingProjects,
+    selectedProjectKey,
+    autoLoadProjects,
+    selectProject,
+  } = useJiraProjects()
 
+  const {
+    isSyncing,
+    lastSync,
+    tasksCount,
+    syncTasks,
+  } = useJiraSync()
+
+  // Auto-load projects при подключении
   useEffect(() => {
-    if (store.connectionStatus.connected && !hasLoadedProjects.current) {
-      hasLoadedProjects.current = true
-      loadProjects()
-    }
-  }, [store.connectionStatus.connected])
-
-  const loadProjects = async () => {
-    try {
-      const projectsList = await jiraService.getProjects()
-      setProjects(projectsList)
-    } catch (error) {
-      console.error('Failed to load projects:', error)
-      toast.error('Failed to load JIRA projects')
-    }
-  }
-
-  const handleSync = async () => {
-    if (!store.selectedProjectKey) {
-      toast.error('Please select a project first')
-      return
-    }
-
-    setLoading(true)
-    store.setSyncing(true)
-
-    try {
-      // Fetch issues from JIRA
-      const issues = await jiraService.fetchIssues({
-        projectKey: store.selectedProjectKey,
-        maxResults: 100,
-      })
-
-      // Transform to Gantt tasks
-      const tasks = jiraService.transformToGanttTasks(issues)
-
-      // Update store
-      const selectedProject = projects.find(p => p.key === store.selectedProjectKey)
-      store.setData({
-        title: selectedProject?.name || 'JIRA Project',
-        description: `Project: ${store.selectedProjectKey}`,
-        tasks,
-        lastSync: new Date(),
-      })
-
-      toast.success(`Synced ${tasks.length} tasks from JIRA`)
-    } catch (error) {
-      console.error('Sync failed:', error)
-      toast.error('Failed to sync with JIRA')
-    } finally {
-      setLoading(false)
-      store.setSyncing(false)
-    }
-  }
+    autoLoadProjects()
+  }, [autoLoadProjects])
 
   if (!store.connectionStatus.connected) {
     return null
@@ -88,8 +52,9 @@ export function JiraSync() {
         <div className="space-y-2">
           <Label>Select Project</Label>
           <Select
-            value={store.selectedProjectKey || ''}
-            onValueChange={(value) => store.setSelectedProjectKey(value)}
+            value={selectedProjectKey || ''}
+            onValueChange={selectProject}
+            disabled={isLoadingProjects}
           >
             <SelectTrigger>
               <SelectValue placeholder="Choose a project..." />
@@ -105,18 +70,19 @@ export function JiraSync() {
         </div>
 
         <Button
-          onClick={handleSync}
-          disabled={loading || !store.selectedProjectKey}
+          onClick={() => syncTasks()}
+          disabled={isSyncing || !selectedProjectKey}
           className="w-full"
         >
-          {loading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? 'Syncing...' : 'Sync Tasks'}
+          {isSyncing && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+          {isSyncing ? 'Syncing...' : 'Sync Tasks'}
         </Button>
 
-        {store.data?.lastSync && (
-          <p className="text-xs text-muted-foreground text-center">
-            Last synced: {new Date(store.data.lastSync).toLocaleString()}
-          </p>
+        {lastSync && (
+          <div className="text-xs text-muted-foreground text-center space-y-1">
+            <p>Last synced: {new Date(lastSync).toLocaleString()}</p>
+            {tasksCount > 0 && <p>{tasksCount} tasks loaded</p>}
+          </div>
         )}
       </CardContent>
     </Card>

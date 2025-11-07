@@ -1,73 +1,29 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, CheckCircle2, Loader2, Link2, Info } from 'lucide-react'
-import { jiraService } from '@/lib/jira-service'
-import { useGanttStore } from '@/store'
-import type { JiraConfig } from '@/lib/jira-types'
+import { useJiraConnection } from '@/hooks'
 
+/**
+ * Компонент подключения к JIRA (Presentational Component)
+ * Вся логика вынесена в useJiraConnection hook
+ */
 export function JiraConnection() {
-  const store = useGanttStore()
-  const [testing, setTesting] = useState(false)
-  const [error, setError] = useState('')
-  const hasAttemptedConnect = useRef(false)
+  const {
+    isConnecting,
+    error,
+    connectionStatus,
+    hasEnvConfig,
+    envConfig,
+    connect,
+    autoConnect,
+    disconnect,
+  } = useJiraConnection()
 
-  // Load credentials from environment variables
-  const envConfig: JiraConfig = {
-    host: import.meta.env.VITE_JIRA_HOST || '',
-    email: import.meta.env.VITE_JIRA_EMAIL || '',
-    apiToken: import.meta.env.VITE_JIRA_API_TOKEN || '',
-  }
-
-  const hasEnvConfig = envConfig.host && envConfig.email && envConfig.apiToken
-
-  // Auto-connect on mount if env variables are set
+  // Auto-connect при монтировании если есть .env
   useEffect(() => {
-    if (hasEnvConfig && !store.connectionStatus.connected && !hasAttemptedConnect.current) {
-      hasAttemptedConnect.current = true
-      handleConnect()
-    }
-  }, [hasEnvConfig, store.connectionStatus.connected])
-
-  const handleConnect = async () => {
-    if (!hasEnvConfig) {
-      setError('JIRA credentials not found in environment variables. Please set up .env.local')
-      return
-    }
-
-    setError('')
-    setTesting(true)
-
-    try {
-      const status = await jiraService.connect(envConfig)
-
-      if (!status.connected) {
-        setError(status.error || 'Failed to connect')
-        store.setConnectionStatus({ connected: false, error: status.error })
-      } else {
-        store.setJiraConfig(envConfig)
-        store.setConnectionStatus({
-          connected: true,
-          host: envConfig.host,
-          email: envConfig.email,
-          lastSync: new Date(),
-        })
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      setError(message)
-      store.setConnectionStatus({ connected: false, error: message })
-    } finally {
-      setTesting(false)
-    }
-  }
-
-  const handleDisconnect = () => {
-    jiraService.disconnect()
-    store.setJiraConfig(null)
-    store.setConnectionStatus({ connected: false })
-    store.setSelectedProjectKey(null)
-  }
+    autoConnect()
+  }, [autoConnect])
 
   return (
     <Card>
@@ -81,19 +37,19 @@ export function JiraConnection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {store.connectionStatus.connected ? (
+        {connectionStatus.connected ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
               <CheckCircle2 className="h-4 w-4" />
-              <span>Connected to {store.connectionStatus.host}</span>
+              <span>Connected to {connectionStatus.host}</span>
             </div>
             <div className="text-sm text-muted-foreground">
-              <p>Email: {store.connectionStatus.email}</p>
-              {store.connectionStatus.lastSync && (
-                <p>Last sync: {new Date(store.connectionStatus.lastSync).toLocaleString()}</p>
+              <p>Email: {connectionStatus.email}</p>
+              {connectionStatus.lastSync && (
+                <p>Last sync: {new Date(connectionStatus.lastSync).toLocaleString()}</p>
               )}
             </div>
-            <Button variant="outline" onClick={handleDisconnect}>
+            <Button variant="outline" onClick={disconnect}>
               Disconnect
             </Button>
           </div>
@@ -117,9 +73,9 @@ export function JiraConnection() {
                   </div>
                 )}
 
-                <Button onClick={handleConnect} disabled={testing} className="w-full">
-                  {testing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {testing ? 'Connecting...' : 'Connect to JIRA'}
+                <Button onClick={() => connect()} disabled={isConnecting} className="w-full">
+                  {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isConnecting ? 'Connecting...' : 'Connect to JIRA'}
                 </Button>
               </>
             ) : (
