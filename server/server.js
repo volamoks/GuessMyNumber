@@ -100,52 +100,59 @@ app.post('/api/jira/issues', async (req, res) => {
 
     const query = jql || `project = ${projectKey} ORDER BY created DESC`;
 
-    // Use the new Enhanced Search method which uses /rest/api/3/search/jql endpoint
-    const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
+    // Use searchForIssuesUsingJql with '*all' to get all fields including components, epic, sprint
+    console.log('Making JIRA Cloud API request...');
+    const response = await client.issueSearch.searchForIssuesUsingJql({
       jql: query,
       maxResults,
-      fields: [
-        'summary',
-        'description',
-        'status',
-        'assignee',
-        'priority',
-        'issuetype',
-        'duedate',
-        'created',
-        'updated',
-        'parent',
-        'labels',
-        'subtasks',
-      ],
+      fields: '*all', // Request ALL fields
     });
+    console.log('JIRA API response received, issues count:', response.issues?.length || 0);
 
     const issues = response.issues?.map(issue => ({
       id: issue.id,
       key: issue.key,
       summary: issue.fields.summary,
       description: issue.fields.description,
-      status: issue.fields.status.name,
-      assignee: issue.fields.assignee?.displayName,
-      priority: issue.fields.priority?.name,
-      issueType: issue.fields.issuetype.name,
-      dueDate: issue.fields.duedate,
-      startDate: issue.fields.created, // Use created date as fallback
-      estimatedHours: undefined, // Will be calculated from date range
-      parentKey: issue.fields.parent?.key,
+      status: issue.fields.status?.name || null,
+      assignee: issue.fields.assignee?.displayName || null,
+      reporter: issue.fields.reporter?.displayName || null,
+      priority: issue.fields.priority?.name || null,
+      issueType: issue.fields.issuetype?.name || null,
+      dueDate: issue.fields.duedate || null,
+      startDate: issue.fields.created,
+      createdDate: issue.fields.created,
+      updatedDate: issue.fields.updated,
+      estimatedHours: issue.fields.timetracking?.originalEstimateSeconds
+        ? issue.fields.timetracking.originalEstimateSeconds / 3600
+        : null,
+      remainingHours: issue.fields.timetracking?.remainingEstimateSeconds
+        ? issue.fields.timetracking.remainingEstimateSeconds / 3600
+        : null,
+      parentKey: issue.fields.parent?.key || null,
       labels: issue.fields.labels || [],
+      components: issue.fields.components?.map(c => c.name) || [],
+      resolution: issue.fields.resolution?.name || null,
+      epic: issue.fields.customfield_10014 || null,
+      sprint: issue.fields.customfield_10020?.[0]?.name || null,
       subtasks: issue.fields.subtasks?.map(subtask => ({
         id: subtask.id,
         key: subtask.key,
-        summary: subtask.fields.summary,
-        status: subtask.fields.status.name,
-        issueType: subtask.fields.issuetype.name,
+        summary: subtask.fields?.summary || '',
+        status: subtask.fields?.status?.name || '',
+        issueType: subtask.fields?.issuetype?.name || '',
       })) || [],
     })) || [];
 
     res.json({
       success: true,
       issues,
+      // DEBUG: Return raw first issue for inspection
+      debug: {
+        rawFirstIssue: response.issues?.[0] || null,
+        rawFieldsCount: response.issues?.[0] ? Object.keys(response.issues[0].fields).length : 0,
+        rawFieldNames: response.issues?.[0] ? Object.keys(response.issues[0].fields) : [],
+      },
     });
   } catch (error) {
     console.error('Failed to fetch issues:', error);
