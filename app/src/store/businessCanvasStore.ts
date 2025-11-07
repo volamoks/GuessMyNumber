@@ -1,7 +1,12 @@
 import { create } from 'zustand'
+import type { BaseArtifactData, BaseArtifactStore } from './base'
+import { createBaseStoreState, createBaseStoreActions } from './base'
 
-export interface BusinessCanvasData {
-  title: string
+/**
+ * Business Canvas specific data structure
+ * Extends BaseArtifactData with business model canvas fields
+ */
+export interface BusinessCanvasData extends BaseArtifactData {
   keyPartners: string[]
   keyActivities: string[]
   keyResources: string[]
@@ -13,79 +18,22 @@ export interface BusinessCanvasData {
   revenueStreams: string[]
 }
 
-interface BusinessCanvasStore {
-  data: BusinessCanvasData | null
-  analysis: string
-  currentProjectId: string | null
+/**
+ * Business Canvas Store
+ * Uses base artifact store structure to eliminate code duplication
+ */
+type BusinessCanvasStore = BaseArtifactStore<BusinessCanvasData>
 
-  // Loading states
-  isGenerating: boolean
-  isAnalyzing: boolean
-  isImproving: boolean
-  isSaving: boolean
-  isExporting: boolean
-
-  // UI states
-  showGenerator: boolean
-  showVersions: boolean
-  versions: any[]
-
-  // Actions
-  setData: (data: BusinessCanvasData | null) => void
-  setAnalysis: (analysis: string) => void
-  setCurrentProjectId: (id: string | null) => void
-  setGenerating: (loading: boolean) => void
-  setAnalyzing: (loading: boolean) => void
-  setImproving: (loading: boolean) => void
-  setSaving: (loading: boolean) => void
-  setExporting: (loading: boolean) => void
-  setShowGenerator: (show: boolean) => void
-  setShowVersions: (show: boolean) => void
-  toggleGenerator: () => void
-  toggleVersions: () => void
-  setVersions: (versions: any[]) => void
-  reset: () => void
-}
-
+/**
+ * Business Canvas Store Hook
+ * Reduced from 92 lines to ~40 lines using base architecture
+ */
 export const useBusinessCanvasStore = create<BusinessCanvasStore>((set) => ({
-  data: null,
-  analysis: '',
-  currentProjectId: null,
-  isGenerating: false,
-  isAnalyzing: false,
-  isImproving: false,
-  isSaving: false,
-  isExporting: false,
-  showGenerator: false,
-  showVersions: false,
-  versions: [],
+  // Initialize with base state
+  ...createBaseStoreState<BusinessCanvasData>(),
 
-  setData: (data) => set({ data }),
-  setAnalysis: (analysis) => set({ analysis }),
-  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
-  setGenerating: (isGenerating) => set({ isGenerating }),
-  setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
-  setImproving: (isImproving) => set({ isImproving }),
-  setSaving: (isSaving) => set({ isSaving }),
-  setExporting: (isExporting) => set({ isExporting }),
-  setShowGenerator: (showGenerator) => set({ showGenerator }),
-  setShowVersions: (showVersions) => set({ showVersions }),
-  toggleGenerator: () => set((state) => ({ showGenerator: !state.showGenerator })),
-  toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-  setVersions: (versions) => set({ versions }),
+  // Initialize with base actions
+  ...createBaseStoreActions<BusinessCanvasData>(set),
 
-  reset: () =>
-    set({
-      data: null,
-      analysis: '',
-      currentProjectId: null,
-      isGenerating: false,
-      isAnalyzing: false,
-      isImproving: false,
-      isSaving: false,
-      isExporting: false,
-      showGenerator: false,
-      showVersions: false,
-      versions: [],
-    }),
+  // Add any business-canvas-specific state or actions here if needed
 }))

@@ -1,7 +1,12 @@
 import { create } from 'zustand'
+import type { BaseArtifactData, BaseArtifactStore } from './base'
+import { createBaseStoreState, createBaseStoreActions } from './base'
 
-export interface LeanCanvasData {
-  title: string
+/**
+ * Lean Canvas specific data structure
+ * Extends BaseArtifactData with lean canvas fields
+ */
+export interface LeanCanvasData extends BaseArtifactData {
   problem: string[]
   solution: string[]
   keyMetrics: string[]
@@ -13,79 +18,22 @@ export interface LeanCanvasData {
   revenueStreams: string[]
 }
 
-interface LeanCanvasStore {
-  data: LeanCanvasData | null
-  analysis: string
-  currentProjectId: string | null
+/**
+ * Lean Canvas Store
+ * Uses base artifact store structure to eliminate code duplication
+ */
+type LeanCanvasStore = BaseArtifactStore<LeanCanvasData>
 
-  // Loading states
-  isGenerating: boolean
-  isAnalyzing: boolean
-  isImproving: boolean
-  isSaving: boolean
-  isExporting: boolean
-
-  // UI states
-  showGenerator: boolean
-  showVersions: boolean
-  versions: any[]
-
-  // Actions
-  setData: (data: LeanCanvasData | null) => void
-  setAnalysis: (analysis: string) => void
-  setCurrentProjectId: (id: string | null) => void
-  setGenerating: (loading: boolean) => void
-  setAnalyzing: (loading: boolean) => void
-  setImproving: (loading: boolean) => void
-  setSaving: (loading: boolean) => void
-  setExporting: (loading: boolean) => void
-  setShowGenerator: (show: boolean) => void
-  setShowVersions: (show: boolean) => void
-  toggleGenerator: () => void
-  toggleVersions: () => void
-  setVersions: (versions: any[]) => void
-  reset: () => void
-}
-
+/**
+ * Lean Canvas Store Hook
+ * Reduced from 92 lines to ~40 lines using base architecture
+ */
 export const useLeanCanvasStore = create<LeanCanvasStore>((set) => ({
-  data: null,
-  analysis: '',
-  currentProjectId: null,
-  isGenerating: false,
-  isAnalyzing: false,
-  isImproving: false,
-  isSaving: false,
-  isExporting: false,
-  showGenerator: false,
-  showVersions: false,
-  versions: [],
+  // Initialize with base state
+  ...createBaseStoreState<LeanCanvasData>(),
 
-  setData: (data) => set({ data }),
-  setAnalysis: (analysis) => set({ analysis }),
-  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
-  setGenerating: (isGenerating) => set({ isGenerating }),
-  setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
-  setImproving: (isImproving) => set({ isImproving }),
-  setSaving: (isSaving) => set({ isSaving }),
-  setExporting: (isExporting) => set({ isExporting }),
-  setShowGenerator: (showGenerator) => set({ showGenerator }),
-  setShowVersions: (showVersions) => set({ showVersions }),
-  toggleGenerator: () => set((state) => ({ showGenerator: !state.showGenerator })),
-  toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-  setVersions: (versions) => set({ versions }),
+  // Initialize with base actions
+  ...createBaseStoreActions<LeanCanvasData>(set),
 
-  reset: () =>
-    set({
-      data: null,
-      analysis: '',
-      currentProjectId: null,
-      isGenerating: false,
-      isAnalyzing: false,
-      isImproving: false,
-      isSaving: false,
-      isExporting: false,
-      showGenerator: false,
-      showVersions: false,
-      versions: [],
-    }),
+  // Add any lean-canvas-specific state or actions here if needed
 }))

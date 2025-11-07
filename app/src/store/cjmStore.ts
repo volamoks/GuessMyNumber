@@ -1,85 +1,33 @@
 import { create } from 'zustand'
+import type { BaseArtifactData, BaseArtifactStore } from './base'
+import { createBaseStoreState, createBaseStoreActions } from './base'
 
-interface CJMData {
-  title: string
+/**
+ * Customer Journey Map specific data structure
+ * Extends BaseArtifactData with CJM-specific fields
+ */
+export interface CJMData extends BaseArtifactData {
   persona: string
   description?: string
-  stages: any[]
+  stages: any[] // TODO: Define proper Stage type in future
 }
 
-interface CJMStore {
-  data: CJMData | null
-  analysis: string
-  currentProjectId: string | null
+/**
+ * CJM Store
+ * Uses base artifact store structure to eliminate code duplication
+ */
+type CJMStore = BaseArtifactStore<CJMData>
 
-  // Loading states
-  isGenerating: boolean
-  isAnalyzing: boolean
-  isImproving: boolean
-  isSaving: boolean
-  isExporting: boolean
-
-  // UI states
-  showGenerator: boolean
-  showVersions: boolean
-  versions: any[]
-
-  // Actions
-  setData: (data: CJMData | null) => void
-  setAnalysis: (analysis: string) => void
-  setCurrentProjectId: (id: string | null) => void
-  setGenerating: (loading: boolean) => void
-  setAnalyzing: (loading: boolean) => void
-  setImproving: (loading: boolean) => void
-  setSaving: (loading: boolean) => void
-  setExporting: (loading: boolean) => void
-  setShowGenerator: (show: boolean) => void
-  setShowVersions: (show: boolean) => void
-  toggleGenerator: () => void
-  toggleVersions: () => void
-  setVersions: (versions: any[]) => void
-  reset: () => void
-}
-
+/**
+ * CJM Store Hook
+ * Reduced from 86 lines to ~40 lines using base architecture
+ */
 export const useCJMStore = create<CJMStore>((set) => ({
-  data: null,
-  analysis: '',
-  currentProjectId: null,
-  isGenerating: false,
-  isAnalyzing: false,
-  isImproving: false,
-  isSaving: false,
-  isExporting: false,
-  showGenerator: false,
-  showVersions: false,
-  versions: [],
+  // Initialize with base state
+  ...createBaseStoreState<CJMData>(),
 
-  setData: (data) => set({ data }),
-  setAnalysis: (analysis) => set({ analysis }),
-  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
-  setGenerating: (isGenerating) => set({ isGenerating }),
-  setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
-  setImproving: (isImproving) => set({ isImproving }),
-  setSaving: (isSaving) => set({ isSaving }),
-  setExporting: (isExporting) => set({ isExporting }),
-  setShowGenerator: (showGenerator) => set({ showGenerator }),
-  setShowVersions: (showVersions) => set({ showVersions }),
-  toggleGenerator: () => set((state) => ({ showGenerator: !state.showGenerator })),
-  toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-  setVersions: (versions) => set({ versions }),
+  // Initialize with base actions
+  ...createBaseStoreActions<CJMData>(set),
 
-  reset: () =>
-    set({
-      data: null,
-      analysis: '',
-      currentProjectId: null,
-      isGenerating: false,
-      isAnalyzing: false,
-      isImproving: false,
-      isSaving: false,
-      isExporting: false,
-      showGenerator: false,
-      showVersions: false,
-      versions: [],
-    }),
+  // Add any CJM-specific state or actions here if needed
 }))
