@@ -1,0 +1,7 @@
+{
+  "name": "jira-gantt-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "jira.js": "^5.2.2"
+  }
+}
