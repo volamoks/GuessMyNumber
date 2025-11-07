@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Settings2, Palette, Clock } from 'lucide-react'
+import { Clock } from 'lucide-react'
 
 export type ColorScheme = 'type' | 'status' | 'priority' | 'assignee'
 export type TimeScale = 'day' | 'week' | 'month' | 'quarter'
@@ -17,10 +17,6 @@ interface GanttSettingsProps {
 }
 
 export function GanttSettings({ settings, onSettingsChange }: GanttSettingsProps) {
-  const handleColorSchemeChange = (colorScheme: ColorScheme) => {
-    onSettingsChange({ ...settings, colorScheme })
-  }
-
   const handleTimeScaleChange = (timeScale: TimeScale) => {
     onSettingsChange({ ...settings, timeScale })
   }
@@ -29,75 +25,17 @@ export function GanttSettings({ settings, onSettingsChange }: GanttSettingsProps
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5" />
-          <CardTitle>Настройки Gantt</CardTitle>
+          <Clock className="h-5 w-5" />
+          <CardTitle>Timeline Scale</CardTitle>
         </div>
         <CardDescription>
-          Настройте отображение и цветовую схему
+          Adjust timeline zoom level
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Color Scheme */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            Цветовая схема
-          </Label>
-          <Select value={settings.colorScheme} onValueChange={handleColorSchemeChange}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="type">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <div className="w-3 h-3 rounded-full bg-purple-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                  </div>
-                  По типу задачи (Epic, Story, Task, Bug)
-                </div>
-              </SelectItem>
-              <SelectItem value="status">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-3 h-3 rounded-full bg-gray-500" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                  </div>
-                  По статусу (To Do, In Progress, Done)
-                </div>
-              </SelectItem>
-              <SelectItem value="priority">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="w-3 h-3 rounded-full bg-orange-500" />
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                  </div>
-                  По приоритету (Highest, High, Medium, Low)
-                </div>
-              </SelectItem>
-              <SelectItem value="assignee">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-3 h-3 rounded-full bg-pink-500" />
-                    <div className="w-3 h-3 rounded-full bg-cyan-500" />
-                    <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  </div>
-                  По исполнителю
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
+      <CardContent className="space-y-4">
         {/* Time Scale */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Масштаб таймлайна
-          </Label>
+          <Label>Zoom Level</Label>
           <Select value={settings.timeScale} onValueChange={handleTimeScaleChange}>
             <SelectTrigger>
               <SelectValue />
@@ -105,97 +43,30 @@ export function GanttSettings({ settings, onSettingsChange }: GanttSettingsProps
             <SelectContent>
               <SelectItem value="day">
                 <div className="flex flex-col">
-                  <span className="font-medium">День</span>
-                  <span className="text-xs text-muted-foreground">Месяц → День</span>
+                  <span className="font-medium">Day</span>
+                  <span className="text-xs text-muted-foreground">Month → Day</span>
                 </div>
               </SelectItem>
               <SelectItem value="week">
                 <div className="flex flex-col">
-                  <span className="font-medium">Неделя</span>
-                  <span className="text-xs text-muted-foreground">Месяц → Неделя</span>
+                  <span className="font-medium">Week</span>
+                  <span className="text-xs text-muted-foreground">Month → Week</span>
                 </div>
               </SelectItem>
               <SelectItem value="month">
                 <div className="flex flex-col">
-                  <span className="font-medium">Месяц</span>
-                  <span className="text-xs text-muted-foreground">Год → Месяц</span>
+                  <span className="font-medium">Month</span>
+                  <span className="text-xs text-muted-foreground">Year → Month</span>
                 </div>
               </SelectItem>
               <SelectItem value="quarter">
                 <div className="flex flex-col">
-                  <span className="font-medium">Квартал</span>
-                  <span className="text-xs text-muted-foreground">Год → Квартал</span>
+                  <span className="font-medium">Quarter</span>
+                  <span className="text-xs text-muted-foreground">Year → Quarter</span>
                 </div>
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Legend */}
-        <div className="pt-4 border-t space-y-2">
-          <Label className="text-xs font-semibold">Легенда</Label>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {settings.colorScheme === 'type' && (
-              <>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-purple-500" />
-                  <span>Epic</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-blue-500" />
-                  <span>Story</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-green-500" />
-                  <span>Task</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-red-500" />
-                  <span>Bug</span>
-                </div>
-              </>
-            )}
-            {settings.colorScheme === 'status' && (
-              <>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-gray-500" />
-                  <span>To Do</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-yellow-500" />
-                  <span>In Progress</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-green-500" />
-                  <span>Done</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-blue-500" />
-                  <span>Closed</span>
-                </div>
-              </>
-            )}
-            {settings.colorScheme === 'priority' && (
-              <>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-red-600" />
-                  <span>Highest</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-orange-500" />
-                  <span>High</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-yellow-500" />
-                  <span>Medium</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded bg-blue-500" />
-                  <span>Low</span>
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </CardContent>
     </Card>

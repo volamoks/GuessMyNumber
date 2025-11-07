@@ -58,18 +58,47 @@ export function GanttPage() {
         <JiraSync />
       </div>
 
-      {/* Filters & Settings - Full Width Bottom Section */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Filters - Single Line */}
+      <div className="p-4 border rounded-lg bg-card">
         <GanttFilters />
+      </div>
+
+      {/* Settings - Compact Grid */}
+      <div className="grid gap-4 md:grid-cols-3">
         <GanttSettings settings={settings} onSettingsChange={setSettings} />
         <GanttColumnManager
           columns={store.columns}
           onColumnsChange={store.setColumns}
         />
         <ColorCustomizer
+          colorScheme={settings.colorScheme}
+          onColorSchemeChange={(scheme) => setSettings({ ...settings, colorScheme: scheme })}
           colors={store.customColors}
           onColorsChange={store.setCustomColors}
         />
+      </div>
+
+      {/* Import Action Button - Always Visible */}
+      <div className="flex items-center justify-center">
+        <Button
+          variant="default"
+          size="lg"
+          onClick={() => syncTasks()}
+          disabled={isSyncing || store.selectedProjectKeys.length === 0}
+          className="min-w-[200px]"
+        >
+          {isSyncing ? (
+            <>
+              <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+              Importing...
+            </>
+          ) : (
+            <>
+              <Upload className="mr-2 h-5 w-5" />
+              Import Tasks from JIRA
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Gantt Visualization */}
@@ -83,24 +112,6 @@ export function GanttPage() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => syncTasks()}
-                disabled={isSyncing || store.selectedProjectKeys.length === 0}
-              >
-                {isSyncing ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Import Tasks
-                  </>
-                )}
-              </Button>
               <Button variant="outline" size="sm" onClick={handleExportJSON}>
                 <FileJson className="mr-2 h-4 w-4" />
                 Export JSON

@@ -442,7 +442,7 @@ export function GanttVisualization({
       <div
         ref={ganttContainer}
         className="border rounded-lg bg-background overflow-hidden gantt-container"
-        style={{ height: '600px', width: '100%' }}
+        style={{ minHeight: '70vh', height: 'auto', width: '100%' }}
       />
 
       {/* Custom CSS for Gantt */}

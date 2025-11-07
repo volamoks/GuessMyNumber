@@ -1,53 +1,43 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useCallback, useRef, useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Filter, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { X, ChevronDown } from 'lucide-react'
 import { useGanttStore } from '@/store'
 import { useJiraSync } from '@/hooks'
 import type { GanttFilters as GanttFiltersType } from '@/store/ganttStore'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 /**
- * Advanced Filters Component with Auto-sync
- * Фильтрация задач по типу, статусу, приоритету
+ * Compact Filters Component - Single Line
+ * Auto-syncs on filter changes
  */
 export function GanttFilters() {
   const store = useGanttStore()
   const { syncTasks, isSyncing } = useJiraSync()
-  const [isCollapsed, setIsCollapsed] = useState(false)
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Issue types options
+  // Filter options
   const issueTypes = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task']
-
-  // Status options
   const statuses = ['To Do', 'In Progress', 'Done', 'Closed']
-
-  // Priority options
   const priorities = ['Highest', 'High', 'Medium', 'Low', 'Lowest']
 
-  // Auto-collapse после первой синхронизации
-  useEffect(() => {
-    if (store.data && store.data.tasks.length > 0) {
-      setIsCollapsed(true)
-    }
-  }, [store.data])
-
-  // Debounced auto-sync function
+  // Debounced auto-sync
   const debouncedSync = useCallback(() => {
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current)
     }
-
     syncTimeoutRef.current = setTimeout(() => {
       if (store.selectedProjectKeys.length > 0) {
         syncTasks()
       }
-    }, 500) // 500ms debounce
+    }, 500)
   }, [store.selectedProjectKeys, syncTasks])
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (syncTimeoutRef.current) {
@@ -56,166 +46,155 @@ export function GanttFilters() {
     }
   }, [])
 
-  // Toggle filter option with auto-sync
-  const toggleFilterOption = (filterType: keyof GanttFiltersType, value: string) => {
+  // Toggle filter
+  const toggleFilter = (filterType: keyof GanttFiltersType, value: string) => {
     const currentValues = (store.filters[filterType] as string[]) || []
     const newValues = currentValues.includes(value)
       ? currentValues.filter(v => v !== value)
       : [...currentValues, value]
 
-    const newFilters = {
+    store.setFilters({
       ...store.filters,
       [filterType]: newValues.length > 0 ? newValues : undefined
-    }
-
-    // Update store immediately
-    store.setFilters(newFilters)
-
-    // Trigger debounced sync
+    })
     debouncedSync()
   }
 
-  // Clear all filters with immediate sync
-  const handleClearFilters = () => {
+  // Clear all
+  const clearAll = () => {
     store.clearFilters()
-
-    // Immediate sync when clearing (no debounce)
     if (store.selectedProjectKeys.length > 0) {
       syncTasks()
     }
   }
 
-  const hasFilters = store.filters.issueTypes?.length || store.filters.statuses?.length ||
-                     store.filters.priorities?.length
+  const hasFilters = store.filters.issueTypes?.length || store.filters.statuses?.length || store.filters.priorities?.length
 
   if (!store.connectionStatus.connected) {
     return null
   }
 
   return (
-    <Card>
-      <CardHeader className="cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Task Filters
-            {hasFilters && (
-              <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                {(localFilters.issueTypes?.length || 0) + (localFilters.statuses?.length || 0) +
-                 (localFilters.priorities?.length || 0)} active
+    <div className="flex items-center gap-2 flex-wrap">
+      <Label className="text-sm font-medium">Filters:</Label>
+
+      {/* Issue Types */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8">
+            Issue Type
+            {store.filters.issueTypes?.length ? (
+              <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                {store.filters.issueTypes.length}
               </span>
-            )}
+            ) : null}
+            <ChevronDown className="ml-1 h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-48">
+          <div className="p-2 space-y-2">
+            {issueTypes.map((type) => (
+              <div key={type} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`type-${type}`}
+                  checked={store.filters.issueTypes?.includes(type) || false}
+                  onCheckedChange={() => toggleFilter('issueTypes', type)}
+                  disabled={isSyncing}
+                />
+                <label
+                  htmlFor={`type-${type}`}
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  {type}
+                </label>
+              </div>
+            ))}
           </div>
-          {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
-        </CardTitle>
-        {!isCollapsed && (
-          <CardDescription>
-            Filter tasks by type, status, priority. Auto-syncs on change.
-          </CardDescription>
-        )}
-      </CardHeader>
-      {!isCollapsed && (
-        <CardContent className="space-y-4">
-          {/* Issue Type Filter */}
-          <div className="space-y-2">
-            <Label className="font-semibold">Issue Types</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {issueTypes.map((type) => (
-                <div key={type} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`type-${type}`}
-                    checked={store.filters.issueTypes?.includes(type) || false}
-                    onCheckedChange={() => toggleFilterOption('issueTypes', type)}
-                    disabled={isSyncing}
-                  />
-                  <label
-                    htmlFor={`type-${type}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {type}
-                  </label>
-                </div>
-              ))}
-            </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Status */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8">
+            Status
+            {store.filters.statuses?.length ? (
+              <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                {store.filters.statuses.length}
+              </span>
+            ) : null}
+            <ChevronDown className="ml-1 h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-48">
+          <div className="p-2 space-y-2">
+            {statuses.map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={store.filters.statuses?.includes(status) || false}
+                  onCheckedChange={() => toggleFilter('statuses', status)}
+                  disabled={isSyncing}
+                />
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  {status}
+                </label>
+              </div>
+            ))}
           </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-          {/* Status Filter */}
-          <div className="space-y-2">
-            <Label className="font-semibold">Status</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {statuses.map((status) => (
-                <div key={status} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`status-${status}`}
-                    checked={store.filters.statuses?.includes(status) || false}
-                    onCheckedChange={() => toggleFilterOption('statuses', status)}
-                    disabled={isSyncing}
-                  />
-                  <label
-                    htmlFor={`status-${status}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {status}
-                  </label>
-                </div>
-              ))}
-            </div>
+      {/* Priority */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8">
+            Priority
+            {store.filters.priorities?.length ? (
+              <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                {store.filters.priorities.length}
+              </span>
+            ) : null}
+            <ChevronDown className="ml-1 h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-48">
+          <div className="p-2 space-y-2">
+            {priorities.map((priority) => (
+              <div key={priority} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`priority-${priority}`}
+                  checked={store.filters.priorities?.includes(priority) || false}
+                  onCheckedChange={() => toggleFilter('priorities', priority)}
+                  disabled={isSyncing}
+                />
+                <label
+                  htmlFor={`priority-${priority}`}
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  {priority}
+                </label>
+              </div>
+            ))}
           </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-          {/* Priority Filter */}
-          <div className="space-y-2">
-            <Label className="font-semibold">Priority</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {priorities.map((priority) => (
-                <div key={priority} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`priority-${priority}`}
-                    checked={store.filters.priorities?.includes(priority) || false}
-                    onCheckedChange={() => toggleFilterOption('priorities', priority)}
-                    disabled={isSyncing}
-                  />
-                  <label
-                    htmlFor={`priority-${priority}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {priority}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Clear Filters Button */}
-          {hasFilters && (
-            <div className="flex gap-2 pt-2 border-t">
-              <Button
-                onClick={handleClearFilters}
-                variant="outline"
-                size="sm"
-                className="w-full"
-                disabled={isSyncing}
-                title="Clear all filters"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear All Filters
-              </Button>
-            </div>
-          )}
-
-          {/* Auto-sync indicator */}
-          {isSyncing && (
-            <p className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 p-2 rounded">
-              🔄 Auto-syncing with filters...
-            </p>
-          )}
-
-          {store.selectedProjectKeys.length === 0 && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 p-2 rounded">
-              ⚠️ Select at least one project in "Project Sync" to apply filters
-            </p>
-          )}
-        </CardContent>
+      {/* Clear Button */}
+      {hasFilters && (
+        <Button variant="ghost" size="sm" onClick={clearAll} className="h-8">
+          <X className="h-3 w-3 mr-1" />
+          Clear
+        </Button>
       )}
-    </Card>
+
+      {/* Sync Indicator */}
+      {isSyncing && (
+        <span className="text-xs text-muted-foreground">Syncing...</span>
+      )}
+    </div>
   )
 }
