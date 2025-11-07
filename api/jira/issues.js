@@ -1,7 +1,9 @@
-import { Version3Client } from 'jira.js';
+import { Version2Client } from 'jira.js';
 
 function createJiraClient(config) {
-  return new Version3Client({
+  // Use Version2Client for JIRA Server (7.x, 8.x, 9.x)
+  // Version3Client is for JIRA Cloud only
+  return new Version2Client({
     host: config.host,
     authentication: {
       basic: {
@@ -33,13 +35,13 @@ export default async function handler(req, res) {
 
     const query = jql || `project = ${projectKey} ORDER BY created DESC`;
 
-    // Request all fields and expand all nested resources
-    console.log('Making JIRA API request with expand...');
-    const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
+    // For JIRA Server, use searchForIssuesUsingJql (GET method works better)
+    console.log('Making JIRA API request for Server...');
+    const response = await client.issueSearch.searchForIssuesUsingJql({
       jql: query,
       maxResults,
-      fields: ['*all'],
-      expand: ['renderedFields', 'names', 'schema', 'transitions', 'operations', 'changelog'],
+      fields: '*all', // String, not array for Server API
+      expand: 'renderedFields,names,schema',
     });
     console.log('JIRA API request completed');
 
