@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { gantt } from 'dhtmlx-gantt'
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css'
 import { useGanttData, useJiraSync } from '@/hooks'
 import { Button } from '@/components/ui/button'
-import { RefreshCw } from 'lucide-react'
+import { Upload, Maximize2, Minimize2 } from 'lucide-react'
 import type { ColorScheme, TimeScale } from './GanttSettings'
 
 interface GanttVisualizationProps {
@@ -24,6 +24,21 @@ export function GanttVisualization({
   const ganttContainer = useRef<HTMLDivElement>(null)
   const { ganttData, tasks, updateTask } = useGanttData()
   const { syncTasks, isSyncing } = useJiraSync()
+
+  // Функции для управления деревом
+  const handleExpandAll = useCallback(() => {
+    gantt.eachTask((task) => {
+      task.$open = true
+    })
+    gantt.render()
+  }, [])
+
+  const handleCollapseAll = useCallback(() => {
+    gantt.eachTask((task) => {
+      task.$open = false
+    })
+    gantt.render()
+  }, [])
 
   // Функция для получения цвета задачи
   const getTaskColor = (task: any): string => {
@@ -81,6 +96,8 @@ export function GanttVisualization({
     gantt.config.drag_progress = !readonly
     gantt.config.drag_resize = !readonly
     gantt.config.drag_move = !readonly
+    gantt.config.autosize = 'xy' // Автоматический размер
+    gantt.config.scroll_size = 20 // Размер скроллбара
 
     // Настройка шкалы времени
     if (timeScale === 'day') {
@@ -88,21 +105,25 @@ export function GanttVisualization({
         { unit: 'month', step: 1, format: '%F %Y' },
         { unit: 'day', step: 1, format: '%d' }
       ]
+      gantt.config.scale_height = 50
     } else if (timeScale === 'week') {
       gantt.config.scales = [
         { unit: 'month', step: 1, format: '%F %Y' },
         { unit: 'week', step: 1, format: 'Week #%W' }
       ]
+      gantt.config.scale_height = 50
     } else if (timeScale === 'month') {
       gantt.config.scales = [
         { unit: 'year', step: 1, format: '%Y' },
         { unit: 'month', step: 1, format: '%M' }
       ]
+      gantt.config.scale_height = 50
     } else if (timeScale === 'quarter') {
       gantt.config.scales = [
         { unit: 'year', step: 1, format: '%Y' },
         { unit: 'quarter', step: 1, format: 'Q%q' }
       ]
+      gantt.config.scale_height = 50
     }
 
     // Настройка колонок
@@ -135,19 +156,25 @@ export function GanttVisualization({
       }
     ]
 
-    // Применение цветовой схемы
+    // Применение цветовой схемы через template
     gantt.templates.task_class = (_start, _end, task) => {
-      return task.details?.issueType === 'Epic' ? 'gantt-epic' : ''
+      const issueType = task.details?.issueType
+      if (issueType === 'Epic') return 'gantt-epic'
+      if (issueType === 'Story') return 'gantt-story'
+      if (issueType === 'Bug') return 'gantt-bug'
+      if (issueType === 'Task') return 'gantt-task'
+      if (issueType === 'Sub-task') return 'gantt-subtask'
+      return ''
     }
 
     gantt.templates.task_text = (_start, _end, task) => {
       return task.text
     }
 
-    // Кастомизация цветов задач
-    gantt.attachEvent('onBeforeTaskDisplay', (_id, _task) => {
-      return true
-    })
+    // Применение цветов напрямую к задачам
+    gantt.templates.task_unscheduled_time = (_task) => {
+      return ''
+    }
 
     // Инициализация Gantt
     gantt.init(ganttContainer.current)
@@ -156,7 +183,7 @@ export function GanttVisualization({
     return () => {
       gantt.clearAll()
     }
-  }, [timeScale, readonly])
+  }, [timeScale, readonly, colorScheme])
 
   // Обработчик изменения задач (2-way sync)
   useEffect(() => {
@@ -250,20 +277,41 @@ export function GanttVisualization({
 
   return (
     <div className="space-y-4">
-      {/* Header with Sync Button */}
+      {/* Header with Control Buttons */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           Showing {tasks.length} tasks
         </div>
-        <Button
-          onClick={() => syncTasks()}
-          disabled={isSyncing}
-          variant="outline"
-          size="sm"
-        >
-          {isSyncing && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-          {isSyncing ? 'Syncing...' : 'Refresh from JIRA'}
-        </Button>
+        <div className="flex gap-2">
+          {/* Import/Export Buttons */}
+          <Button
+            onClick={() => syncTasks()}
+            disabled={isSyncing}
+            variant="outline"
+            size="sm"
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {isSyncing ? 'Importing...' : 'Import from JIRA'}
+          </Button>
+
+          {/* Expand/Collapse Buttons */}
+          <Button
+            onClick={handleExpandAll}
+            variant="outline"
+            size="sm"
+            title="Expand all tasks"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={handleCollapseAll}
+            variant="outline"
+            size="sm"
+            title="Collapse all tasks"
+          >
+            <Minimize2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* DHTMLX Gantt Container */}
@@ -275,13 +323,65 @@ export function GanttVisualization({
 
       {/* Custom CSS for Gantt */}
       <style>{`
+        /* Горизонтальный скролл */
+        .gantt-container {
+          overflow-x: auto !important;
+          overflow-y: auto !important;
+        }
+
+        /* Базовые стили задач */
         .gantt-container .gantt_task_line {
           border-radius: 4px;
+          transition: opacity 0.2s;
         }
+
+        .gantt-container .gantt_task_line:hover {
+          opacity: 0.9;
+        }
+
+        /* Цвета для разных типов задач */
         .gantt-epic .gantt_task_line {
+          background-color: #9333ea !important;
+          border: 2px solid #7e22ce;
           font-weight: 600;
-          border: 2px solid rgba(0, 0, 0, 0.1);
         }
+        .gantt-epic .gantt_task_progress {
+          background-color: #7e22ce !important;
+        }
+
+        .gantt-story .gantt_task_line {
+          background-color: #3b82f6 !important;
+          border: 1px solid #2563eb;
+        }
+        .gantt-story .gantt_task_progress {
+          background-color: #2563eb !important;
+        }
+
+        .gantt-task .gantt_task_line {
+          background-color: #10b981 !important;
+          border: 1px solid #059669;
+        }
+        .gantt-task .gantt_task_progress {
+          background-color: #059669 !important;
+        }
+
+        .gantt-bug .gantt_task_line {
+          background-color: #ef4444 !important;
+          border: 1px solid #dc2626;
+        }
+        .gantt-bug .gantt_task_progress {
+          background-color: #dc2626 !important;
+        }
+
+        .gantt-subtask .gantt_task_line {
+          background-color: #6366f1 !important;
+          border: 1px solid #4f46e5;
+        }
+        .gantt-subtask .gantt_task_progress {
+          background-color: #4f46e5 !important;
+        }
+
+        /* Темная тема совместимость */
         .gantt_grid_head_cell,
         .gantt_grid_data .gantt_cell {
           color: var(--foreground);

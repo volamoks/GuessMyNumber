@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, CheckCircle2, Loader2, Link2, Info } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Link2, Info, ChevronDown, ChevronUp } from 'lucide-react'
 import { useJiraConnection } from '@/hooks'
 
 /**
@@ -20,23 +20,41 @@ export function JiraConnection() {
     disconnect,
   } = useJiraConnection()
 
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
   // Auto-connect при монтировании если есть .env
   useEffect(() => {
     autoConnect()
   }, [autoConnect])
 
+  // Auto-collapse после успешного подключения
+  useEffect(() => {
+    if (connectionStatus.connected) {
+      setIsCollapsed(true)
+    }
+  }, [connectionStatus.connected])
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Link2 className="h-5 w-5" />
-          JIRA Connection
+      <CardHeader className="cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link2 className="h-5 w-5" />
+            JIRA Connection
+            {connectionStatus.connected && (
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            )}
+          </div>
+          {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
         </CardTitle>
-        <CardDescription>
-          Connect to your JIRA instance using credentials from .env.local
-        </CardDescription>
+        {!isCollapsed && (
+          <CardDescription>
+            Connect to your JIRA instance using credentials from .env.local
+          </CardDescription>
+        )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      {!isCollapsed && (
+        <CardContent className="space-y-4">
         {connectionStatus.connected ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
@@ -115,7 +133,8 @@ VITE_JIRA_API_TOKEN=your_api_token`}
             )}
           </div>
         )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   )
 }

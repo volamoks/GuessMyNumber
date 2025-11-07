@@ -8,6 +8,17 @@ export interface GanttData {
   lastSync?: Date
 }
 
+export interface GanttFilters {
+  issueTypes?: string[]      // Epic, Story, Task, Bug, Sub-task
+  statuses?: string[]         // To Do, In Progress, Done
+  priorities?: string[]       // Highest, High, Medium, Low, Lowest
+  assignees?: string[]        // User emails
+  dateRange?: {
+    start?: Date
+    end?: Date
+  }
+}
+
 interface GanttStore {
   data: GanttData | null
   currentProjectId: string | null
@@ -16,7 +27,9 @@ interface GanttStore {
   connectionStatus: ConnectionStatus
   jiraConfig: JiraConfig | null
   selectedProjectKey: string | null
+  selectedProjectKeys: string[]   // Multiple projects for portfolio analysis
   jiraQuery: JiraQuery | null
+  filters: GanttFilters
 
   // Loading states
   isConnecting: boolean
@@ -37,7 +50,12 @@ interface GanttStore {
   setConnectionStatus: (status: ConnectionStatus) => void
   setJiraConfig: (config: JiraConfig | null) => void
   setSelectedProjectKey: (key: string | null) => void
+  setSelectedProjectKeys: (keys: string[]) => void
+  addProjectKey: (key: string) => void
+  removeProjectKey: (key: string) => void
   setJiraQuery: (query: JiraQuery | null) => void
+  setFilters: (filters: GanttFilters) => void
+  clearFilters: () => void
 
   setConnecting: (loading: boolean) => void
   setSyncing: (loading: boolean) => void
@@ -62,7 +80,9 @@ const initialState = {
   connectionStatus: { connected: false },
   jiraConfig: null,
   selectedProjectKey: null,
+  selectedProjectKeys: [],
   jiraQuery: null,
+  filters: {},
   isConnecting: false,
   isSyncing: false,
   isLoading: false,
@@ -82,7 +102,16 @@ export const useGanttStore = create<GanttStore>((set) => ({
   setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
   setJiraConfig: (jiraConfig) => set({ jiraConfig }),
   setSelectedProjectKey: (selectedProjectKey) => set({ selectedProjectKey }),
+  setSelectedProjectKeys: (selectedProjectKeys) => set({ selectedProjectKeys }),
+  addProjectKey: (key) => set((state) => ({
+    selectedProjectKeys: [...state.selectedProjectKeys, key]
+  })),
+  removeProjectKey: (key) => set((state) => ({
+    selectedProjectKeys: state.selectedProjectKeys.filter(k => k !== key)
+  })),
   setJiraQuery: (jiraQuery) => set({ jiraQuery }),
+  setFilters: (filters) => set({ filters }),
+  clearFilters: () => set({ filters: {} }),
 
   setConnecting: (isConnecting) => set({ isConnecting }),
   setSyncing: (isSyncing) => set({ isSyncing }),

@@ -3,6 +3,7 @@ import { useGanttStore } from '@/store'
 import { GanttVisualization } from '@/components/gantt/GanttVisualization'
 import { JiraConnection } from '@/components/gantt/JiraConnection'
 import { JiraSync } from '@/components/gantt/JiraSync'
+import { GanttFilters } from '@/components/gantt/GanttFilters'
 import { GanttSettings, type GanttSettingsConfig } from '@/components/gantt/GanttSettings'
 import { Button } from '@/components/ui/button'
 import { Download, FileJson } from 'lucide-react'
@@ -48,9 +49,10 @@ export function GanttPage() {
       </div>
 
       {/* Connection & Sync Section */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <JiraConnection />
         <JiraSync />
+        <GanttFilters />
         <GanttSettings settings={settings} onSettingsChange={setSettings} />
       </div>
 

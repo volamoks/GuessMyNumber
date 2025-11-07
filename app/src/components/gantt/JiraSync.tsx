@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { RefreshCw, Download } from 'lucide-react'
+import { RefreshCw, Download, ChevronDown, ChevronUp } from 'lucide-react'
 import { useJiraProjects, useJiraSync } from '@/hooks'
 import { useGanttStore } from '@/store'
 
@@ -28,10 +28,19 @@ export function JiraSync() {
     syncTasks,
   } = useJiraSync()
 
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
   // Auto-load projects при подключении
   useEffect(() => {
     autoLoadProjects()
   }, [autoLoadProjects])
+
+  // Auto-collapse после успешной синхронизации
+  useEffect(() => {
+    if (lastSync && tasksCount > 0) {
+      setIsCollapsed(true)
+    }
+  }, [lastSync, tasksCount])
 
   if (!store.connectionStatus.connected) {
     return null
@@ -39,16 +48,25 @@ export function JiraSync() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Download className="h-5 w-5" />
-          Sync from JIRA
+      <CardHeader className="cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            Sync from JIRA
+            {tasksCount > 0 && (
+              <span className="text-xs text-muted-foreground">({tasksCount} tasks)</span>
+            )}
+          </div>
+          {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
         </CardTitle>
-        <CardDescription>
-          Select a project and import tasks to visualize in Gantt chart
-        </CardDescription>
+        {!isCollapsed && (
+          <CardDescription>
+            Select a project and import tasks to visualize in Gantt chart
+          </CardDescription>
+        )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      {!isCollapsed && (
+        <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label>Select Project</Label>
           <Select
@@ -84,7 +102,8 @@ export function JiraSync() {
             {tasksCount > 0 && <p>{tasksCount} tasks loaded</p>}
           </div>
         )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   )
 }
