@@ -111,7 +111,23 @@ app.post('/api/jira/issues', async (req, res) => {
     });
     console.log('JIRA API response received, issues count:', response.issues?.length || 0);
 
-    const issues = response.issues?.map(issue => ({
+    // DEBUG: Log response structure
+    if (response.issues && response.issues.length > 0) {
+      console.log('===== FIRST ISSUE STRUCTURE =====');
+      console.log('Issue keys:', Object.keys(response.issues[0]));
+      console.log('Has fields?', 'fields' in response.issues[0]);
+      console.log('Fields keys:', response.issues[0].fields ? Object.keys(response.issues[0].fields) : 'NO FIELDS');
+      console.log('First issue:', JSON.stringify(response.issues[0], null, 2));
+      console.log('==================================');
+    }
+
+    const issues = response.issues?.map(issue => {
+      if (!issue.fields) {
+        console.error('Issue missing fields:', issue);
+        return null;
+      }
+
+      return {
       id: issue.id,
       key: issue.key,
       summary: issue.fields.summary,
@@ -144,7 +160,8 @@ app.post('/api/jira/issues', async (req, res) => {
         status: subtask.fields?.status?.name || '',
         issueType: subtask.fields?.issuetype?.name || '',
       })) || [],
-    })) || [];
+      };
+    }).filter(issue => issue !== null) || [];
 
     res.json({
       success: true,

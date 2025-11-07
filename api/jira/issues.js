@@ -77,6 +77,11 @@ export default async function handler(req, res) {
     }
 
     const issues = response.issues?.map(issue => {
+      if (!issue.fields) {
+        console.error('Issue missing fields:', issue);
+        return null;
+      }
+
       // DEBUG components specifically
       const componentsRaw = issue.fields.components;
       const componentsMapped = componentsRaw?.map(c => c.name) || [];
@@ -131,7 +136,7 @@ export default async function handler(req, res) {
       }
 
       return mapped;
-    }) || [];
+    }).filter(issue => issue !== null) || [];
 
     const debugInfo = {
       rawFirstIssue: response.issues?.[0] || null,
