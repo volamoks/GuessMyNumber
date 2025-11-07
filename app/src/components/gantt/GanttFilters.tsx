@@ -5,21 +5,19 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Filter, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { useGanttStore } from '@/store'
-import { useJiraProjects, useJiraSync } from '@/hooks'
+import { useJiraSync } from '@/hooks'
 import type { GanttFilters as GanttFiltersType } from '@/store/ganttStore'
 
 /**
  * Advanced Filters Component with Auto-sync
- * Поддержка множественного выбора проектов для портфельного анализа
+ * Фильтрация задач по типу, статусу, приоритету
  */
 export function GanttFilters() {
   const store = useGanttStore()
-  const { projects, isLoading: isLoadingProjects } = useJiraProjects()
   const { syncTasks, isSyncing } = useJiraSync()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const [localFilters, setLocalFilters] = useState<GanttFiltersType>(store.filters)
-  const [selectedProjects, setSelectedProjects] = useState<string[]>(store.selectedProjectKeys)
 
   // Issue types options
   const issueTypes = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task']
@@ -36,17 +34,6 @@ export function GanttFilters() {
       setIsCollapsed(true)
     }
   }, [store.data])
-
-  // Toggle project selection
-  const toggleProject = (projectKey: string) => {
-    setSelectedProjects(prev => {
-      if (prev.includes(projectKey)) {
-        return prev.filter(k => k !== projectKey)
-      } else {
-        return [...prev, projectKey]
-      }
-    })
-  }
 
   // Toggle filter option
   const toggleFilterOption = (filterType: keyof GanttFiltersType, value: string) => {
@@ -66,25 +53,27 @@ export function GanttFilters() {
   // Apply filters and auto-sync
   const handleApplyFilters = async () => {
     // Update store
-    store.setSelectedProjectKeys(selectedProjects)
     store.setFilters(localFilters)
 
-    // Auto-sync with new filters
-    if (selectedProjects.length > 0) {
-      await syncTasks(selectedProjects.length === 1 ? selectedProjects[0] : undefined)
+    // Auto-sync with new filters (if projects selected)
+    if (store.selectedProjectKeys.length > 0) {
+      await syncTasks()
     }
   }
 
   // Clear all filters
   const handleClearFilters = () => {
     setLocalFilters({})
-    setSelectedProjects([])
     store.clearFilters()
-    store.setSelectedProjectKeys([])
+
+    // Auto-sync with cleared filters
+    if (store.selectedProjectKeys.length > 0) {
+      syncTasks()
+    }
   }
 
   const hasFilters = localFilters.issueTypes?.length || localFilters.statuses?.length ||
-                     localFilters.priorities?.length || selectedProjects.length > 0
+                     localFilters.priorities?.length
 
   if (!store.connectionStatus.connected) {
     return null
@@ -96,11 +85,11 @@ export function GanttFilters() {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Advanced Filters
+            Task Filters
             {hasFilters && (
               <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
                 {(localFilters.issueTypes?.length || 0) + (localFilters.statuses?.length || 0) +
-                 (localFilters.priorities?.length || 0) + selectedProjects.length} active
+                 (localFilters.priorities?.length || 0)} active
               </span>
             )}
           </div>
@@ -108,45 +97,14 @@ export function GanttFilters() {
         </CardTitle>
         {!isCollapsed && (
           <CardDescription>
-            Filter tasks by project, type, status, priority. Auto-syncs on apply.
+            Filter tasks by type, status, priority. Auto-refreshes on apply.
           </CardDescription>
         )}
       </CardHeader>
       {!isCollapsed && (
-        <CardContent className="space-y-6">
-          {/* Multi-Project Selection */}
-          <div className="space-y-3">
-            <Label className="font-semibold">Projects (Portfolio Analysis)</Label>
-            <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-lg p-3">
-              {isLoadingProjects ? (
-                <p className="text-sm text-muted-foreground">Loading projects...</p>
-              ) : projects.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No projects available</p>
-              ) : (
-                projects.map((project) => (
-                  <div key={project.key} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`project-${project.key}`}
-                      checked={selectedProjects.includes(project.key)}
-                      onCheckedChange={() => toggleProject(project.key)}
-                    />
-                    <label
-                      htmlFor={`project-${project.key}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {project.name} ({project.key})
-                    </label>
-                  </div>
-                ))
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Select multiple projects to analyze portfolio across teams
-            </p>
-          </div>
-
+        <CardContent className="space-y-4">
           {/* Issue Type Filter */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className="font-semibold">Issue Types</Label>
             <div className="grid grid-cols-2 gap-2">
               {issueTypes.map((type) => (
@@ -168,7 +126,7 @@ export function GanttFilters() {
           </div>
 
           {/* Status Filter */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className="font-semibold">Status</Label>
             <div className="grid grid-cols-2 gap-2">
               {statuses.map((status) => (
@@ -190,7 +148,7 @@ export function GanttFilters() {
           </div>
 
           {/* Priority Filter */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className="font-semibold">Priority</Label>
             <div className="grid grid-cols-2 gap-2">
               {priorities.map((priority) => (
@@ -215,10 +173,10 @@ export function GanttFilters() {
           <div className="flex gap-2 pt-4 border-t">
             <Button
               onClick={handleApplyFilters}
-              disabled={isSyncing || selectedProjects.length === 0}
+              disabled={isSyncing || store.selectedProjectKeys.length === 0}
               className="flex-1"
             >
-              {isSyncing ? 'Syncing...' : 'Apply & Sync'}
+              {isSyncing ? 'Applying...' : 'Apply & Refresh'}
             </Button>
             {hasFilters && (
               <Button
@@ -231,6 +189,12 @@ export function GanttFilters() {
               </Button>
             )}
           </div>
+
+          {store.selectedProjectKeys.length === 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 p-2 rounded">
+              ⚠️ Select at least one project in "Project Sync" to apply filters
+            </p>
+          )}
         </CardContent>
       )}
     </Card>

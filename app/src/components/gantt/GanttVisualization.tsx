@@ -1,9 +1,10 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { gantt } from 'dhtmlx-gantt'
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css'
 import { useGanttData, useJiraSync } from '@/hooks'
 import { useGanttStore } from '@/store'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Upload, Maximize2, Minimize2 } from 'lucide-react'
 import type { ColorScheme, TimeScale } from './GanttSettings'
 
@@ -26,6 +27,7 @@ export function GanttVisualization({
   const store = useGanttStore()
   const { ganttData, tasks, updateTask } = useGanttData()
   const { syncTasks, isSyncing } = useJiraSync()
+  const [viewLevel, setViewLevel] = useState<string>('all')
 
   // Функции для управления деревом
   const handleExpandAll = useCallback(() => {
@@ -39,6 +41,46 @@ export function GanttVisualization({
     gantt.eachTask((task) => {
       task.$open = false
     })
+    gantt.render()
+  }, [])
+
+  // Иерархическое сворачивание по уровням
+  const handleViewLevelChange = useCallback((level: string) => {
+    setViewLevel(level)
+
+    gantt.eachTask((task) => {
+      const issueType = task.details?.issueType
+
+      switch(level) {
+        case 'epics':
+          // Показываем только Epics
+          task.$open = false
+          break
+        case 'epics-stories':
+          // Epics раскрыты, Stories видны но свернуты
+          if (issueType === 'Epic') {
+            task.$open = true
+          } else {
+            task.$open = false
+          }
+          break
+        case 'epics-stories-tasks':
+          // Epics и Stories раскрыты, Tasks видны
+          if (issueType === 'Epic' || issueType === 'Story') {
+            task.$open = true
+          } else {
+            task.$open = false
+          }
+          break
+        case 'all':
+          // Все раскрыто
+          task.$open = true
+          break
+        default:
+          task.$open = false
+      }
+    })
+
     gantt.render()
   }, [])
 
@@ -274,12 +316,25 @@ export function GanttVisualization({
   return (
     <div className="space-y-4">
       {/* Header with Control Buttons */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="text-sm text-muted-foreground">
           Showing {tasks.length} tasks
         </div>
-        <div className="flex gap-2">
-          {/* Import/Export Buttons */}
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* View Level Select */}
+          <Select value={viewLevel} onValueChange={handleViewLevelChange}>
+            <SelectTrigger className="w-[200px] h-9">
+              <SelectValue placeholder="View level..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="epics">📦 Epics Only</SelectItem>
+              <SelectItem value="epics-stories">📦 Epics + 📖 Stories</SelectItem>
+              <SelectItem value="epics-stories-tasks">📦 Epics + 📖 Stories + ✓ Tasks</SelectItem>
+              <SelectItem value="all">🌳 Show All (with Subtasks)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Import Button */}
           <Button
             onClick={() => syncTasks()}
             disabled={isSyncing}
@@ -287,7 +342,7 @@ export function GanttVisualization({
             size="sm"
           >
             <Upload className="mr-2 h-4 w-4" />
-            {isSyncing ? 'Importing...' : 'Import from JIRA'}
+            {isSyncing ? 'Importing...' : 'Import'}
           </Button>
 
           {/* Expand/Collapse Buttons */}
