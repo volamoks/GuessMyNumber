@@ -6,27 +6,25 @@ import { useGanttStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Maximize2, Minimize2 } from 'lucide-react'
-import type { ColorScheme, TimeScale } from './GanttSettings'
+import { ColumnSettingsDialog } from './ColumnSettingsDialog'
+import { ColorSchemeDialog } from './ColorSchemeDialog'
+import type { TimeScale } from './GanttSettings'
 
 interface GanttVisualizationProps {
-  colorScheme?: ColorScheme
-  timeScale?: TimeScale
   readonly?: boolean
 }
 
 /**
  * DHTMLX Gantt Visualization (Presentational Component)
- * Вся логика данных вынесена в useGanttData и useJiraSync hooks
+ * All controls in header - compact and clean
  */
-export function GanttVisualization({
-  colorScheme = 'type',
-  timeScale = 'day',
-  readonly = false,
-}: GanttVisualizationProps) {
+export function GanttVisualization({ readonly = false }: GanttVisualizationProps) {
   const ganttContainer = useRef<HTMLDivElement>(null)
   const store = useGanttStore()
   const { ganttData, tasks, updateTask } = useGanttData()
   const [viewLevel, setViewLevel] = useState<string>('all')
+  const [timeScale, setTimeScale] = useState<TimeScale>('day')
+  const [colorField, setColorField] = useState<string>('issueType')
 
   // Функции для управления деревом
   const handleExpandAll = useCallback(() => {
@@ -83,45 +81,27 @@ export function GanttVisualization({
     gantt.render()
   }, [])
 
-  // Функция для получения цвета задачи
+  // Функция для получения цвета задачи по любому полю
   const getTaskColor = (task: any): string => {
-    if (colorScheme === 'type') {
-      // Используем кастомные цвета из store
-      const customColor = store.customColors.find(c => c.type === task.details?.issueType)
-      if (customColor) {
-        return customColor.color
+    if (!task.details) return '#6b7280'
+
+    const fieldValue = (task.details as any)[colorField]
+
+    // Handle arrays (components, labels)
+    if (Array.isArray(fieldValue)) {
+      // Use first value for color
+      const value = fieldValue[0]
+      if (value) {
+        const customColor = store.customColors.find(c => c.type === value)
+        return customColor?.color || '#6b7280'
       }
-      return '#6b7280' // Default gray
-    }
-    else if (colorScheme === 'status') {
-      const colors: Record<string, string> = {
-        'To Do': '#6b7280',
-        'In Progress': '#eab308',
-        'Done': '#10b981',
-        'Closed': '#3b82f6',
-      }
-      return colors[task.details?.status || ''] || '#6b7280'
-    }
-    else if (colorScheme === 'priority') {
-      const colors: Record<string, string> = {
-        'Highest': '#dc2626',
-        'High': '#f97316',
-        'Medium': '#eab308',
-        'Low': '#3b82f6',
-        'Lowest': '#6b7280',
-      }
-      return colors[task.details?.priority || ''] || '#6b7280'
-    }
-    else if (colorScheme === 'assignee' && task.details?.assignee) {
-      const assignee = task.details.assignee
-      const hash = assignee.split('').reduce((acc: number, char: string) => {
-        return char.charCodeAt(0) + ((acc << 5) - acc)
-      }, 0)
-      const hue = Math.abs(hash) % 360
-      return `hsl(${hue}, 65%, 50%)`
+    } else if (fieldValue) {
+      // Single value
+      const customColor = store.customColors.find(c => c.type === fieldValue)
+      return customColor?.color || '#6b7280'
     }
 
-    return '#6b7280'
+    return '#6b7280' // Default gray
   }
 
   // Initialize DHTMLX Gantt
@@ -137,8 +117,12 @@ export function GanttVisualization({
     gantt.config.drag_progress = !readonly
     gantt.config.drag_resize = !readonly
     gantt.config.drag_move = !readonly
-    gantt.config.autosize = false // Отключаем autosize для фиксированной ширины
+    gantt.config.autosize = 'y' // Auto height based on tasks
     gantt.config.fit_tasks = true // Автоматически подгонять таймлайн под задачи
+
+    // Smart drag-drop: only within same parent
+    gantt.config.order_branch = true
+    gantt.config.order_branch_free = false
 
     // Настройка шкалы времени
     if (timeScale === 'day') {
@@ -305,7 +289,7 @@ export function GanttVisualization({
     return () => {
       gantt.clearAll()
     }
-  }, [timeScale, readonly, colorScheme, store.columns, store.customColors])
+  }, [timeScale, readonly, colorField, store.columns, store.customColors])
 
   // Обработчик изменения задач (2-way sync)
   useEffect(() => {
@@ -345,13 +329,24 @@ export function GanttVisualization({
       return
     }
 
+    console.log('Total tasks before filter:', tasks.length)
+
     // Преобразуем данные в формат DHTMLX
     const ganttTasks = tasks
       .filter(task => {
         // Фильтруем задачи без валидных дат
-        if (!task.start_date || !task.end_date) return false
-        if (!(task.start_date instanceof Date) || !(task.end_date instanceof Date)) return false
-        if (isNaN(task.start_date.getTime()) || isNaN(task.end_date.getTime())) return false
+        if (!task.start_date || !task.end_date) {
+          console.log('Filtered out (no dates):', task.id, task.text)
+          return false
+        }
+        if (!(task.start_date instanceof Date) || !(task.end_date instanceof Date)) {
+          console.log('Filtered out (not Date):', task.id, task.text, typeof task.start_date, typeof task.end_date)
+          return false
+        }
+        if (isNaN(task.start_date.getTime()) || isNaN(task.end_date.getTime())) {
+          console.log('Filtered out (invalid Date):', task.id, task.text)
+          return false
+        }
         return true
       })
       .map(task => {
@@ -371,6 +366,8 @@ export function GanttVisualization({
         }
       })
 
+    console.log('Gantt tasks after filter:', ganttTasks.length, ganttTasks)
+
     // Очищаем и загружаем данные
     gantt.clearAll()
     gantt.parse({ data: ganttTasks, links: [] })
@@ -379,7 +376,7 @@ export function GanttVisualization({
     if (ganttTasks.length > 0) {
       gantt.render()
     }
-  }, [tasks, colorScheme])
+  }, [tasks, colorField, store.customColors])
 
   // Если нет данных
   if (!ganttData || !tasks || tasks.length === 0) {
@@ -399,10 +396,10 @@ export function GanttVisualization({
 
   return (
     <div className="space-y-4">
-      {/* Header with Control Buttons */}
+      {/* Header with All Controls */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="text-sm text-muted-foreground">
-          Showing {tasks.length} tasks
+          {tasks.length} tasks
         </div>
         <div className="flex gap-2 flex-wrap items-center">
           {/* View Level Select */}
@@ -418,12 +415,39 @@ export function GanttVisualization({
             </SelectContent>
           </Select>
 
+          {/* Timeline Scale */}
+          <Select value={timeScale} onValueChange={(val) => setTimeScale(val as TimeScale)}>
+            <SelectTrigger className="w-[120px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Day</SelectItem>
+              <SelectItem value="week">Week</SelectItem>
+              <SelectItem value="month">Month</SelectItem>
+              <SelectItem value="quarter">Quarter</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Column Settings */}
+          <ColumnSettingsDialog
+            columns={store.columns}
+            onColumnsChange={store.setColumns}
+          />
+
+          {/* Color Scheme */}
+          <ColorSchemeDialog
+            colorField={colorField}
+            onColorFieldChange={setColorField}
+            colors={store.customColors}
+            onColorsChange={store.setCustomColors}
+          />
+
           {/* Expand/Collapse Buttons */}
           <Button
             onClick={handleExpandAll}
             variant="outline"
             size="sm"
-            title="Expand all tasks"
+            title="Expand all"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
@@ -431,7 +455,7 @@ export function GanttVisualization({
             onClick={handleCollapseAll}
             variant="outline"
             size="sm"
-            title="Collapse all tasks"
+            title="Collapse all"
           >
             <Minimize2 className="h-4 w-4" />
           </Button>
@@ -442,7 +466,7 @@ export function GanttVisualization({
       <div
         ref={ganttContainer}
         className="border rounded-lg bg-background overflow-hidden gantt-container"
-        style={{ minHeight: '70vh', height: 'auto', width: '100%' }}
+        style={{ minHeight: '70vh', width: '100%' }}
       />
 
       {/* Custom CSS for Gantt */}

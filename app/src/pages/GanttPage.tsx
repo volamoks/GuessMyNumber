@@ -1,12 +1,8 @@
-import { useState } from 'react'
 import { useGanttStore } from '@/store'
 import { GanttVisualization } from '@/components/gantt/GanttVisualization'
 import { JiraConnection } from '@/components/gantt/JiraConnection'
 import { JiraSync } from '@/components/gantt/JiraSync'
 import { GanttFilters } from '@/components/gantt/GanttFilters'
-import { GanttSettings, type GanttSettingsConfig } from '@/components/gantt/GanttSettings'
-import { GanttColumnManager } from '@/components/gantt/GanttColumnManager'
-import { ColorCustomizer } from '@/components/gantt/ColorCustomizer'
 import { useJiraSync } from '@/hooks'
 import { Button } from '@/components/ui/button'
 import { Download, FileJson, Upload, RefreshCw } from 'lucide-react'
@@ -19,10 +15,6 @@ import { toast } from 'sonner'
 export function GanttPage() {
   const store = useGanttStore()
   const { syncTasks, isSyncing } = useJiraSync()
-  const [settings, setSettings] = useState<GanttSettingsConfig>({
-    colorScheme: 'type',
-    timeScale: 'day',
-  })
 
   const handleExportJSON = () => {
     if (!store.data) {
@@ -59,47 +51,36 @@ export function GanttPage() {
       </div>
 
       {/* Filters - Single Line */}
-      <div className="p-4 border rounded-lg bg-card">
-        <GanttFilters />
-      </div>
+      {store.connectionStatus.connected && (
+        <div className="p-4 border rounded-lg bg-card">
+          <GanttFilters />
+        </div>
+      )}
 
-      {/* Settings - Compact Grid */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <GanttSettings settings={settings} onSettingsChange={setSettings} />
-        <GanttColumnManager
-          columns={store.columns}
-          onColumnsChange={store.setColumns}
-        />
-        <ColorCustomizer
-          colorScheme={settings.colorScheme}
-          onColorSchemeChange={(scheme) => setSettings({ ...settings, colorScheme: scheme })}
-          colors={store.customColors}
-          onColorsChange={store.setCustomColors}
-        />
-      </div>
-
-      {/* Import Action Button - Always Visible */}
-      <div className="flex items-center justify-center">
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => syncTasks()}
-          disabled={isSyncing || store.selectedProjectKeys.length === 0}
-          className="min-w-[200px]"
-        >
-          {isSyncing ? (
-            <>
-              <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-              Importing...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-5 w-5" />
-              Import Tasks from JIRA
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Import Action Button - Always Visible after project selection */}
+      {store.selectedProjectKeys.length > 0 && (
+        <div className="flex items-center justify-center">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => syncTasks()}
+            disabled={isSyncing}
+            className="min-w-[240px]"
+          >
+            {isSyncing ? (
+              <>
+                <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                Importing from {store.selectedProjectKeys.length} project{store.selectedProjectKeys.length > 1 ? 's' : ''}...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-5 w-5" />
+                Import Tasks from {store.selectedProjectKeys.length} Project{store.selectedProjectKeys.length > 1 ? 's' : ''}
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Gantt Visualization */}
       {store.data ? (
@@ -123,11 +104,7 @@ export function GanttPage() {
             </div>
           </div>
 
-          <GanttVisualization
-            readonly={false}
-            colorScheme={settings.colorScheme}
-            timeScale={settings.timeScale}
-          />
+          <GanttVisualization readonly={false} />
         </div>
       ) : (
         <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-lg">
