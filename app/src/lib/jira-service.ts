@@ -93,6 +93,16 @@ class JiraService {
       console.log('First issue from API:', data.issues?.[0])
       console.log('Fields available:', data.issues?.[0] ? Object.keys(data.issues[0]) : 'no issues')
 
+      // Log debug information from backend
+      if (data.debug) {
+        console.log('\n===== RAW JIRA DEBUG INFO =====')
+        console.log('Raw fields count:', data.debug.rawFieldsCount)
+        console.log('Raw field names:', data.debug.rawFieldNames)
+        console.log('Raw first issue from JIRA:', data.debug.rawFirstIssue)
+        console.log('Raw components:', data.debug.rawFirstIssue?.fields?.components)
+        console.log('================================')
+      }
+
       return data.issues || []
     } catch (error) {
       console.error('Failed to fetch JIRA issues:', error)
