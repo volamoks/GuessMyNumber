@@ -47,20 +47,30 @@ export default async function handler(req, res) {
       console.log('Total fields count:', Object.keys(response.issues[0].fields).length);
       console.log('All field names:', Object.keys(response.issues[0].fields).join(', '));
       console.log('\n--- Standard fields ---');
-      console.log('assignee:', response.issues[0].fields.assignee);
-      console.log('reporter:', response.issues[0].fields.reporter);
-      console.log('components:', response.issues[0].fields.components);
-      console.log('timetracking:', response.issues[0].fields.timetracking);
-      console.log('resolution:', response.issues[0].fields.resolution);
-      console.log('parent:', response.issues[0].fields.parent);
-      console.log('labels:', response.issues[0].fields.labels);
+      console.log('assignee:', JSON.stringify(response.issues[0].fields.assignee, null, 2));
+      console.log('reporter:', JSON.stringify(response.issues[0].fields.reporter, null, 2));
+      console.log('components:', JSON.stringify(response.issues[0].fields.components, null, 2));
+      console.log('timetracking:', JSON.stringify(response.issues[0].fields.timetracking, null, 2));
+      console.log('resolution:', JSON.stringify(response.issues[0].fields.resolution, null, 2));
+      console.log('parent:', JSON.stringify(response.issues[0].fields.parent, null, 2));
+      console.log('labels:', JSON.stringify(response.issues[0].fields.labels, null, 2));
       console.log('\n--- Custom fields ---');
-      console.log('customfield_10014 (epic):', response.issues[0].fields.customfield_10014);
-      console.log('customfield_10020 (sprint):', response.issues[0].fields.customfield_10020);
+      console.log('customfield_10014 (epic):', JSON.stringify(response.issues[0].fields.customfield_10014, null, 2));
+      console.log('customfield_10020 (sprint):', JSON.stringify(response.issues[0].fields.customfield_10020, null, 2));
       console.log('==========================================');
     }
 
     const issues = response.issues?.map(issue => {
+      // DEBUG components specifically
+      const componentsRaw = issue.fields.components;
+      const componentsMapped = componentsRaw?.map(c => c.name) || [];
+      if (issue.key === response.issues[0].key) {
+        console.log('===== COMPONENTS DEBUG =====');
+        console.log('Raw components:', JSON.stringify(componentsRaw, null, 2));
+        console.log('Mapped components:', componentsMapped);
+        console.log('============================');
+      }
+
       const mapped = {
         id: issue.id,
         key: issue.key,
@@ -84,7 +94,7 @@ export default async function handler(req, res) {
           : null,
         parentKey: issue.fields.parent?.key || null,
         labels: issue.fields.labels || [],
-        components: issue.fields.components?.map(c => c.name) || [],
+        components: componentsMapped,
         resolution: issue.fields.resolution?.name || null,
         epic: issue.fields.customfield_10014 || null,
         sprint: issue.fields.customfield_10020?.[0]?.name || null,
