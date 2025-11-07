@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -16,8 +16,7 @@ export function GanttFilters() {
   const store = useGanttStore()
   const { syncTasks, isSyncing } = useJiraSync()
   const [isCollapsed, setIsCollapsed] = useState(false)
-
-  const [localFilters, setLocalFilters] = useState<GanttFiltersType>(store.filters)
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Issue types options
   const issueTypes = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task']
@@ -35,45 +34,59 @@ export function GanttFilters() {
     }
   }, [store.data])
 
-  // Toggle filter option
-  const toggleFilterOption = (filterType: keyof GanttFiltersType, value: string) => {
-    setLocalFilters(prev => {
-      const currentValues = (prev[filterType] as string[]) || []
-      const newValues = currentValues.includes(value)
-        ? currentValues.filter(v => v !== value)
-        : [...currentValues, value]
-
-      return {
-        ...prev,
-        [filterType]: newValues.length > 0 ? newValues : undefined
-      }
-    })
-  }
-
-  // Apply filters and auto-sync
-  const handleApplyFilters = async () => {
-    // Update store
-    store.setFilters(localFilters)
-
-    // Auto-sync with new filters (if projects selected)
-    if (store.selectedProjectKeys.length > 0) {
-      await syncTasks()
+  // Debounced auto-sync function
+  const debouncedSync = useCallback(() => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current)
     }
+
+    syncTimeoutRef.current = setTimeout(() => {
+      if (store.selectedProjectKeys.length > 0) {
+        syncTasks()
+      }
+    }, 500) // 500ms debounce
+  }, [store.selectedProjectKeys, syncTasks])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Toggle filter option with auto-sync
+  const toggleFilterOption = (filterType: keyof GanttFiltersType, value: string) => {
+    const currentValues = (store.filters[filterType] as string[]) || []
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter(v => v !== value)
+      : [...currentValues, value]
+
+    const newFilters = {
+      ...store.filters,
+      [filterType]: newValues.length > 0 ? newValues : undefined
+    }
+
+    // Update store immediately
+    store.setFilters(newFilters)
+
+    // Trigger debounced sync
+    debouncedSync()
   }
 
-  // Clear all filters
+  // Clear all filters with immediate sync
   const handleClearFilters = () => {
-    setLocalFilters({})
     store.clearFilters()
 
-    // Auto-sync with cleared filters
+    // Immediate sync when clearing (no debounce)
     if (store.selectedProjectKeys.length > 0) {
       syncTasks()
     }
   }
 
-  const hasFilters = localFilters.issueTypes?.length || localFilters.statuses?.length ||
-                     localFilters.priorities?.length
+  const hasFilters = store.filters.issueTypes?.length || store.filters.statuses?.length ||
+                     store.filters.priorities?.length
 
   if (!store.connectionStatus.connected) {
     return null
@@ -97,7 +110,7 @@ export function GanttFilters() {
         </CardTitle>
         {!isCollapsed && (
           <CardDescription>
-            Filter tasks by type, status, priority. Auto-refreshes on apply.
+            Filter tasks by type, status, priority. Auto-syncs on change.
           </CardDescription>
         )}
       </CardHeader>
@@ -111,8 +124,9 @@ export function GanttFilters() {
                 <div key={type} className="flex items-center space-x-2">
                   <Checkbox
                     id={`type-${type}`}
-                    checked={localFilters.issueTypes?.includes(type) || false}
+                    checked={store.filters.issueTypes?.includes(type) || false}
                     onCheckedChange={() => toggleFilterOption('issueTypes', type)}
+                    disabled={isSyncing}
                   />
                   <label
                     htmlFor={`type-${type}`}
@@ -133,8 +147,9 @@ export function GanttFilters() {
                 <div key={status} className="flex items-center space-x-2">
                   <Checkbox
                     id={`status-${status}`}
-                    checked={localFilters.statuses?.includes(status) || false}
+                    checked={store.filters.statuses?.includes(status) || false}
                     onCheckedChange={() => toggleFilterOption('statuses', status)}
+                    disabled={isSyncing}
                   />
                   <label
                     htmlFor={`status-${status}`}
@@ -155,8 +170,9 @@ export function GanttFilters() {
                 <div key={priority} className="flex items-center space-x-2">
                   <Checkbox
                     id={`priority-${priority}`}
-                    checked={localFilters.priorities?.includes(priority) || false}
+                    checked={store.filters.priorities?.includes(priority) || false}
                     onCheckedChange={() => toggleFilterOption('priorities', priority)}
+                    disabled={isSyncing}
                   />
                   <label
                     htmlFor={`priority-${priority}`}
@@ -169,26 +185,29 @@ export function GanttFilters() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-4 border-t">
-            <Button
-              onClick={handleApplyFilters}
-              disabled={isSyncing || store.selectedProjectKeys.length === 0}
-              className="flex-1"
-            >
-              {isSyncing ? 'Applying...' : 'Apply & Refresh'}
-            </Button>
-            {hasFilters && (
+          {/* Clear Filters Button */}
+          {hasFilters && (
+            <div className="flex gap-2 pt-2 border-t">
               <Button
                 onClick={handleClearFilters}
                 variant="outline"
-                size="icon"
+                size="sm"
+                className="w-full"
+                disabled={isSyncing}
                 title="Clear all filters"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 mr-2" />
+                Clear All Filters
               </Button>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Auto-sync indicator */}
+          {isSyncing && (
+            <p className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 p-2 rounded">
+              🔄 Auto-syncing with filters...
+            </p>
+          )}
 
           {store.selectedProjectKeys.length === 0 && (
             <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 p-2 rounded">
