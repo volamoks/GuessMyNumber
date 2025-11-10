@@ -100,8 +100,7 @@ export function FloatingAIGenerator() {
   const [language, setLanguage] = useState<'ru' | 'en'>('ru')
   const [error, setError] = useState<string | null>(null)
 
-  // Global AI config and models
-  const aiConfig = useGlobalStore((state) => state.ai)
+  // Global AI models
   const aiModels = useGlobalStore((state) => state.aiModels)
   const activeModelId = useGlobalStore((state) => state.activeModelId)
   const setActiveModel = useGlobalStore((state) => state.setActiveModel)
@@ -169,17 +168,14 @@ export function FloatingAIGenerator() {
       return
     }
 
-    // Check if AI is configured (either new models or legacy)
-    const hasModels = aiModels.length > 0
-    const hasLegacyConfig = aiService.isConfigured()
-
-    if (!hasModels && !hasLegacyConfig) {
+    // Check if AI models are configured
+    if (aiModels.length === 0) {
       setError(language === 'ru' ? 'AI не настроен. Добавьте модель в настройках' : 'AI not configured. Add a model in settings')
       return
     }
 
-    // If using new models system and a different model is selected, switch to it
-    if (hasModels && selectedModelId && selectedModelId !== activeModelId) {
+    // If a different model is selected, switch to it
+    if (selectedModelId && selectedModelId !== activeModelId) {
       setActiveModel(selectedModelId)
     }
 
@@ -318,20 +314,12 @@ export function FloatingAIGenerator() {
           <DialogDescription>
             {config.description}
             {(() => {
-              // Показываем активную модель из новой системы, если есть
+              // Показываем активную модель
               const activeModel = aiModels.find(m => m.id === activeModelId)
               if (activeModel) {
                 return (
                   <span className="ml-2 text-xs text-primary">
                     ({activeModel.name})
-                  </span>
-                )
-              }
-              // Fallback на legacy config
-              if (aiConfig.isConfigured) {
-                return (
-                  <span className="ml-2 text-xs text-primary">
-                    ({aiConfig.provider})
                   </span>
                 )
               }

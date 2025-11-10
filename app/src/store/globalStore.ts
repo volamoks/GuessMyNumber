@@ -24,23 +24,6 @@ interface GlobalStore {
   deleteAIModel: (id: string) => void
   setActiveModel: (id: string) => void
   getActiveModel: () => AIModelConfig | null
-
-  // Legacy AI Config (для обратной совместимости)
-  ai: {
-    provider: AIProvider | ''
-    apiKey: string
-    model: string
-    baseUrl: string
-    isConfigured: boolean
-  }
-
-  // Legacy actions
-  setAIProvider: (provider: AIProvider | '') => void
-  setAIKey: (key: string) => void
-  setAIModel: (model: string) => void
-  setAIBaseUrl: (url: string) => void
-  saveAIConfig: () => void
-  clearAIConfig: () => void
 }
 
 export const useGlobalStore = create<GlobalStore>()(
@@ -138,63 +121,6 @@ export const useGlobalStore = create<GlobalStore>()(
       getActiveModel: () => {
         const { aiModels, activeModelId } = get()
         return aiModels.find((m) => m.id === activeModelId) || null
-      },
-
-      // Legacy поля для обратной совместимости
-      ai: {
-        provider: '',
-        apiKey: '',
-        model: '',
-        baseUrl: '',
-        isConfigured: false,
-      },
-
-      setAIProvider: (provider) =>
-        set((state) => ({
-          ai: { ...state.ai, provider },
-        })),
-
-      setAIKey: (apiKey) =>
-        set((state) => ({
-          ai: { ...state.ai, apiKey },
-        })),
-
-      setAIModel: (model) =>
-        set((state) => ({
-          ai: { ...state.ai, model },
-        })),
-
-      setAIBaseUrl: (baseUrl) =>
-        set((state) => ({
-          ai: { ...state.ai, baseUrl },
-        })),
-
-      saveAIConfig: () => {
-        const { ai } = get()
-        if (ai.provider && ai.apiKey) {
-          aiService.setAIConfig({
-            provider: ai.provider as AIProvider,
-            apiKey: ai.apiKey,
-            model: ai.model,
-            baseUrl: ai.baseUrl,
-          })
-          set((state) => ({
-            ai: { ...state.ai, isConfigured: true },
-          }))
-        }
-      },
-
-      clearAIConfig: () => {
-        aiService.clearAIConfig()
-        set({
-          ai: {
-            provider: '',
-            apiKey: '',
-            model: '',
-            baseUrl: '',
-            isConfigured: false,
-          },
-        })
       },
     }),
     {
