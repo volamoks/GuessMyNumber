@@ -106,8 +106,7 @@ app.post('/api/jira/issues', async (req, res) => {
     const response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
       jql: query,
       maxResults,
-      // For Enhanced Search, omit fields parameter or use empty array to get all fields
-      // '*all' doesn't work with this endpoint
+      fields: ['*all'], // Enhanced Search REQUIRES fields parameter - use array with '*all'
     });
     console.log('JIRA API response received, issues count:', response.issues?.length || 0);
 

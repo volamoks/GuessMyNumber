@@ -44,8 +44,7 @@ export default async function handler(req, res) {
       response = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
         jql: query,
         maxResults,
-        // Omit fields parameter to get all fields
-        // Enhanced Search returns all fields by default
+        fields: ['*all'], // Enhanced Search REQUIRES fields parameter - use array with '*all'
       });
       console.log('JIRA API request completed successfully');
       console.log('Response has issues?', !!response.issues);
