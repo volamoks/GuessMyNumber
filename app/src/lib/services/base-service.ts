@@ -3,6 +3,8 @@
  * Provides common functionality for all services: error handling, logging, configuration
  */
 
+import { z } from 'zod'
+
 export interface ServiceConfig {
   enableLogging?: boolean
   throwOnError?: boolean
@@ -103,6 +105,62 @@ export abstract class BaseService {
       return (await response.json()) as T
     } catch (error) {
       throw this.handleError(`Fetch failed: ${url}`, error)
+    }
+  }
+
+  /**
+   * Validate data with Zod schema
+   * Returns validated data or throws detailed validation error
+   */
+  protected validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
+    try {
+      return schema.parse(data)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const messages = error.issues.map((err: z.ZodIssue) => {
+          const path = err.path.join('.')
+          return path ? `${path}: ${err.message}` : err.message
+        })
+        throw this.handleError(
+          `Validation failed: ${messages.join('; ')}`,
+          error
+        )
+      }
+      throw this.handleError('Validation failed', error)
+    }
+  }
+
+  /**
+   * Safe validate with Zod schema
+   * Returns result object instead of throwing
+   */
+  protected safeValidate<T>(
+    schema: z.ZodSchema<T>,
+    data: unknown
+  ): { success: true; data: T } | { success: false; error: ServiceError } {
+    try {
+      const validated = schema.parse(data)
+      return { success: true, data: validated }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const messages = error.issues.map((err: z.ZodIssue) => {
+          const path = err.path.join('.')
+          return path ? `${path}: ${err.message}` : err.message
+        })
+        this.logError('Validation failed', error)
+        return {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: messages.join('; '),
+            details: error.issues,
+          },
+        }
+      }
+      return {
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Validation failed', details: error },
+      }
     }
   }
 }
