@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useState } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -19,7 +19,7 @@ import {
 export function GanttFilters() {
   const store = useGanttStore()
   const { syncTasks, isSyncing } = useJiraSync()
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const syncTimeoutRef = useRef<number | null>(null)
 
   // Filter options
   const issueTypes = ['Epic', 'Story', 'Task', 'Bug', 'Sub-task']

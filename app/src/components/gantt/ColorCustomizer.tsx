@@ -59,10 +59,12 @@ export function ColorCustomizer({ colorScheme, onColorSchemeChange, colors, onCo
           value = task.details?.status
           break
         case 'priority':
-          value = task.details?.priority
+          const priority = task.details?.priority
+          value = priority !== null ? priority : undefined
           break
         case 'assignee':
-          value = task.details?.assignee || undefined
+          const assignee = task.details?.assignee
+          value = assignee !== null ? assignee : undefined
           break
       }
 
