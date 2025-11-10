@@ -8,8 +8,8 @@ import { projectsService, type ProjectType } from '@/lib/projects-service'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { useExport } from '@/hooks/useExport'
 import { useLoadExample } from '@/hooks/useLoadExample'
-import { UploadSection } from '@/components/cjm/UploadSection'
-import { ExportActions } from '@/components/cjm/ExportActions'
+import { FileUploadZone } from '@/components/shared/FileUploadZone'
+import { UnifiedExportActions } from '@/components/shared/UnifiedExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { useGlobalStore } from '@/store'
 
@@ -290,11 +290,12 @@ export function CanvasPageLayout<T>({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <UploadSection
+          <FileUploadZone
             onFileUpload={handleFileUpload}
             onLoadExample={loadExample}
             onToggleGenerator={toggleGenerator}
             showGenerator={showGenerator}
+            variant="compact"
           />
 
           {showGenerator && (
@@ -325,14 +326,22 @@ export function CanvasPageLayout<T>({
                       Версии
                     </Button>
                   )}
-                  <ExportActions
-                    onExportJSON={() => handleExportJSON(data, `${getTitle(data)}.json`)}
-                    onExportPDF={() => handleExportPDF(`${projectType}-visualization`, `${getTitle(data)}.pdf`)}
-                    onSave={handleSave}
-                    onAnalyze={handleAnalyze}
-                    isExporting={isExporting}
-                    isSaving={isSaving}
-                    isAnalyzing={isAnalyzing}
+                  <UnifiedExportActions
+                    onExportJSON={{
+                      onClick: () => handleExportJSON(data, `${getTitle(data)}.json`),
+                    }}
+                    onExportPDF={{
+                      onClick: () => handleExportPDF(`${projectType}-visualization`, `${getTitle(data)}.pdf`),
+                      isLoading: isExporting,
+                    }}
+                    onSave={{
+                      onClick: handleSave,
+                      isLoading: isSaving,
+                    }}
+                    onAnalyze={{
+                      onClick: handleAnalyze,
+                      isLoading: isAnalyzing,
+                    }}
                   />
                 </div>
               </div>
