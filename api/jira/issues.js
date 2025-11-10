@@ -147,8 +147,8 @@ export default async function handler(req, res) {
 
     const debugInfo = {
       rawFirstIssue: response.issues?.[0] || null,
-      rawFieldsCount: response.issues?.[0] ? Object.keys(response.issues[0].fields).length : 0,
-      rawFieldNames: response.issues?.[0] ? Object.keys(response.issues[0].fields) : [],
+      rawFieldsCount: response.issues?.[0]?.fields ? Object.keys(response.issues[0].fields).length : 0,
+      rawFieldNames: response.issues?.[0]?.fields ? Object.keys(response.issues[0].fields) : [],
     };
 
     console.log('===== SENDING RESPONSE =====');

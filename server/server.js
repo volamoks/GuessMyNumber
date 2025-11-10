@@ -169,8 +169,8 @@ app.post('/api/jira/issues', async (req, res) => {
       // DEBUG: Return raw first issue for inspection
       debug: {
         rawFirstIssue: response.issues?.[0] || null,
-        rawFieldsCount: response.issues?.[0] ? Object.keys(response.issues[0].fields).length : 0,
-        rawFieldNames: response.issues?.[0] ? Object.keys(response.issues[0].fields) : [],
+        rawFieldsCount: response.issues?.[0]?.fields ? Object.keys(response.issues[0].fields).length : 0,
+        rawFieldNames: response.issues?.[0]?.fields ? Object.keys(response.issues[0].fields) : [],
       },
     });
   } catch (error) {
