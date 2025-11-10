@@ -1,5 +1,10 @@
 import { create } from 'zustand'
+import { createBaseStore, type BaseStore } from './baseStore'
 
+/**
+ * Roadmap Feature
+ * Represents a single feature/task in the product roadmap
+ */
 export interface RoadmapFeature {
   title: string
   description: string
@@ -9,6 +14,10 @@ export interface RoadmapFeature {
   status: 'planning' | 'in_progress' | 'done'
 }
 
+/**
+ * Product Roadmap Data
+ * Now-Next-Later format for product planning
+ */
 export interface RoadmapData {
   title: string
   description: string
@@ -17,79 +26,16 @@ export interface RoadmapData {
   later: RoadmapFeature[]
 }
 
-interface RoadmapStore {
-  data: RoadmapData | null
-  analysis: string
-  currentProjectId: string | null
+/**
+ * Roadmap Store - extends BaseStore with RoadmapData type
+ * No custom actions needed - all functionality comes from base store
+ */
+export type RoadmapStore = BaseStore<RoadmapData>
 
-  // Loading states
-  isGenerating: boolean
-  isAnalyzing: boolean
-  isImproving: boolean
-  isSaving: boolean
-  isExporting: boolean
-
-  // UI states
-  showGenerator: boolean
-  showVersions: boolean
-  versions: any[]
-
-  // Actions
-  setData: (data: RoadmapData | null) => void
-  setAnalysis: (analysis: string) => void
-  setCurrentProjectId: (id: string | null) => void
-  setGenerating: (loading: boolean) => void
-  setAnalyzing: (loading: boolean) => void
-  setImproving: (loading: boolean) => void
-  setSaving: (loading: boolean) => void
-  setExporting: (loading: boolean) => void
-  setShowGenerator: (show: boolean) => void
-  setShowVersions: (show: boolean) => void
-  toggleGenerator: () => void
-  toggleVersions: () => void
-  setVersions: (versions: any[]) => void
-  reset: () => void
-}
-
+/**
+ * Roadmap Store Hook
+ * Uses base store factory to eliminate code duplication
+ */
 export const useRoadmapStore = create<RoadmapStore>((set) => ({
-  data: null,
-  analysis: '',
-  currentProjectId: null,
-  isGenerating: false,
-  isAnalyzing: false,
-  isImproving: false,
-  isSaving: false,
-  isExporting: false,
-  showGenerator: false,
-  showVersions: false,
-  versions: [],
-
-  setData: (data) => set({ data }),
-  setAnalysis: (analysis) => set({ analysis }),
-  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
-  setGenerating: (isGenerating) => set({ isGenerating }),
-  setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
-  setImproving: (isImproving) => set({ isImproving }),
-  setSaving: (isSaving) => set({ isSaving }),
-  setExporting: (isExporting) => set({ isExporting }),
-  setShowGenerator: (showGenerator) => set({ showGenerator }),
-  setShowVersions: (showVersions) => set({ showVersions }),
-  toggleGenerator: () => set((state) => ({ showGenerator: !state.showGenerator })),
-  toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-  setVersions: (versions) => set({ versions }),
-
-  reset: () =>
-    set({
-      data: null,
-      analysis: '',
-      currentProjectId: null,
-      isGenerating: false,
-      isAnalyzing: false,
-      isImproving: false,
-      isSaving: false,
-      isExporting: false,
-      showGenerator: false,
-      showVersions: false,
-      versions: [],
-    }),
+  ...createBaseStore<RoadmapData>(set),
 }))

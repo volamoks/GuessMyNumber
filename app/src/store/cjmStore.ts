@@ -1,85 +1,47 @@
 import { create } from 'zustand'
+import { createBaseStore, type BaseStore } from './baseStore'
 
-interface CJMData {
+/**
+ * Customer Journey Map Stage
+ * Represents one stage in the customer journey with all touchpoints, emotions, and metrics
+ */
+export interface CJMStage {
+  name: string
+  customerActivities: string[]
+  customerGoals: string[]
+  touchpoints: string[]
+  experience: string[]
+  positives: string[]
+  negatives: string[]
+  ideasOpportunities: string[]
+  businessGoal: string
+  kpis: string[]
+  organizationalActivities: string[]
+  responsibility: string[]
+  technologySystems: string[]
+}
+
+/**
+ * Customer Journey Map Data
+ * Complete structure of a CJM with all stages
+ */
+export interface CJMData {
   title: string
   persona: string
   description?: string
-  stages: any[]
+  stages: CJMStage[]
 }
 
-interface CJMStore {
-  data: CJMData | null
-  analysis: string
-  currentProjectId: string | null
+/**
+ * CJM Store - extends BaseStore with CJMData type
+ * No custom actions needed - all functionality comes from base store
+ */
+export type CJMStore = BaseStore<CJMData>
 
-  // Loading states
-  isGenerating: boolean
-  isAnalyzing: boolean
-  isImproving: boolean
-  isSaving: boolean
-  isExporting: boolean
-
-  // UI states
-  showGenerator: boolean
-  showVersions: boolean
-  versions: any[]
-
-  // Actions
-  setData: (data: CJMData | null) => void
-  setAnalysis: (analysis: string) => void
-  setCurrentProjectId: (id: string | null) => void
-  setGenerating: (loading: boolean) => void
-  setAnalyzing: (loading: boolean) => void
-  setImproving: (loading: boolean) => void
-  setSaving: (loading: boolean) => void
-  setExporting: (loading: boolean) => void
-  setShowGenerator: (show: boolean) => void
-  setShowVersions: (show: boolean) => void
-  toggleGenerator: () => void
-  toggleVersions: () => void
-  setVersions: (versions: any[]) => void
-  reset: () => void
-}
-
+/**
+ * CJM Store Hook
+ * Uses base store factory to eliminate code duplication
+ */
 export const useCJMStore = create<CJMStore>((set) => ({
-  data: null,
-  analysis: '',
-  currentProjectId: null,
-  isGenerating: false,
-  isAnalyzing: false,
-  isImproving: false,
-  isSaving: false,
-  isExporting: false,
-  showGenerator: false,
-  showVersions: false,
-  versions: [],
-
-  setData: (data) => set({ data }),
-  setAnalysis: (analysis) => set({ analysis }),
-  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
-  setGenerating: (isGenerating) => set({ isGenerating }),
-  setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
-  setImproving: (isImproving) => set({ isImproving }),
-  setSaving: (isSaving) => set({ isSaving }),
-  setExporting: (isExporting) => set({ isExporting }),
-  setShowGenerator: (showGenerator) => set({ showGenerator }),
-  setShowVersions: (showVersions) => set({ showVersions }),
-  toggleGenerator: () => set((state) => ({ showGenerator: !state.showGenerator })),
-  toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-  setVersions: (versions) => set({ versions }),
-
-  reset: () =>
-    set({
-      data: null,
-      analysis: '',
-      currentProjectId: null,
-      isGenerating: false,
-      isAnalyzing: false,
-      isImproving: false,
-      isSaving: false,
-      isExporting: false,
-      showGenerator: false,
-      showVersions: false,
-      versions: [],
-    }),
+  ...createBaseStore<CJMData>(set),
 }))
