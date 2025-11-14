@@ -7,6 +7,7 @@ import { RoadmapPage } from '@/pages/RoadmapPage'
 import { GanttPage } from '@/pages/GanttPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
+import PromptsPage from '@/pages/PromptsPage'
 import { TestSupabasePage } from '@/pages/TestSupabasePage'
 import { Toaster } from '@/components/ui/toaster'
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="roadmap" element={<RoadmapPage />} />
           <Route path="gantt" element={<GanttPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="prompts" element={<PromptsPage />} />
           <Route path="ai-settings" element={<Navigate to="/settings" replace />} />
           <Route path="test-supabase" element={<TestSupabasePage />} />
         </Route>

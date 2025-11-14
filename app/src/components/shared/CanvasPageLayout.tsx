@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,54 +8,27 @@ import { projectsService, type ProjectType } from '@/lib/projects-service'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { useExport } from '@/hooks/useExport'
 import { useLoadExample } from '@/hooks/useLoadExample'
+import { useCanvasOperations } from '@/hooks/useCanvasOperations'
+import { useProjectManagement } from '@/hooks/useProjectManagement'
 import { FileUploadZone } from '@/components/shared/FileUploadZone'
 import { UnifiedExportActions } from '@/components/shared/UnifiedExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { useGlobalStore } from '@/store'
+import type { Language } from '@/lib/services/ai-prompts'
 
 interface CanvasPageLayoutProps<T> {
   // Page info
   title: string
   description: string
-
-  // Project type
   projectType: ProjectType
 
   // Example data
   exampleData: T
 
-  // Store state and actions
-  data: T | null
-  setData: (data: T) => void
-  analysis: string | null
-  setAnalysis: (analysis: string | null) => void
-  currentProjectId: string | null
-  setCurrentProjectId: (id: string | null) => void
-
-  // Loading states
-  isGenerating: boolean
-  setIsGenerating: (value: boolean) => void
-  isAnalyzing: boolean
-  setIsAnalyzing: (value: boolean) => void
-  isImproving: boolean
-  setIsImproving: (value: boolean) => void
-  isSaving: boolean
-  setIsSaving: (value: boolean) => void
-  setIsExporting: (value: boolean) => void
-
-  // UI state
-  showGenerator: boolean
-  setShowGenerator: (value: boolean) => void
-  toggleGenerator: () => void
-  showVersions: boolean
-  setShowVersions: (value: boolean) => void
-  versions: any[]
-  setVersions: (versions: any[]) => void
-
-  // AI functions
-  generateFn: (description: string, language: 'ru' | 'en', projectId?: string) => Promise<T>
-  analyzeFn: (data: T, projectId?: string) => Promise<string>
-  improveFn: (data: T, analysis?: string, projectId?: string) => Promise<T>
+  // AI operations (from ai-operations.ts)
+  generateFn: (description: string, language: Language, projectId?: string) => Promise<T>
+  analyzeFn: (data: T, language: Language, projectId?: string) => Promise<string>
+  improveFn: (data: T, analysis: string, language: Language, projectId?: string) => Promise<T>
 
   // Components
   VisualizationComponent: React.ComponentType<{
@@ -64,7 +37,7 @@ interface CanvasPageLayoutProps<T> {
     onUpdate: (data: T) => void
   }>
   GeneratorComponent: React.ComponentType<{
-    onGenerate: (description: string, language: 'ru' | 'en') => Promise<void>
+    onGenerate: (description: string, language: Language) => Promise<void>
     isGenerating: boolean
   }>
 
@@ -78,28 +51,6 @@ export function CanvasPageLayout<T>({
   description,
   projectType,
   exampleData,
-  data,
-  setData,
-  analysis,
-  setAnalysis,
-  currentProjectId,
-  setCurrentProjectId,
-  isGenerating,
-  setIsGenerating,
-  isAnalyzing,
-  setIsAnalyzing,
-  isImproving,
-  setIsImproving,
-  isSaving,
-  setIsSaving,
-  setIsExporting,
-  showGenerator,
-  setShowGenerator,
-  toggleGenerator,
-  showVersions,
-  setShowVersions,
-  versions,
-  setVersions,
   generateFn,
   analyzeFn,
   improveFn,
@@ -111,7 +62,39 @@ export function CanvasPageLayout<T>({
   const [searchParams] = useSearchParams()
   const { aiModels, activeModelId } = useGlobalStore()
 
-  // Custom hooks
+  // Local state
+  const [data, setData] = useState<T | null>(null)
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
+  const [showGenerator, setShowGenerator] = useState(false)
+  const [showVersions, setShowVersions] = useState(false)
+  const [versions, setVersions] = useState<any[]>([])
+  const language: Language = 'ru' // Default language, can be made configurable later
+
+  // Business logic hooks
+  const canvasOps = useCanvasOperations<T>({
+    generateFn,
+    analyzeFn,
+    improveFn,
+    currentProjectId: currentProjectId || undefined,
+  })
+
+  const projectMgmt = useProjectManagement<T>({
+    currentProjectId: currentProjectId || undefined,
+    saveFn: async (projectId: string, data: T) => {
+      await projectsService.updateProject(projectId, {
+        title: getTitle(data),
+        data: data,
+        description: getDescription?.(data),
+      })
+    },
+    loadFn: async (projectId: string) => {
+      const project = await projectsService.getProject(projectId)
+      return project ? (project.data as T) : null
+    },
+    onDataLoaded: setData,
+  })
+
+  // Utility hooks
   const { handleFileUpload } = useFileUpload<T>((loadedData) => {
     setData(loadedData)
     setShowGenerator(false)
@@ -119,59 +102,26 @@ export function CanvasPageLayout<T>({
   const { isExporting, handleExportPDF, handleExportJSON } = useExport()
   const { loadExample } = useLoadExample(exampleData, setData)
 
-  // Sync isExporting state
-  useEffect(() => {
-    setIsExporting(isExporting)
-  }, [isExporting, setIsExporting])
-
   // Load project on mount
   useEffect(() => {
     const projectId = searchParams.get('projectId')
     if (projectId) {
-      loadProject(projectId)
+      setCurrentProjectId(projectId)
+      projectMgmt.load()
     }
   }, [searchParams])
 
-  const loadProject = async (projectId: string) => {
-    try {
-      const project = await projectsService.getProject(projectId)
-      if (project) {
-        setData(project.data)
-        setCurrentProjectId(project.id)
-      }
-    } catch (error) {
-      toast.error('Ошибка при загрузке проекта')
-    }
-  }
-
-  const loadVersions = async () => {
-    if (!currentProjectId) return
-    try {
-      const vers = await projectsService.getProjectVersions(currentProjectId)
-      setVersions(vers)
-      setShowVersions(true)
-    } catch (error) {
-      toast.error('Ошибка при загрузке версий')
-    }
-  }
-
-  const handleGenerate = async (description: string, language: 'ru' | 'en' = 'ru') => {
+  // Handlers using business logic hooks
+  const handleGenerate = async (description: string, lang: Language) => {
     if (aiModels.length === 0 || !activeModelId) {
       toast.error('Пожалуйста, добавьте и выберите AI модель в Settings → AI Модели')
       return
     }
 
-    setIsGenerating(true)
-    const loadingToast = toast.loading(`Генерация ${title}...`)
-    try {
-      const generated = await generateFn(description, language, currentProjectId || undefined)
-      setData(generated)
+    const result = await canvasOps.generate(description, lang)
+    if (result) {
+      setData(result)
       setShowGenerator(false)
-      toast.success(`${title} успешно сгенерирован(а)!`, { id: loadingToast })
-    } catch (error) {
-      toast.error('Ошибка при генерации: ' + (error as Error).message, { id: loadingToast })
-    } finally {
-      setIsGenerating(false)
     }
   }
 
@@ -186,17 +136,7 @@ export function CanvasPageLayout<T>({
       return
     }
 
-    setIsAnalyzing(true)
-    const loadingToast = toast.loading('Анализ...')
-    try {
-      const analysisResult = await analyzeFn(data, currentProjectId || undefined)
-      setAnalysis(analysisResult)
-      toast.success('Анализ завершен!', { id: loadingToast })
-    } catch (error) {
-      toast.error('Ошибка при анализе: ' + (error as Error).message, { id: loadingToast })
-    } finally {
-      setIsAnalyzing(false)
-    }
+    await canvasOps.analyze(data, language)
   }
 
   const handleImprove = async () => {
@@ -210,33 +150,22 @@ export function CanvasPageLayout<T>({
       return
     }
 
-    setIsImproving(true)
-    const loadingToast = toast.loading('Улучшение данных на основе анализа...')
-    try {
-      const improvedData = await improveFn(data, analysis || undefined, currentProjectId || undefined)
-      setData(improvedData)
-      toast.success('Данные успешно улучшены! Не забудьте сохранить изменения.', { id: loadingToast })
-    } catch (error) {
-      toast.error('Ошибка при улучшении: ' + (error as Error).message, { id: loadingToast })
-    } finally {
-      setIsImproving(false)
+    const result = await canvasOps.improve(data, language)
+    if (result) {
+      setData(result)
     }
   }
 
   const handleSave = async () => {
     if (!data) return
 
-    setIsSaving(true)
-    const loadingToast = toast.loading('Сохранение...')
-    try {
-      if (currentProjectId) {
-        await projectsService.updateProject(currentProjectId, {
-          title: getTitle(data),
-          data: data,
-          description: getDescription?.(data),
-        })
-        toast.success('Проект обновлён и создана новая версия!', { id: loadingToast })
-      } else {
+    if (currentProjectId) {
+      // Update existing project
+      await projectMgmt.save(data)
+    } else {
+      // Create new project
+      const loadingToast = toast.loading('Создание проекта...')
+      try {
         const project = await projectsService.createProject(
           getTitle(data),
           projectType,
@@ -246,13 +175,25 @@ export function CanvasPageLayout<T>({
         if (project) {
           setCurrentProjectId(project.id)
           window.history.pushState({}, '', `/${projectType}?projectId=${project.id}`)
+          toast.success('Проект создан!', { id: loadingToast })
         }
-        toast.success('Проект сохранён!', { id: loadingToast })
+      } catch (error) {
+        toast.error('Ошибка при создании проекта: ' + (error as Error).message, { id: loadingToast })
       }
+    }
+  }
+
+  const loadVersions = async () => {
+    if (!currentProjectId) return
+
+    const loadingToast = toast.loading('Загрузка версий...')
+    try {
+      const vers = await projectsService.getProjectVersions(currentProjectId)
+      setVersions(vers)
+      setShowVersions(true)
+      toast.success('Версии загружены', { id: loadingToast })
     } catch (error) {
-      toast.error('Ошибка при сохранении: ' + (error as Error).message, { id: loadingToast })
-    } finally {
-      setIsSaving(false)
+      toast.error('Ошибка при загрузке версий', { id: loadingToast })
     }
   }
 
@@ -265,7 +206,7 @@ export function CanvasPageLayout<T>({
     try {
       const restored = await projectsService.restoreVersion(currentProjectId, versionNumber)
       if (restored) {
-        setData(restored.data)
+        setData(restored.data as T)
         toast.success('Версия успешно восстановлена!', { id: loadingToast })
         setShowVersions(false)
       }
@@ -273,6 +214,8 @@ export function CanvasPageLayout<T>({
       toast.error('Ошибка при восстановлении версии', { id: loadingToast })
     }
   }
+
+  const toggleGenerator = () => setShowGenerator(!showGenerator)
 
   return (
     <div className="space-y-6">
@@ -301,7 +244,7 @@ export function CanvasPageLayout<T>({
           {showGenerator && (
             <GeneratorComponent
               onGenerate={handleGenerate}
-              isGenerating={isGenerating}
+              isGenerating={canvasOps.isGenerating}
             />
           )}
         </CardContent>
@@ -336,11 +279,11 @@ export function CanvasPageLayout<T>({
                     }}
                     onSave={{
                       onClick: handleSave,
-                      isLoading: isSaving,
+                      isLoading: projectMgmt.isSaving,
                     }}
                     onAnalyze={{
                       onClick: handleAnalyze,
-                      isLoading: isAnalyzing,
+                      isLoading: canvasOps.isAnalyzing,
                     }}
                   />
                 </div>
@@ -400,11 +343,11 @@ export function CanvasPageLayout<T>({
           )}
 
           {/* AI Analysis Result */}
-          {analysis && (
+          {canvasOps.analysis && (
             <AIAnalysisResult
-              analysis={analysis}
+              analysis={canvasOps.analysis}
               onImprove={handleImprove}
-              isImproving={isImproving}
+              isImproving={canvasOps.isImproving}
             />
           )}
         </>

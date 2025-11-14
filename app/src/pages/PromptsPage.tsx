@@ -174,10 +174,22 @@ export default function PromptsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Tabs value={language} onValueChange={(val) => handleLanguageChange(val as Language)}>
+            <Tabs>
               <TabsList>
-                <TabsTrigger value="ru">Русский</TabsTrigger>
-                <TabsTrigger value="en">English</TabsTrigger>
+                <TabsTrigger
+                  value="ru"
+                  isActive={language === 'ru'}
+                  onClick={() => handleLanguageChange('ru')}
+                >
+                  Русский
+                </TabsTrigger>
+                <TabsTrigger
+                  value="en"
+                  isActive={language === 'en'}
+                  onClick={() => handleLanguageChange('en')}
+                >
+                  English
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value={language} className="mt-4">

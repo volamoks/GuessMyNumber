@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,13 +7,15 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2, Clock, Zap, AlertCircle } from 'lucide-react'
+import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2, Clock, Zap, AlertCircle, FileText } from 'lucide-react'
 import type { AIProvider } from '@/lib/ai-service'
 import { useGlobalStore, useThemeStore, type AIModelConfig } from '@/store'
 import { promptLogsService, type PromptLog } from '@/lib/prompt-logs-service'
 import { toast } from 'sonner'
 
 export function SettingsPage() {
+  const navigate = useNavigate()
+
   // AI Models Management
   const {
     aiModels,
@@ -172,10 +175,19 @@ export function SettingsPage() {
                   <CardTitle>AI Модели</CardTitle>
                   <CardDescription>Управляйте несколькими AI моделями</CardDescription>
                 </div>
-                <Button onClick={() => setIsAddingModel(true)} disabled={isAddingModel || editingModelId !== null}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Добавить модель
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/prompts')}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Управление промптами
+                  </Button>
+                  <Button onClick={() => setIsAddingModel(true)} disabled={isAddingModel || editingModelId !== null}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить модель
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
