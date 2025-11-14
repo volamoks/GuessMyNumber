@@ -48,8 +48,9 @@ export function getPrompt(
 
 /**
  * All AI prompts organized by operation
+ * Exported for use in AIPromptsStore as default values
  */
-const PROMPTS: Record<OperationType, PromptTemplate> = {
+export const PROMPTS: Record<OperationType, PromptTemplate> = {
   generate_cjm: {
     ru: 'Создай CJM в JSON без markdown: {{description}}',
     en: 'Create CJM in JSON without markdown: {{description}}',

@@ -10,3 +10,4 @@ export { useRoadmapStore, type RoadmapData, type RoadmapFeature } from './roadma
 export { useProjectsStore } from './projectsStore'
 export { useThemeStore } from './themeStore'
 export { useGanttStore, type GanttData } from './ganttStore'
+export { useAIPromptsStore, type PromptTemplate } from './aiPromptsStore'
