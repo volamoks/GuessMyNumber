@@ -1,36 +1,18 @@
 import { create } from 'zustand'
 import { createBaseStore, type BaseStore } from './baseStore'
-
-/**
- * Roadmap Feature
- * Represents a single feature/task in the product roadmap
- */
-export interface RoadmapFeature {
-  title: string
-  description: string
-  priority: 'high' | 'medium' | 'low'
-  category: 'feature' | 'bug_fix' | 'tech_debt' | 'improvement'
-  effort: 'small' | 'medium' | 'large'
-  status: 'planning' | 'in_progress' | 'done'
-}
-
-/**
- * Product Roadmap Data
- * Now-Next-Later format for product planning
- */
-export interface RoadmapData {
-  title: string
-  description: string
-  now: RoadmapFeature[]
-  next: RoadmapFeature[]
-  later: RoadmapFeature[]
-}
+import type { RoadmapData, RoadmapFeature } from '@/lib/schemas'
 
 /**
  * Roadmap Store - extends BaseStore with RoadmapData type
  * No custom actions needed - all functionality comes from base store
+ *
+ * Note: RoadmapData and RoadmapFeature types are now imported from Zod schemas
+ * to ensure runtime validation matches TypeScript types
  */
 export type RoadmapStore = BaseStore<RoadmapData>
+
+// Re-export types for convenience
+export type { RoadmapData, RoadmapFeature }
 
 /**
  * Roadmap Store Hook
