@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { GanttTask, JiraConfig, ConnectionStatus, JiraQuery } from '@/lib/jira-types'
-import type { GanttColumn } from '@/components/gantt/GanttColumnManager'
-import type { TaskTypeColor } from '@/components/gantt/ColorCustomizer'
+import type { GanttColumn } from '@/components/gantt/types'
+import type { TaskTypeColor } from '@/components/gantt/types'
 
 export interface GanttData {
   title: string

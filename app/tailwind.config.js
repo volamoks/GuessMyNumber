@@ -58,6 +58,33 @@ export default {
           border: 'var(--sidebar-border)',
           ring: 'var(--sidebar-ring)',
         },
+        // Semantic colors - Priority
+        priority: {
+          critical: 'hsl(var(--priority-critical))',
+          high: 'hsl(var(--priority-high))',
+          medium: 'hsl(var(--priority-medium))',
+          low: 'hsl(var(--priority-low))',
+        },
+        // Semantic colors - Status
+        status: {
+          done: 'hsl(var(--status-done))',
+          'in-progress': 'hsl(var(--status-in-progress))',
+          todo: 'hsl(var(--status-todo))',
+          blocked: 'hsl(var(--status-blocked))',
+          review: 'hsl(var(--status-review))',
+        },
+        // Semantic colors - Issue Types
+        issue: {
+          epic: 'hsl(var(--issue-epic))',
+          story: 'hsl(var(--issue-story))',
+          task: 'hsl(var(--issue-task))',
+          bug: 'hsl(var(--issue-bug))',
+          subtask: 'hsl(var(--issue-subtask))',
+        },
+        // Utility colors
+        success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
+        info: 'hsl(var(--info))',
       },
       borderRadius: {
         lg: 'var(--radius)',

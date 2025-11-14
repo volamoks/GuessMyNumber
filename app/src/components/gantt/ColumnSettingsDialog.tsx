@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Columns3, Plus, X, GripVertical } from 'lucide-react'
-import type { GanttColumn } from './GanttColumnManager'
+import type { GanttColumn } from './types'
 
 interface ColumnSettingsDialogProps {
   columns: GanttColumn[]

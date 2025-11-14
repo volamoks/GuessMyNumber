@@ -58,6 +58,31 @@
     --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
+
+    /* Semantic colors - Priority */
+    --priority-critical: 220 38% 38%;
+    --priority-high: 0 84% 60%;
+    --priority-medium: 45 93% 47%;
+    --priority-low: 142 76% 36%;
+
+    /* Semantic colors - Status */
+    --status-done: 142 76% 36%;
+    --status-in-progress: 221 83% 53%;
+    --status-todo: 215 16% 47%;
+    --status-blocked: 0 84% 60%;
+    --status-review: 45 93% 47%;
+
+    /* Semantic colors - Issue Types */
+    --issue-epic: 271 81% 56%;
+    --issue-story: 221 83% 53%;
+    --issue-task: 142 76% 36%;
+    --issue-bug: 0 84% 60%;
+    --issue-subtask: 215 16% 47%;
+
+    /* Utility colors */
+    --success: 142 76% 36%;
+    --warning: 45 93% 47%;
+    --info: 199 89% 48%;
   }
 
   .dark {
@@ -111,6 +136,31 @@
     --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
     --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
     --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+
+    /* Semantic colors - Priority (same for dark) */
+    --priority-critical: 220 38% 50%;
+    --priority-high: 0 84% 65%;
+    --priority-medium: 45 93% 55%;
+    --priority-low: 142 76% 45%;
+
+    /* Semantic colors - Status (same for dark) */
+    --status-done: 142 76% 45%;
+    --status-in-progress: 221 83% 60%;
+    --status-todo: 215 16% 60%;
+    --status-blocked: 0 84% 65%;
+    --status-review: 45 93% 55%;
+
+    /* Semantic colors - Issue Types (same for dark) */
+    --issue-epic: 271 81% 65%;
+    --issue-story: 221 83% 60%;
+    --issue-task: 142 76% 45%;
+    --issue-bug: 0 84% 65%;
+    --issue-subtask: 215 16% 60%;
+
+    /* Utility colors (same for dark) */
+    --success: 142 76% 45%;
+    --warning: 45 93% 55%;
+    --info: 199 89% 55%;
   }
 
   /* Bubblegum Theme - Playful pink/purple color scheme */

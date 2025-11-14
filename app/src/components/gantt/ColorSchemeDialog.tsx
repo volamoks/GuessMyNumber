@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Palette, RotateCcw } from 'lucide-react'
 import { useGanttStore } from '@/store'
-import type { TaskTypeColor } from './ColorCustomizer'
+import type { TaskTypeColor } from './types'
 
 interface ColorSchemeDialogProps {
   colorField: string

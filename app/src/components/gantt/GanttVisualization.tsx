@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { ColumnSettingsDialog } from './ColumnSettingsDialog'
 import { ColorSchemeDialog } from './ColorSchemeDialog'
-import type { TimeScale } from './GanttSettings'
+import type { TimeScale } from './types'
 
 interface GanttVisualizationProps {
   readonly?: boolean
