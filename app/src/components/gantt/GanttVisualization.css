@@ -1,0 +1,100 @@
+/* Gantt Container */
+.gantt-container {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+/* Base task styles */
+.gantt-container .gantt_task_line {
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+
+.gantt-container .gantt_task_line:hover {
+  opacity: 0.9;
+}
+
+/* Task type colors - semantic CSS variables */
+.gantt-epic .gantt_task_line {
+  background-color: hsl(var(--issue-epic)) !important;
+  border: 2px solid hsl(var(--issue-epic) / 0.8);
+  font-weight: 600;
+}
+
+.gantt-epic .gantt_task_progress {
+  background-color: hsl(var(--issue-epic) / 0.8) !important;
+}
+
+.gantt-story .gantt_task_line {
+  background-color: hsl(var(--issue-story)) !important;
+  border: 1px solid hsl(var(--issue-story) / 0.8);
+}
+
+.gantt-story .gantt_task_progress {
+  background-color: hsl(var(--issue-story) / 0.8) !important;
+}
+
+.gantt-task .gantt_task_line {
+  background-color: hsl(var(--issue-task)) !important;
+  border: 1px solid hsl(var(--issue-task) / 0.8);
+}
+
+.gantt-task .gantt_task_progress {
+  background-color: hsl(var(--issue-task) / 0.8) !important;
+}
+
+.gantt-bug .gantt_task_line {
+  background-color: hsl(var(--issue-bug)) !important;
+  border: 1px solid hsl(var(--issue-bug) / 0.8);
+}
+
+.gantt-bug .gantt_task_progress {
+  background-color: hsl(var(--issue-bug) / 0.8) !important;
+}
+
+.gantt-subtask .gantt_task_line {
+  background-color: hsl(var(--issue-subtask)) !important;
+  border: 1px solid hsl(var(--issue-subtask) / 0.8);
+}
+
+.gantt-subtask .gantt_task_progress {
+  background-color: hsl(var(--issue-subtask) / 0.8) !important;
+}
+
+/* Dark theme compatibility */
+.gantt_grid_head_cell,
+.gantt_grid_data .gantt_cell {
+  color: var(--foreground);
+}
+
+.gantt_task .gantt_task_scale .gantt_scale_cell {
+  color: var(--foreground);
+}
+
+.gantt_grid {
+  background: var(--background);
+  border-right: 1px solid var(--border);
+}
+
+.gantt_task {
+  background: var(--background);
+}
+
+.gantt_task_row,
+.gantt_grid_data .gantt_row {
+  border-bottom: 1px solid var(--border);
+}
+
+.gantt_grid_head_cell {
+  border-right: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.gantt_scale_line {
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.gantt_task_scale {
+  border-top: 1px solid var(--border);
+}

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { GanttTask, JiraConfig, ConnectionStatus, JiraQuery } from '@/lib/jira-types'
-import type { GanttColumn } from '@/components/gantt/types'
+import type { GanttColumn, TimeScale } from '@/components/gantt/types'
 import type { TaskTypeColor } from '@/components/gantt/types'
 
 export interface GanttData {
@@ -51,6 +51,11 @@ interface GanttStore {
   columns: GanttColumn[]
   customColors: TaskTypeColor[]
 
+  // View settings
+  viewLevel: string
+  timeScale: TimeScale
+  colorField: string
+
   // Loading states
   isConnecting: boolean
   isSyncing: boolean
@@ -78,6 +83,9 @@ interface GanttStore {
   clearFilters: () => void
   setColumns: (columns: GanttColumn[]) => void
   setCustomColors: (colors: TaskTypeColor[]) => void
+  setViewLevel: (level: string) => void
+  setTimeScale: (scale: TimeScale) => void
+  setColorField: (field: string) => void
 
   setConnecting: (loading: boolean) => void
   setSyncing: (loading: boolean) => void
@@ -107,6 +115,9 @@ const initialState = {
   filters: {},
   columns: DEFAULT_COLUMNS,
   customColors: DEFAULT_COLORS,
+  viewLevel: 'all',
+  timeScale: 'day' as TimeScale,
+  colorField: 'issueType',
   isConnecting: false,
   isSyncing: false,
   isLoading: false,
@@ -138,6 +149,9 @@ export const useGanttStore = create<GanttStore>((set) => ({
   clearFilters: () => set({ filters: {} }),
   setColumns: (columns) => set({ columns }),
   setCustomColors: (customColors) => set({ customColors }),
+  setViewLevel: (viewLevel) => set({ viewLevel }),
+  setTimeScale: (timeScale) => set({ timeScale }),
+  setColorField: (colorField) => set({ colorField }),
 
   setConnecting: (isConnecting) => set({ isConnecting }),
   setSyncing: (isSyncing) => set({ isSyncing }),
