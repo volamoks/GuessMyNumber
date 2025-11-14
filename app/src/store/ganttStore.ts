@@ -57,6 +57,11 @@ interface GanttStore {
   timeScale: TimeScale
   colorField: string
 
+  // Modified tasks tracking
+  modifiedTasks: Set<string>
+  markTaskAsModified: (taskId: string) => void
+  clearModifiedTasks: () => void
+
   // Loading states
   isConnecting: boolean
   isSyncing: boolean
@@ -119,6 +124,7 @@ const initialState = {
   viewLevel: 'all',
   timeScale: 'day' as TimeScale,
   colorField: 'issueType',
+  modifiedTasks: new Set<string>(),
   isConnecting: false,
   isSyncing: false,
   isLoading: false,
@@ -156,19 +162,24 @@ export const useGanttStore = create<GanttStore>()(
       setTimeScale: (timeScale) => set({ timeScale }),
       setColorField: (colorField) => set({ colorField }),
 
-      setConnecting: (isConnecting) => set({ isConnecting }),
-      setSyncing: (isSyncing) => set({ isSyncing }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setSaving: (isSaving) => set({ isSaving }),
-      setExporting: (isExporting) => set({ isExporting }),
+      markTaskAsModified: (taskId: string) => set((state) => ({
+        modifiedTasks: new Set([...state.modifiedTasks, taskId])
+      })),
+      clearModifiedTasks: () => set({ modifiedTasks: new Set() }),
 
-      setShowConnectionDialog: (showConnectionDialog) => set({ showConnectionDialog }),
-      setShowSettings: (showSettings) => set({ showSettings }),
-      setShowVersions: (showVersions) => set({ showVersions }),
+      setConnecting: (isConnecting: boolean) => set({ isConnecting }),
+      setSyncing: (isSyncing: boolean) => set({ isSyncing }),
+      setLoading: (isLoading: boolean) => set({ isLoading }),
+      setSaving: (isSaving: boolean) => set({ isSaving }),
+      setExporting: (isExporting: boolean) => set({ isExporting }),
+
+      setShowConnectionDialog: (showConnectionDialog: boolean) => set({ showConnectionDialog }),
+      setShowSettings: (showSettings: boolean) => set({ showSettings }),
+      setShowVersions: (showVersions: boolean) => set({ showVersions }),
       toggleConnectionDialog: () => set((state) => ({ showConnectionDialog: !state.showConnectionDialog })),
       toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
       toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-      setVersions: (versions) => set({ versions }),
+      setVersions: (versions: any[]) => set({ versions }),
 
       reset: () => set(initialState),
     }),

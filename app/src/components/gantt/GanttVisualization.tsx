@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css'
 import './GanttVisualization.css'
+import './GanttTooltip.css'
 import { useGanttData, useGanttConfig } from '@/hooks'
 import { useGanttStore } from '@/store'
 import { GanttControlsBar } from './GanttControlsBar'

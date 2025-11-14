@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Maximize2, Minimize2 } from 'lucide-react'
+import { Maximize2, Minimize2, Upload } from 'lucide-react'
 import { ColumnSettingsDialog } from './ColumnSettingsDialog'
 import { ColorSchemeDialog } from './ColorSchemeDialog'
 import { useGanttStore } from '@/store'
-import { useGanttViewControls } from '@/hooks'
+import { useGanttViewControls, useGanttData } from '@/hooks'
 import type { TimeScale } from './types'
 
 interface GanttControlsBarProps {
@@ -18,11 +18,19 @@ interface GanttControlsBarProps {
 export function GanttControlsBar({ tasksCount }: GanttControlsBarProps) {
   const store = useGanttStore()
   const { viewLevel, expandAll, collapseAll, changeViewLevel } = useGanttViewControls()
+  const { modifiedTasksCount, isExporting, exportToJira } = useGanttData()
 
   return (
     <div className="flex items-center justify-between flex-wrap gap-3">
-      <div className="text-sm text-muted-foreground">
-        {tasksCount} tasks
+      <div className="flex items-center gap-3">
+        <div className="text-sm text-muted-foreground">
+          {tasksCount} tasks
+        </div>
+        {modifiedTasksCount > 0 && (
+          <div className="text-sm text-warning font-medium">
+            {modifiedTasksCount} modified
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2 flex-wrap items-center">
@@ -65,6 +73,20 @@ export function GanttControlsBar({ tasksCount }: GanttControlsBarProps) {
           colors={store.customColors}
           onColorsChange={store.setCustomColors}
         />
+
+        {/* Export to JIRA Button */}
+        {modifiedTasksCount > 0 && (
+          <Button
+            onClick={exportToJira}
+            variant="default"
+            size="sm"
+            disabled={isExporting}
+            title={`Export ${modifiedTasksCount} modified task(s) to JIRA`}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isExporting ? 'Exporting...' : `Export to JIRA (${modifiedTasksCount})`}
+          </Button>
+        )}
 
         {/* Expand/Collapse Buttons */}
         <Button

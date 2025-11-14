@@ -1,0 +1,60 @@
+/* Custom Gantt Tooltip Styles */
+.gantt-tooltip {
+  position: absolute;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  max-width: 400px;
+  pointer-events: none;
+  font-size: 13px;
+  line-height: 1.5;
+  color: hsl(var(--popover-foreground));
+}
+
+.gantt-tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: 6px;
+}
+
+.gantt-tooltip-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.gantt-tooltip-label {
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  min-width: 80px;
+}
+
+.gantt-tooltip-value {
+  color: hsl(var(--foreground));
+  flex: 1;
+}
+
+.gantt-tooltip-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.gantt-tooltip-modified {
+  background: hsl(var(--warning) / 0.1);
+  color: hsl(var(--warning));
+  border: 1px solid hsl(var(--warning) / 0.3);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 11px;
+  text-align: center;
+}

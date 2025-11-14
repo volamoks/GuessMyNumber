@@ -64,7 +64,7 @@ export function ColorSchemeDialog({ colorField, onColorFieldChange, colors, onCo
 
     const values = new Set<string>()
 
-    store.data.tasks.forEach(task => {
+    store.data.tasks.forEach((task: any) => {
       const details = task.details
       if (!details) return
 
