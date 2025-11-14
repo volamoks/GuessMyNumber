@@ -232,7 +232,7 @@ export function useGanttConfig({
     }
   }, [])
 
-  // Базовая конфигурация gantt
+  // Базовая инициализация gantt (только один раз)
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -252,9 +252,7 @@ export function useGanttConfig({
     gantt.config.grid_resize = true
     gantt.config.min_column_width = 50
 
-    // Применяем конфигурации
-    configureTimeScale()
-    configureColumns()
+    // Инициализация templates (один раз)
     configureTemplates()
 
     // Инициализация
@@ -263,7 +261,23 @@ export function useGanttConfig({
     return () => {
       gantt.clearAll()
     }
-  }, [containerRef, readonly, configureTimeScale, configureColumns, configureTemplates])
+  }, [containerRef, readonly, configureTemplates])
+
+  // Обновление шкалы времени (без реинициализации)
+  useEffect(() => {
+    configureTimeScale()
+    if (containerRef.current) {
+      gantt.render()
+    }
+  }, [timeScale, configureTimeScale, containerRef])
+
+  // Обновление колонок (без реинициализации)
+  useEffect(() => {
+    configureColumns()
+    if (containerRef.current) {
+      gantt.render()
+    }
+  }, [columns, readonly, configureColumns, containerRef])
 
   // Event handlers для обновления задач
   useEffect(() => {
@@ -296,7 +310,7 @@ export function useGanttConfig({
     }
   }, [onTaskUpdate, readonly])
 
-  // Загрузка данных в gantt
+  // Загрузка данных в gantt (только при изменении tasks)
   useEffect(() => {
     if (!tasks || tasks.length === 0) {
       gantt.clearAll()
@@ -335,7 +349,24 @@ export function useGanttConfig({
     if (ganttTasks.length > 0) {
       gantt.render()
     }
-  }, [tasks, colorField, customColors, getTaskColor])
+  }, [tasks, getTaskColor])
+
+  // Обновление цветов задач при изменении colorField или customColors (без перезагрузки данных)
+  useEffect(() => {
+    // Проверяем что gantt уже проинициализирован и есть задачи
+    if (!containerRef.current || !tasks || tasks.length === 0) return
+
+    // Обновляем цвета существующих задач
+    gantt.eachTask((task: any) => {
+      const newColor = getTaskColor(task)
+      if (task.color !== newColor) {
+        task.color = newColor
+        gantt.updateTask(task.id)
+      }
+    })
+
+    gantt.render()
+  }, [colorField, customColors, containerRef, tasks, getTaskColor])
 
   return {
     getCSSColor,
