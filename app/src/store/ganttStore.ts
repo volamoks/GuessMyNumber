@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { GanttTask, JiraConfig, ConnectionStatus, JiraQuery } from '@/lib/jira-types'
 import type { GanttColumn, TimeScale } from '@/components/gantt/types'
 import type { TaskTypeColor } from '@/components/gantt/types'
@@ -129,43 +130,63 @@ const initialState = {
   versions: [],
 }
 
-export const useGanttStore = create<GanttStore>((set) => ({
-  ...initialState,
+export const useGanttStore = create<GanttStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
 
-  setData: (data) => set({ data }),
-  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
-  setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
-  setJiraConfig: (jiraConfig) => set({ jiraConfig }),
-  setSelectedProjectKey: (selectedProjectKey) => set({ selectedProjectKey }),
-  setSelectedProjectKeys: (selectedProjectKeys) => set({ selectedProjectKeys }),
-  addProjectKey: (key) => set((state) => ({
-    selectedProjectKeys: [...state.selectedProjectKeys, key]
-  })),
-  removeProjectKey: (key) => set((state) => ({
-    selectedProjectKeys: state.selectedProjectKeys.filter(k => k !== key)
-  })),
-  setJiraQuery: (jiraQuery) => set({ jiraQuery }),
-  setFilters: (filters) => set({ filters }),
-  clearFilters: () => set({ filters: {} }),
-  setColumns: (columns) => set({ columns }),
-  setCustomColors: (customColors) => set({ customColors }),
-  setViewLevel: (viewLevel) => set({ viewLevel }),
-  setTimeScale: (timeScale) => set({ timeScale }),
-  setColorField: (colorField) => set({ colorField }),
+      setData: (data) => set({ data }),
+      setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
+      setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
+      setJiraConfig: (jiraConfig) => set({ jiraConfig }),
+      setSelectedProjectKey: (selectedProjectKey) => set({ selectedProjectKey }),
+      setSelectedProjectKeys: (selectedProjectKeys) => set({ selectedProjectKeys }),
+      addProjectKey: (key) => set((state) => ({
+        selectedProjectKeys: [...state.selectedProjectKeys, key]
+      })),
+      removeProjectKey: (key) => set((state) => ({
+        selectedProjectKeys: state.selectedProjectKeys.filter(k => k !== key)
+      })),
+      setJiraQuery: (jiraQuery) => set({ jiraQuery }),
+      setFilters: (filters) => set({ filters }),
+      clearFilters: () => set({ filters: {} }),
+      setColumns: (columns) => set({ columns }),
+      setCustomColors: (customColors) => set({ customColors }),
+      setViewLevel: (viewLevel) => set({ viewLevel }),
+      setTimeScale: (timeScale) => set({ timeScale }),
+      setColorField: (colorField) => set({ colorField }),
 
-  setConnecting: (isConnecting) => set({ isConnecting }),
-  setSyncing: (isSyncing) => set({ isSyncing }),
-  setLoading: (isLoading) => set({ isLoading }),
-  setSaving: (isSaving) => set({ isSaving }),
-  setExporting: (isExporting) => set({ isExporting }),
+      setConnecting: (isConnecting) => set({ isConnecting }),
+      setSyncing: (isSyncing) => set({ isSyncing }),
+      setLoading: (isLoading) => set({ isLoading }),
+      setSaving: (isSaving) => set({ isSaving }),
+      setExporting: (isExporting) => set({ isExporting }),
 
-  setShowConnectionDialog: (showConnectionDialog) => set({ showConnectionDialog }),
-  setShowSettings: (showSettings) => set({ showSettings }),
-  setShowVersions: (showVersions) => set({ showVersions }),
-  toggleConnectionDialog: () => set((state) => ({ showConnectionDialog: !state.showConnectionDialog })),
-  toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
-  toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
-  setVersions: (versions) => set({ versions }),
+      setShowConnectionDialog: (showConnectionDialog) => set({ showConnectionDialog }),
+      setShowSettings: (showSettings) => set({ showSettings }),
+      setShowVersions: (showVersions) => set({ showVersions }),
+      toggleConnectionDialog: () => set((state) => ({ showConnectionDialog: !state.showConnectionDialog })),
+      toggleSettings: () => set((state) => ({ showSettings: !state.showSettings })),
+      toggleVersions: () => set((state) => ({ showVersions: !state.showVersions })),
+      setVersions: (versions) => set({ versions }),
 
-  reset: () => set(initialState),
-}))
+      reset: () => set(initialState),
+    }),
+    {
+      name: 'gantt-storage',
+      partialize: (state) => ({
+        // Persist only user settings, not runtime data
+        jiraConfig: state.jiraConfig,
+        selectedProjectKey: state.selectedProjectKey,
+        selectedProjectKeys: state.selectedProjectKeys,
+        jiraQuery: state.jiraQuery,
+        filters: state.filters,
+        columns: state.columns,
+        customColors: state.customColors,
+        viewLevel: state.viewLevel,
+        timeScale: state.timeScale,
+        colorField: state.colorField,
+      }),
+    }
+  )
+)
