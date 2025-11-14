@@ -28,17 +28,28 @@ const JIRA_FIELDS = [
   { id: 'labels', label: 'Labels' },
 ]
 
-// Generate color from hash
-const generateColor = (str: string, index: number): string => {
-  const predefinedColors = [
-    '#9333ea', '#3b82f6', '#10b981', '#ef4444', '#f59e0b',
-    '#6366f1', '#ec4899', '#14b8a6', '#f97316', '#8b5cf6'
-  ]
+// Semantic color names mapped to CSS variable names
+const SEMANTIC_COLORS = [
+  'issue-epic', 'issue-story', 'issue-task', 'issue-bug', 'issue-subtask',
+  'priority-critical', 'priority-high', 'priority-medium', 'priority-low',
+  'status-done', 'status-in-progress', 'status-todo', 'status-blocked', 'status-review'
+]
 
-  if (index < predefinedColors.length) {
-    return predefinedColors[index]
+// Get computed CSS variable color value
+const getCSSColor = (varName: string): string => {
+  const root = document.documentElement
+  const hslValue = getComputedStyle(root).getPropertyValue(`--${varName}`).trim()
+  return hslValue ? `hsl(${hslValue})` : '#6b7280' // fallback to gray
+}
+
+// Generate color from hash using semantic colors
+const generateColor = (str: string, index: number): string => {
+  // Use semantic colors first
+  if (index < SEMANTIC_COLORS.length) {
+    return getCSSColor(SEMANTIC_COLORS[index])
   }
 
+  // Fallback to hash-based generation for additional colors
   const hash = str.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0)
   const hue = Math.abs(hash) % 360
   return `hsl(${hue}, 65%, 50%)`

@@ -53,8 +53,8 @@ const TimelineDot = React.forwardRef<HTMLDivElement, TimelineDotProps>(
         ref={ref}
         className={cn(
           'relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 border-background transition-all',
-          status === 'completed' && 'bg-green-500',
-          status === 'current' && 'bg-blue-500 ring-4 ring-blue-500/20 scale-110',
+          status === 'completed' && 'bg-status-done',
+          status === 'current' && 'bg-status-in-progress ring-4 ring-status-in-progress/20 scale-110',
           status === 'upcoming' && 'bg-muted',
           className
         )}
@@ -76,8 +76,8 @@ const TimelineConnector = React.forwardRef<HTMLDivElement, TimelineConnectorProp
         ref={ref}
         className={cn(
           'absolute top-5 left-[50%] right-[-50%] h-1 -translate-y-1/2',
-          status === 'completed' && 'bg-green-500',
-          status === 'current' && 'bg-gradient-to-r from-green-500 to-blue-500',
+          status === 'completed' && 'bg-status-done',
+          status === 'current' && 'bg-gradient-to-r from-status-done to-status-in-progress',
           status === 'upcoming' && 'bg-muted',
           className
         )}

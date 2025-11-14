@@ -61,7 +61,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.keyPartners}
             onItemsChange={(items) => handleUpdate('keyPartners', items)}
             icon={<Handshake className="h-5 w-5" />}
-            color="border-purple-300 bg-purple-50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-100"
+            color="border-issue-epic/30 bg-issue-epic/10 text-foreground"
           />
         </div>
 
@@ -72,7 +72,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.keyActivities}
             onItemsChange={(items) => handleUpdate('keyActivities', items)}
             icon={<Zap className="h-5 w-5" />}
-            color="border-blue-300 bg-blue-50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100"
+            color="border-issue-story/30 bg-issue-story/10 text-foreground"
           />
         </div>
 
@@ -83,7 +83,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.valueProposition}
             onItemsChange={(items) => handleUpdate('valueProposition', items)}
             icon={<Package className="h-5 w-5" />}
-            color="border-orange-400 bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-950/50 dark:to-orange-950/30 text-orange-900 dark:text-orange-100 shadow-md"
+            color="border-warning/50 bg-gradient-to-br from-warning/20 to-warning/10 text-foreground shadow-md"
             className="border-4"
           />
         </div>
@@ -95,7 +95,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.customerRelationships}
             onItemsChange={(items) => handleUpdate('customerRelationships', items)}
             icon={<Heart className="h-5 w-5" />}
-            color="border-pink-300 bg-pink-50 dark:bg-pink-950/30 text-pink-900 dark:text-pink-100"
+            color="border-issue-bug/30 bg-issue-bug/10 text-foreground"
           />
         </div>
 
@@ -106,7 +106,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.customerSegments}
             onItemsChange={(items) => handleUpdate('customerSegments', items)}
             icon={<Users className="h-5 w-5" />}
-            color="border-green-300 bg-green-50 dark:bg-green-950/30 text-green-900 dark:text-green-100"
+            color="border-success/30 bg-success/10 text-foreground"
           />
         </div>
 
@@ -117,7 +117,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.keyResources}
             onItemsChange={(items) => handleUpdate('keyResources', items)}
             icon={<Package className="h-5 w-5" />}
-            color="border-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100"
+            color="border-info/30 bg-info/10 text-foreground"
           />
         </div>
 
@@ -128,7 +128,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.channels}
             onItemsChange={(items) => handleUpdate('channels', items)}
             icon={<Radio className="h-5 w-5" />}
-            color="border-teal-300 bg-teal-50 dark:bg-teal-950/30 text-teal-900 dark:text-teal-100"
+            color="border-issue-task/30 bg-issue-task/10 text-foreground"
           />
         </div>
       </div>
@@ -141,7 +141,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.costStructure}
             onItemsChange={(items) => handleUpdate('costStructure', items)}
             icon={<TrendingDown className="h-5 w-5" />}
-            color="border-red-400 bg-gradient-to-br from-red-100 to-red-50 dark:from-red-950/50 dark:to-red-950/30 text-red-900 dark:text-red-100 shadow-sm"
+            color="border-issue-bug/50 bg-gradient-to-br from-issue-bug/20 to-issue-bug/10 text-foreground shadow-sm"
           />
         </div>
         <div className="lg:col-span-3">
@@ -150,7 +150,7 @@ export function CanvasVisualization({ data, visualizationId, onUpdate }: CanvasV
             items={data.revenueStreams}
             onItemsChange={(items) => handleUpdate('revenueStreams', items)}
             icon={<DollarSign className="h-5 w-5" />}
-            color="border-emerald-400 bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-950/50 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-sm"
+            color="border-success/50 bg-gradient-to-br from-success/20 to-success/10 text-foreground shadow-sm"
           />
         </div>
       </div>

@@ -136,7 +136,7 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b">
                 <h3 className="text-xl font-bold flex items-center gap-2">
-                  <Badge className="bg-blue-500">Stage {selectedStage + 1}</Badge>
+                  <Badge className="bg-issue-story">Stage {selectedStage + 1}</Badge>
                   {data.stages[selectedStage].name}
                 </h3>
               </div>
@@ -146,7 +146,7 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                 <AccordionItem value="customer-perspective">
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-1 bg-blue-500 rounded-full" />
+                      <div className="h-8 w-1 bg-issue-story rounded-full" />
                       👤 Customer Perspective
                     </div>
                   </AccordionTrigger>
@@ -263,7 +263,7 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                 <AccordionItem value="business-perspective">
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-1 bg-orange-500 rounded-full" />
+                      <div className="h-8 w-1 bg-warning rounded-full" />
                       🏢 Business Perspective
                     </div>
                   </AccordionTrigger>
@@ -271,11 +271,11 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                     <div className="grid md:grid-cols-2 gap-4 p-4">
                       {/* Business Goal */}
                       <div className="space-y-2 md:col-span-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
+                        <div className="flex items-center gap-2 font-medium text-warning">
                           <TrendingUp className="h-4 w-4" />
                           Business Goal
                         </div>
-                        <div className="text-sm bg-orange-50 dark:bg-orange-950/20 p-3 rounded-lg border border-orange-200 dark:border-orange-900">
+                        <div className="text-sm bg-warning/10 p-3 rounded-lg border border-warning/30">
                           <EditableText
                             text={data.stages[selectedStage].businessGoal}
                             onChange={(text) => handleUpdateStage(selectedStage, 'businessGoal', text)}

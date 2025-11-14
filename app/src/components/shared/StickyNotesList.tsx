@@ -13,39 +13,39 @@ interface StickyNotesListProps {
 
 const colorSchemes = {
   default: {
-    card: 'bg-white dark:bg-gray-800 border-l-4 border-l-gray-400',
+    card: 'bg-card border-l-4 border-l-border',
     hover: 'hover:shadow-lg hover:-translate-y-0.5',
-    gradient: 'hover:border-l-gray-500'
+    gradient: 'hover:border-l-muted-foreground'
   },
   green: {
-    card: 'bg-green-50 dark:bg-green-950/20 border-l-4 border-l-green-500',
-    hover: 'hover:shadow-lg hover:shadow-green-200/50 dark:hover:shadow-green-900/50 hover:-translate-y-0.5',
-    gradient: 'hover:border-l-green-600'
+    card: 'bg-success/10 border-l-4 border-l-success',
+    hover: 'hover:shadow-lg hover:shadow-success/20 hover:-translate-y-0.5',
+    gradient: 'hover:border-l-success'
   },
   red: {
-    card: 'bg-red-50 dark:bg-red-950/20 border-l-4 border-l-red-500',
-    hover: 'hover:shadow-lg hover:shadow-red-200/50 dark:hover:shadow-red-900/50 hover:-translate-y-0.5',
-    gradient: 'hover:border-l-red-600'
+    card: 'bg-issue-bug/10 border-l-4 border-l-issue-bug',
+    hover: 'hover:shadow-lg hover:shadow-issue-bug/20 hover:-translate-y-0.5',
+    gradient: 'hover:border-l-issue-bug'
   },
   yellow: {
-    card: 'bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-l-yellow-500',
-    hover: 'hover:shadow-lg hover:shadow-yellow-200/50 dark:hover:shadow-yellow-900/50 hover:-translate-y-0.5',
-    gradient: 'hover:border-l-yellow-600'
+    card: 'bg-warning/10 border-l-4 border-l-warning',
+    hover: 'hover:shadow-lg hover:shadow-warning/20 hover:-translate-y-0.5',
+    gradient: 'hover:border-l-warning'
   },
   blue: {
-    card: 'bg-blue-50 dark:bg-blue-950/20 border-l-4 border-l-blue-500',
-    hover: 'hover:shadow-lg hover:shadow-blue-200/50 dark:hover:shadow-blue-900/50 hover:-translate-y-0.5',
-    gradient: 'hover:border-l-blue-600'
+    card: 'bg-issue-story/10 border-l-4 border-l-issue-story',
+    hover: 'hover:shadow-lg hover:shadow-issue-story/20 hover:-translate-y-0.5',
+    gradient: 'hover:border-l-issue-story'
   },
   purple: {
-    card: 'bg-purple-50 dark:bg-purple-950/20 border-l-4 border-l-purple-500',
-    hover: 'hover:shadow-lg hover:shadow-purple-200/50 dark:hover:shadow-purple-900/50 hover:-translate-y-0.5',
-    gradient: 'hover:border-l-purple-600'
+    card: 'bg-issue-epic/10 border-l-4 border-l-issue-epic',
+    hover: 'hover:shadow-lg hover:shadow-issue-epic/20 hover:-translate-y-0.5',
+    gradient: 'hover:border-l-issue-epic'
   },
   orange: {
-    card: 'bg-orange-50 dark:bg-orange-950/20 border-l-4 border-l-orange-500',
-    hover: 'hover:shadow-lg hover:shadow-orange-200/50 dark:hover:shadow-orange-900/50 hover:-translate-y-0.5',
-    gradient: 'hover:border-l-orange-600'
+    card: 'bg-warning/10 border-l-4 border-l-warning',
+    hover: 'hover:shadow-lg hover:shadow-warning/20 hover:-translate-y-0.5',
+    gradient: 'hover:border-l-warning'
   }
 }
 

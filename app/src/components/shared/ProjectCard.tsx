@@ -42,25 +42,25 @@ const typeConfig = {
   cjm: {
     label: 'Customer Journey Map',
     icon: Target,
-    color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900',
+    color: 'bg-issue-story/10 text-issue-story border-issue-story/30',
     badgeVariant: 'default' as const,
   },
   business_canvas: {
     label: 'Business Canvas',
     icon: LayoutGrid,
-    color: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-900',
+    color: 'bg-issue-epic/10 text-issue-epic border-issue-epic/30',
     badgeVariant: 'secondary' as const,
   },
   lean_canvas: {
     label: 'Lean Canvas',
     icon: FileJson,
-    color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-900',
+    color: 'bg-success/10 text-success border-success/30',
     badgeVariant: 'outline' as const,
   },
   roadmap: {
     label: 'Product Roadmap',
     icon: Route,
-    color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-900',
+    color: 'bg-warning/10 text-warning border-warning/30',
     badgeVariant: 'secondary' as const,
   },
 }

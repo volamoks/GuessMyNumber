@@ -9,16 +9,16 @@ import { Edit2, Check, X, Trash2 } from 'lucide-react'
 import type { RoadmapFeature } from '@/lib/schemas'
 
 const priorityConfig = {
-  high: { label: 'High', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300' },
-  medium: { label: 'Medium', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300' },
-  low: { label: 'Low', color: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300' }
+  high: { label: 'High', color: 'bg-priority-high/10 text-priority-high border-priority-high/30' },
+  medium: { label: 'Medium', color: 'bg-priority-medium/10 text-priority-medium border-priority-medium/30' },
+  low: { label: 'Low', color: 'bg-priority-low/10 text-priority-low border-priority-low/30' }
 }
 
 const categoryConfig = {
-  feature: { label: 'Feature', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' },
-  bug_fix: { label: 'Bug Fix', color: 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' },
-  tech_debt: { label: 'Tech Debt', color: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300' },
-  improvement: { label: 'Improvement', color: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' }
+  feature: { label: 'Feature', color: 'bg-issue-story/10 text-issue-story border-issue-story/30' },
+  bug_fix: { label: 'Bug Fix', color: 'bg-issue-bug/10 text-issue-bug border-issue-bug/30' },
+  tech_debt: { label: 'Tech Debt', color: 'bg-warning/10 text-warning border-warning/30' },
+  improvement: { label: 'Improvement', color: 'bg-success/10 text-success border-success/30' }
 }
 
 const effortConfig = {
@@ -28,9 +28,9 @@ const effortConfig = {
 }
 
 const statusConfig = {
-  planning: { label: 'Planning', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
-  in_progress: { label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' },
-  done: { label: 'Done', color: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' }
+  planning: { label: 'Planning', color: 'bg-status-todo/10 text-status-todo border-status-todo/30' },
+  in_progress: { label: 'In Progress', color: 'bg-status-in-progress/10 text-status-in-progress border-status-in-progress/30' },
+  done: { label: 'Done', color: 'bg-status-done/10 text-status-done border-status-done/30' }
 }
 
 interface EditableFeatureCardProps {

@@ -81,9 +81,16 @@ export function GanttVisualization({ readonly = false }: GanttVisualizationProps
     gantt.render()
   }, [])
 
+  // Get CSS variable color value
+  const getCSSColor = (varName: string): string => {
+    const root = document.documentElement
+    const hslValue = getComputedStyle(root).getPropertyValue(`--${varName}`).trim()
+    return hslValue ? `hsl(${hslValue})` : 'hsl(215 16% 47%)' // fallback to status-todo
+  }
+
   // Функция для получения цвета задачи по любому полю
   const getTaskColor = (task: any): string => {
-    if (!task.details) return '#6b7280'
+    if (!task.details) return getCSSColor('status-todo')
 
     const fieldValue = (task.details as any)[colorField]
 
@@ -93,15 +100,15 @@ export function GanttVisualization({ readonly = false }: GanttVisualizationProps
       const value = fieldValue[0]
       if (value) {
         const customColor = store.customColors.find(c => c.type === value)
-        return customColor?.color || '#6b7280'
+        return customColor?.color || getCSSColor('status-todo')
       }
     } else if (fieldValue) {
       // Single value
       const customColor = store.customColors.find(c => c.type === fieldValue)
-      return customColor?.color || '#6b7280'
+      return customColor?.color || getCSSColor('status-todo')
     }
 
-    return '#6b7280' // Default gray
+    return getCSSColor('status-todo') // Default gray
   }
 
   // Initialize DHTMLX Gantt
@@ -501,46 +508,46 @@ export function GanttVisualization({ readonly = false }: GanttVisualizationProps
           opacity: 0.9;
         }
 
-        /* Цвета для разных типов задач */
+        /* Цвета для разных типов задач - using semantic CSS variables */
         .gantt-epic .gantt_task_line {
-          background-color: #9333ea !important;
-          border: 2px solid #7e22ce;
+          background-color: hsl(var(--issue-epic)) !important;
+          border: 2px solid hsl(var(--issue-epic) / 0.8);
           font-weight: 600;
         }
         .gantt-epic .gantt_task_progress {
-          background-color: #7e22ce !important;
+          background-color: hsl(var(--issue-epic) / 0.8) !important;
         }
 
         .gantt-story .gantt_task_line {
-          background-color: #3b82f6 !important;
-          border: 1px solid #2563eb;
+          background-color: hsl(var(--issue-story)) !important;
+          border: 1px solid hsl(var(--issue-story) / 0.8);
         }
         .gantt-story .gantt_task_progress {
-          background-color: #2563eb !important;
+          background-color: hsl(var(--issue-story) / 0.8) !important;
         }
 
         .gantt-task .gantt_task_line {
-          background-color: #10b981 !important;
-          border: 1px solid #059669;
+          background-color: hsl(var(--issue-task)) !important;
+          border: 1px solid hsl(var(--issue-task) / 0.8);
         }
         .gantt-task .gantt_task_progress {
-          background-color: #059669 !important;
+          background-color: hsl(var(--issue-task) / 0.8) !important;
         }
 
         .gantt-bug .gantt_task_line {
-          background-color: #ef4444 !important;
-          border: 1px solid #dc2626;
+          background-color: hsl(var(--issue-bug)) !important;
+          border: 1px solid hsl(var(--issue-bug) / 0.8);
         }
         .gantt-bug .gantt_task_progress {
-          background-color: #dc2626 !important;
+          background-color: hsl(var(--issue-bug) / 0.8) !important;
         }
 
         .gantt-subtask .gantt_task_line {
-          background-color: #6366f1 !important;
-          border: 1px solid #4f46e5;
+          background-color: hsl(var(--issue-subtask)) !important;
+          border: 1px solid hsl(var(--issue-subtask) / 0.8);
         }
         .gantt-subtask .gantt_task_progress {
-          background-color: #4f46e5 !important;
+          background-color: hsl(var(--issue-subtask) / 0.8) !important;
         }
 
         /* Темная тема совместимость */
