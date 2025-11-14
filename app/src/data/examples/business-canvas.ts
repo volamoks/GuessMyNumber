@@ -1,4 +1,4 @@
-import type { BusinessCanvasData } from '@/store'
+import type { BusinessCanvasData } from '@/lib/schemas'
 
 export const EXAMPLE_BUSINESS_CANVAS: BusinessCanvasData = {
   title: "SaaS платформа для управления проектами",

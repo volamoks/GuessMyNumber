@@ -1,4 +1,4 @@
-import type { LeanCanvasData } from '@/store'
+import type { LeanCanvasData } from '@/lib/schemas'
 
 export const EXAMPLE_LEAN_CANVAS: LeanCanvasData = {
   title: "Приложение для изучения языков с AI",

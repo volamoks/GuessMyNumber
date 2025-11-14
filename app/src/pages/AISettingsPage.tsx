@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { AIProvider } from '@/lib/ai-service'
+import type { AIProvider } from '@/lib/ai-service-new'
 import { useGlobalStore, type AIModelConfig } from '@/store'
 import { CheckCircle2, Trash2, Plus, Eye, EyeOff } from 'lucide-react'
 

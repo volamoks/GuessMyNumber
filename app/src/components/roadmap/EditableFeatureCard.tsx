@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Edit2, Check, X, Trash2 } from 'lucide-react'
-import type { RoadmapFeature } from '@/store'
+import type { RoadmapFeature } from '@/lib/schemas'
 
 const priorityConfig = {
   high: { label: 'High', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300' },

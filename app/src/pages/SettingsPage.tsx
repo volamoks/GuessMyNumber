@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Sun, Moon, Monitor, Plus, Edit2, Trash2, Check, CheckCircle2, Clock, Zap, AlertCircle, FileText } from 'lucide-react'
-import type { AIProvider } from '@/lib/ai-service'
+import type { AIProvider } from '@/lib/ai-service-new'
 import { useGlobalStore, useThemeStore, type AIModelConfig } from '@/store'
 import { promptLogsService, type PromptLog } from '@/lib/prompt-logs-service'
 import { toast } from 'sonner'

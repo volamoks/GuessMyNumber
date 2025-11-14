@@ -377,3 +377,22 @@ export class AIService extends BaseService {
  * Singleton instance export
  */
 export const aiService = AIService.getInstance()
+
+/**
+ * Set AI configuration globally
+ * Used by globalStore to sync active model config
+ */
+export function setAIConfig(config: AIConfig): void {
+  if (typeof window !== 'undefined') {
+    (window as any).__aiConfig = config
+  }
+}
+
+/**
+ * Clear AI configuration
+ */
+export function clearAIConfig(): void {
+  if (typeof window !== 'undefined') {
+    delete (window as any).__aiConfig
+  }
+}

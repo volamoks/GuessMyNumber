@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AIProvider } from '@/lib/ai-service'
-import * as aiService from '@/lib/ai-service'
+import type { AIProvider } from '@/lib/ai-service-new'
+import { setAIConfig, clearAIConfig } from '@/lib/ai-service-new'
 
 // Отдельная конфигурация для каждой модели
 export interface AIModelConfig {
@@ -46,7 +46,7 @@ export const useGlobalStore = create<GlobalStore>()(
 
         const currentState = get()
         if (!currentState.activeModelId || currentState.activeModelId === id) {
-          aiService.setAIConfig({
+          setAIConfig({
             provider: model.provider,
             apiKey: model.apiKey,
             model: model.model,
@@ -66,7 +66,7 @@ export const useGlobalStore = create<GlobalStore>()(
         if (currentState.activeModelId === id) {
           const model = currentState.aiModels.find((m) => m.id === id)
           if (model) {
-            aiService.setAIConfig({
+            setAIConfig({
               provider: model.provider,
               apiKey: model.apiKey,
               model: model.model,
@@ -87,7 +87,7 @@ export const useGlobalStore = create<GlobalStore>()(
           if (newActiveId && newActiveId !== state.activeModelId) {
             const newActiveModel = newModels.find((m) => m.id === newActiveId)
             if (newActiveModel) {
-              aiService.setAIConfig({
+              setAIConfig({
                 provider: newActiveModel.provider,
                 apiKey: newActiveModel.apiKey,
                 model: newActiveModel.model,
@@ -95,7 +95,7 @@ export const useGlobalStore = create<GlobalStore>()(
               })
             }
           } else if (!newActiveId) {
-            aiService.clearAIConfig()
+            clearAIConfig()
           }
 
           return {
@@ -110,7 +110,7 @@ export const useGlobalStore = create<GlobalStore>()(
         if (!model) return
 
         set({ activeModelId: id })
-        aiService.setAIConfig({
+        setAIConfig({
           provider: model.provider,
           apiKey: model.apiKey,
           model: model.model,
@@ -130,7 +130,7 @@ export const useGlobalStore = create<GlobalStore>()(
         if (state?.activeModelId && state?.aiModels) {
           const activeModel = state.aiModels.find((m) => m.id === state.activeModelId)
           if (activeModel) {
-            aiService.setAIConfig({
+            setAIConfig({
               provider: activeModel.provider,
               apiKey: activeModel.apiKey,
               model: activeModel.model,

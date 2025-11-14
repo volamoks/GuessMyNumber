@@ -1,5 +1,5 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { RoadmapData } from '@/store'
+import type { RoadmapData } from '@/lib/schemas'
 import { EditableFeatureCard } from './EditableFeatureCard'
 import { toast } from 'sonner'
 
