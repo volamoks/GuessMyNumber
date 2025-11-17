@@ -7,9 +7,10 @@ interface SlidePreviewProps {
   slideIndex?: number
   className?: string
   showBorder?: boolean
+  isThumbnail?: boolean
 }
 
-export function SlidePreview({ slideIndex, className, showBorder = true }: SlidePreviewProps) {
+export function SlidePreview({ slideIndex, className, showBorder = true, isThumbnail = false }: SlidePreviewProps) {
   const { slides, currentSlideIndex, theme, markdown } = usePresentationStore()
   const index = slideIndex ?? currentSlideIndex
   const slide = slides[index]
@@ -54,7 +55,10 @@ export function SlidePreview({ slideIndex, className, showBorder = true }: Slide
       <div className="absolute inset-0 p-6 flex flex-col overflow-auto">
         {/* Rendered Markdown with prose styles */}
         <div
-          className="prose prose-slide prose-full"
+          className={cn(
+            'prose prose-full',
+            isThumbnail && 'prose-slide' // thumbnails get normalized headings
+          )}
           style={{
             '--foreground': theme.textColor,
             '--primary': theme.primaryColor,

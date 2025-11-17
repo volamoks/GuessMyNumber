@@ -29,7 +29,7 @@ export function SlideThumbnails() {
             <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
               {index + 1}
             </div>
-            <SlidePreview slideIndex={index} showBorder={false} className="pointer-events-none" />
+            <SlidePreview slideIndex={index} showBorder={false} isThumbnail className="pointer-events-none" />
           </div>
         </button>
       ))}
