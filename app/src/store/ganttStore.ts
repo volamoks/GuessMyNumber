@@ -185,6 +185,7 @@ export const useGanttStore = create<GanttStore>()(
     }),
     {
       name: 'gantt-storage',
+      version: 1, // Increment when schema changes
       partialize: (state) => ({
         // Persist only user settings, not runtime data
         jiraConfig: state.jiraConfig,
@@ -198,6 +199,16 @@ export const useGanttStore = create<GanttStore>()(
         timeScale: state.timeScale,
         colorField: state.colorField,
       }),
+      merge: (persistedState, currentState) => {
+        // Deep merge persisted state with current state
+        const persisted = persistedState as Partial<GanttStore>
+        return {
+          ...currentState,
+          ...persisted,
+          // Ensure modifiedTasks remains a Set (not persisted, always fresh)
+          modifiedTasks: new Set<string>(),
+        }
+      },
     }
   )
 )
