@@ -52,30 +52,39 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
         fontFamily: theme.fontFamily,
       }}
     >
-      <div className="absolute inset-0 p-6 flex flex-col overflow-auto">
+      <div className={cn(
+        "absolute inset-0 flex flex-col overflow-auto",
+        isThumbnail ? "p-2" : "p-6"
+      )}>
         {/* Rendered Markdown with prose styles */}
         <div
           className={cn(
             'prose prose-full',
-            isThumbnail && 'prose-slide' // thumbnails get normalized headings
+            isThumbnail ? 'prose-slide' : 'prose-compact'
           )}
           style={{
             '--foreground': theme.textColor,
             '--primary': theme.primaryColor,
-            '--muted': theme.backgroundColor === '#ffffff' ? '#f3f4f6' : '#374151',
+            '--muted': theme.backgroundColor === '#ffffff' || theme.backgroundColor === '#fafafa' || theme.backgroundColor === '#f8fafc'
+              ? '#f3f4f6'
+              : '#374151',
             '--muted-foreground': theme.textColor + '99',
-            '--border': theme.textColor + '20',
+            '--border': theme.textColor + '30',
             '--destructive': theme.primaryColor,
             '--font-mono': theme.codeFontFamily || 'JetBrains Mono, monospace',
+            '--card': theme.backgroundColor,
+            '--ring': theme.secondaryColor,
             color: theme.textColor,
           } as React.CSSProperties}
           dangerouslySetInnerHTML={{ __html: slideHtml }}
         />
 
         {/* Slide number */}
-        <div className="absolute bottom-2 right-3 text-xs opacity-50">
-          {index + 1} / {slides.length}
-        </div>
+        {!isThumbnail && (
+          <div className="absolute bottom-2 right-3 text-xs opacity-50">
+            {index + 1} / {slides.length}
+          </div>
+        )}
       </div>
     </div>
   )
