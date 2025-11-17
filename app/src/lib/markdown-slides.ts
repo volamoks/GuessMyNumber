@@ -1,143 +1,85 @@
-import { marked } from 'marked'
-import type { Slide, SlideContent } from './presentation-types'
+/**
+ * Утилиты для работы с markdown слайдами
+ *
+ * DEPRECATED: Используйте импорты из @/lib/presentation
+ * Этот файл сохранён для обратной совместимости
+ */
 
-const generateId = () => Math.random().toString(36).substring(2, 15)
+import type { Slide, SlideContent } from './presentation-types'
+import {
+  parseMarkdownToAST,
+  markdownToHtml as newMarkdownToHtml,
+} from './presentation'
 
 /**
- * Парсит markdown в массив слайдов
- * Разделитель слайдов: --- (три дефиса на отдельной строке)
+ * Парсит markdown в массив слайдов (legacy API)
+ * @deprecated Используйте parseMarkdownToAST из @/lib/presentation
  */
 export function parseMarkdownToSlides(markdown: string): Slide[] {
-  // Разбиваем по разделителю слайдов
-  const slideTexts = markdown.split(/\n---\n/).map(s => s.trim()).filter(Boolean)
+  const ast = parseMarkdownToAST(markdown)
 
-  const slides: Slide[] = slideTexts.map((slideText) => {
-    const lines = slideText.split('\n')
-    let title = ''
+  // Конвертируем новый AST формат в старый Slide формат для обратной совместимости
+  return ast.slides.map(slideNode => {
     const content: SlideContent[] = []
-    let currentContent: string[] = []
-    let currentType: SlideContent['type'] = 'text'
-    let codeLanguage = ''
-    let inCodeBlock = false
 
-    const flushContent = () => {
-      if (currentContent.length > 0) {
-        const text = currentContent.join('\n').trim()
-        if (text) {
-          if (currentType === 'code') {
-            content.push({
-              type: 'code',
-              content: text,
-              options: { language: codeLanguage },
-            })
-          } else if (currentType === 'bullets') {
-            content.push({
-              type: 'bullets',
-              content: text,
-            })
-          } else {
-            content.push({
-              type: 'text',
-              content: text,
-            })
-          }
-        }
-        currentContent = []
-        currentType = 'text'
-        codeLanguage = ''
+    for (const node of slideNode.children) {
+      switch (node.type) {
+        case 'paragraph':
+          content.push({
+            type: 'text',
+            content: extractTextFromASTNode(node),
+          })
+          break
+        case 'list':
+          content.push({
+            type: 'bullets',
+            content: formatListToMarkdown(node),
+          })
+          break
+        case 'code_block':
+          content.push({
+            type: 'code',
+            content: node.value,
+            options: { language: node.language },
+          })
+          break
+        case 'table':
+          content.push({
+            type: 'table',
+            content: formatTableToMarkdown(node),
+          })
+          break
+        case 'image':
+          content.push({
+            type: 'image',
+            content: node.url,
+            options: { alt: node.alt },
+          })
+          break
+        case 'heading':
+          content.push({
+            type: 'text',
+            content: `${'#'.repeat(node.level)} ${extractTextFromASTNode(node)}`,
+          })
+          break
       }
     }
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-
-      // Code block start
-      if (line.startsWith('```') && !inCodeBlock) {
-        flushContent()
-        inCodeBlock = true
-        codeLanguage = line.slice(3).trim() || 'text'
-        currentType = 'code'
-        continue
-      }
-
-      // Code block end
-      if (line.startsWith('```') && inCodeBlock) {
-        flushContent()
-        inCodeBlock = false
-        continue
-      }
-
-      // Inside code block
-      if (inCodeBlock) {
-        currentContent.push(line)
-        continue
-      }
-
-      // Title (# или ##)
-      if (line.startsWith('# ') && !title) {
-        flushContent()
-        title = line.slice(2).trim()
-        continue
-      }
-
-      if (line.startsWith('## ') && !title) {
-        flushContent()
-        title = line.slice(3).trim()
-        continue
-      }
-
-      // Bullet list
-      if (line.match(/^[-*]\s+/) || line.match(/^\d+\.\s+/)) {
-        if (currentType !== 'bullets') {
-          flushContent()
-          currentType = 'bullets'
-        }
-        currentContent.push(line)
-        continue
-      }
-
-      // Image
-      const imageMatch = line.match(/!\[(.*?)\]\((.*?)\)/)
-      if (imageMatch) {
-        flushContent()
-        content.push({
-          type: 'image',
-          content: imageMatch[2],
-          options: { alt: imageMatch[1] },
-        })
-        continue
-      }
-
-      // Regular text
-      if (currentType === 'bullets' && line.trim()) {
-        flushContent()
-      }
-
-      if (line.trim()) {
-        currentContent.push(line)
-      } else if (currentContent.length > 0) {
-        flushContent()
-      }
-    }
-
-    flushContent()
 
     return {
-      id: generateId(),
-      title: title || 'Untitled Slide',
+      id: slideNode.id,
+      title: slideNode.title || 'Untitled Slide',
       content,
-      layout: content.length === 0 ? 'title' : 'content',
+      notes: slideNode.notes,
+      layout: slideNode.layout as Slide['layout'],
     }
   })
-
-  return slides
 }
 
 /**
  * Конвертирует markdown в HTML для превью
  */
 export function markdownToHtml(markdown: string): string {
-  return marked.parse(markdown, { async: false }) as string
+  return newMarkdownToHtml(markdown)
 }
 
 /**
@@ -148,4 +90,54 @@ export function extractBulletPoints(bulletText: string): string[] {
     .split('\n')
     .map(line => line.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, '').trim())
     .filter(Boolean)
+}
+
+// Helper functions для конвертации AST в текст
+function extractTextFromASTNode(node: unknown): string {
+  if (!node || typeof node !== 'object') return ''
+
+  const n = node as { type?: string; value?: string; children?: unknown[] }
+
+  if (n.type === 'text' && n.value) return n.value
+  if (n.type === 'code_inline' && n.value) return n.value
+
+  if (n.children && Array.isArray(n.children)) {
+    return n.children.map(extractTextFromASTNode).join('')
+  }
+
+  return ''
+}
+
+function formatListToMarkdown(node: unknown): string {
+  const list = node as { ordered?: boolean; items?: unknown[] }
+  if (!list.items) return ''
+
+  return list.items
+    .map((item, index) => {
+      const listItem = item as { children?: unknown[] }
+      const text = listItem.children?.map(extractTextFromASTNode).join(' ').trim() || ''
+      const bullet = list.ordered ? `${index + 1}.` : '-'
+      return `${bullet} ${text}`
+    })
+    .join('\n')
+}
+
+function formatTableToMarkdown(node: unknown): string {
+  const table = node as { headers?: unknown[]; rows?: unknown[] }
+  if (!table.headers || !table.rows) return ''
+
+  const headerTexts = table.headers.map(extractTextFromASTNode)
+  const rowTexts = table.rows.map(row => {
+    const r = row as { cells?: unknown[] }
+    return r.cells?.map(extractTextFromASTNode) || []
+  })
+
+  const lines: string[] = []
+  lines.push(`| ${headerTexts.join(' | ')} |`)
+  lines.push(`| ${headerTexts.map(() => '---').join(' | ')} |`)
+  for (const row of rowTexts) {
+    lines.push(`| ${row.join(' | ')} |`)
+  }
+
+  return lines.join('\n')
 }
