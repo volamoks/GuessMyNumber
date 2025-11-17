@@ -10,7 +10,6 @@ import { ProjectsPage } from '@/pages/ProjectsPage'
 import PromptsPage from '@/pages/PromptsPage'
 import { TestSupabasePage } from '@/pages/TestSupabasePage'
 import { PresentationPage } from '@/pages/PresentationPage'
-import { DocumentationPage } from '@/pages/DocumentationPage'
 import { Toaster } from '@/components/ui/toaster'
 
 function App() {
@@ -31,7 +30,6 @@ function App() {
           <Route path="ai-settings" element={<Navigate to="/settings" replace />} />
           <Route path="test-supabase" element={<TestSupabasePage />} />
           <Route path="presentation" element={<PresentationPage />} />
-          <Route path="documentation" element={<DocumentationPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
