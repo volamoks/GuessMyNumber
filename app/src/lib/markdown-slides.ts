@@ -16,64 +16,115 @@ import {
  * @deprecated Используйте parseMarkdownToAST из @/lib/presentation
  */
 export function parseMarkdownToSlides(markdown: string): Slide[] {
-  const ast = parseMarkdownToAST(markdown)
+  try {
+    const ast = parseMarkdownToAST(markdown)
 
-  // Конвертируем новый AST формат в старый Slide формат для обратной совместимости
-  return ast.slides.map(slideNode => {
-    const content: SlideContent[] = []
+    if (!ast.slides || ast.slides.length === 0) {
+      // Fallback: создаём слайды напрямую из markdown
+      return fallbackParseSlides(markdown)
+    }
 
-    for (const node of slideNode.children) {
-      switch (node.type) {
-        case 'paragraph':
-          content.push({
-            type: 'text',
-            content: extractTextFromASTNode(node),
-          })
-          break
-        case 'list':
-          content.push({
-            type: 'bullets',
-            content: formatListToMarkdown(node),
-          })
-          break
-        case 'code_block':
-          content.push({
-            type: 'code',
-            content: node.value,
-            options: { language: node.language },
-          })
-          break
-        case 'table':
-          content.push({
-            type: 'table',
-            content: formatTableToMarkdown(node),
-          })
-          break
-        case 'image':
-          content.push({
-            type: 'image',
-            content: node.url,
-            options: { alt: node.alt },
-          })
-          break
-        case 'heading':
-          content.push({
-            type: 'text',
-            content: `${'#'.repeat(node.level)} ${extractTextFromASTNode(node)}`,
-          })
-          break
+    // Конвертируем новый AST формат в старый Slide формат
+    return ast.slides.map(slideNode => {
+      const content: SlideContent[] = []
+
+      for (const node of slideNode.children) {
+        switch (node.type) {
+          case 'paragraph':
+            content.push({
+              type: 'text',
+              content: extractTextFromASTNode(node),
+            })
+            break
+          case 'list':
+            content.push({
+              type: 'bullets',
+              content: formatListToMarkdown(node),
+            })
+            break
+          case 'code_block':
+            content.push({
+              type: 'code',
+              content: node.value,
+              options: { language: node.language },
+            })
+            break
+          case 'table':
+            content.push({
+              type: 'table',
+              content: formatTableToMarkdown(node),
+            })
+            break
+          case 'image':
+            content.push({
+              type: 'image',
+              content: node.url,
+              options: { alt: node.alt },
+            })
+            break
+          case 'heading':
+            content.push({
+              type: 'text',
+              content: `${'#'.repeat(node.level)} ${extractTextFromASTNode(node)}`,
+            })
+            break
+        }
+      }
+
+      return {
+        id: slideNode.id,
+        title: slideNode.title || 'Untitled Slide',
+        content,
+        notes: slideNode.notes,
+        layout: slideNode.layout as Slide['layout'],
+      }
+    })
+  } catch (error) {
+    console.error('Error parsing markdown:', error)
+    return fallbackParseSlides(markdown)
+  }
+}
+
+/**
+ * Fallback парсер - простое разбиение по ---
+ */
+function fallbackParseSlides(markdown: string): Slide[] {
+  const slideTexts = markdown.split(/\n---\n/).map(s => s.trim()).filter(Boolean)
+
+  if (slideTexts.length === 0) {
+    return [{
+      id: generateId(),
+      title: 'Untitled Slide',
+      content: [],
+      layout: 'title',
+    }]
+  }
+
+  return slideTexts.map(slideText => {
+    const lines = slideText.split('\n')
+    let title = 'Untitled Slide'
+
+    for (const line of lines) {
+      if (line.startsWith('# ')) {
+        title = line.slice(2).trim()
+        break
+      }
+      if (line.startsWith('## ')) {
+        title = line.slice(3).trim()
+        break
       }
     }
 
     return {
-      id: slideNode.id,
-      title: slideNode.title || 'Untitled Slide',
-      content,
-      notes: slideNode.notes,
-      layout: slideNode.layout as Slide['layout'],
+      id: generateId(),
+      title,
+      content: [{ type: 'text' as const, content: slideText }],
+      layout: 'content' as const,
     }
   })
 }
+
+const generateId = () => Math.random().toString(36).substring(2, 15)
 
 /**
  * Конвертирует markdown в HTML для превью
