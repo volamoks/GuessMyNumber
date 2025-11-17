@@ -20,37 +20,15 @@ export function Layout() {
   const { theme, toggleTheme } = useThemeStore()
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header - full width wrapper */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <div className="mr-4 hidden md:flex">
-            <Link to="/" className="mr-6 flex items-center space-x-2">
-              <LayoutGrid className="h-6 w-6" />
-              <span className="hidden font-bold sm:inline-block">
-                Product Tools
-              </span>
-            </Link>
-          </div>
-          <nav className="flex items-center space-x-6 text-sm font-medium flex-1">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = location.pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center space-x-2 transition-colors hover:text-foreground/80',
-                    isActive ? 'text-foreground' : 'text-foreground/60'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline-block">{item.name}</span>
-                </Link>
-              )
-            })}
-          </nav>
+        <div className="flex h-16 items-center px-6">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <LayoutGrid className="h-6 w-6" />
+            <span className="font-bold">Product Tools</span>
+          </Link>
+          <div className="flex-1" />
           <Button
             variant="ghost"
             size="icon"
@@ -62,10 +40,45 @@ export function Layout() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto py-6 px-4">
-        <Outlet />
-      </main>
+      {/* Main layout with sidebar */}
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <aside className="w-64 border-r bg-muted/30 flex-shrink-0">
+          <nav className="flex flex-col gap-1 p-4">
+            {navigation.map((item) => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.href
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </Link>
+              )
+            })}
+          </nav>
+        </aside>
+
+        {/* Main Content - full width */}
+        <main className="flex-1 p-6 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* Footer - full width wrapper */}
+      <footer className="border-t bg-muted/30">
+        <div className="flex h-12 items-center justify-center px-6 text-sm text-muted-foreground">
+          Product Tools © {new Date().getFullYear()}
+        </div>
+      </footer>
     </div>
   )
 }
