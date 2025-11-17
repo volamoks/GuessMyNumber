@@ -9,6 +9,7 @@ import { SettingsPage } from '@/pages/SettingsPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import PromptsPage from '@/pages/PromptsPage'
 import { TestSupabasePage } from '@/pages/TestSupabasePage'
+import { PresentationPage } from '@/pages/PresentationPage'
 import { Toaster } from '@/components/ui/toaster'
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="prompts" element={<PromptsPage />} />
           <Route path="ai-settings" element={<Navigate to="/settings" replace />} />
           <Route path="test-supabase" element={<TestSupabasePage />} />
+          <Route path="presentation" element={<PresentationPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
