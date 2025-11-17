@@ -54,7 +54,7 @@ export function SlidePreview({ slideIndex, className, showBorder = true }: Slide
       <div className="absolute inset-0 p-6 flex flex-col overflow-auto">
         {/* Rendered Markdown with prose styles */}
         <div
-          className="prose prose-compact prose-full"
+          className="prose prose-slide prose-full"
           style={{
             '--foreground': theme.textColor,
             '--primary': theme.primaryColor,
@@ -62,6 +62,7 @@ export function SlidePreview({ slideIndex, className, showBorder = true }: Slide
             '--muted-foreground': theme.textColor + '99',
             '--border': theme.textColor + '20',
             '--destructive': theme.primaryColor,
+            '--font-mono': theme.codeFontFamily || 'JetBrains Mono, monospace',
             color: theme.textColor,
           } as React.CSSProperties}
           dangerouslySetInnerHTML={{ __html: slideHtml }}
