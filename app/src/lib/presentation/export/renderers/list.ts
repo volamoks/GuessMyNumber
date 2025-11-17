@@ -10,8 +10,8 @@ import { inlineNodesToTextRuns, extractTextFromNodes, hexToColor } from './base'
 interface BulletTextItem {
   text: string
   options: {
-    bullet: boolean | { type?: string; indent?: number }
-    indentLevel: number
+    bullet: boolean | { type?: string; code?: string }
+    indentLevel?: number
     color?: string
     fontSize?: number
     fontFace?: string
@@ -63,9 +63,11 @@ function flattenListItems(
 
   for (let i = 0; i < list.items.length; i++) {
     const item = list.items[i]
-    const bulletType = list.ordered
-      ? { type: 'number', indent: indentLevel * context.slideStyle.bulletIndent }
-      : { indent: indentLevel * context.slideStyle.bulletIndent }
+
+    // PptxGenJS bullet format
+    const bulletConfig = list.ordered
+      ? { type: 'number' as const }
+      : true
 
     // Извлекаем текст из первого параграфа элемента списка
     const text = extractListItemText(item)
@@ -79,8 +81,8 @@ function flattenListItems(
     items.push({
       text: displayText,
       options: {
-        bullet: list.ordered ? true : bulletType,
-        indentLevel,
+        bullet: bulletConfig,
+        indentLevel: indentLevel,
         color: hexToColor(context.theme.textColor),
         fontSize: context.slideStyle.bodyFontSize,
         fontFace: context.theme.fontFamily.split(',')[0].trim(),

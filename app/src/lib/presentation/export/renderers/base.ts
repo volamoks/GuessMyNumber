@@ -13,11 +13,12 @@ export interface TextRun {
     bold?: boolean
     italic?: boolean
     strike?: boolean
-    underline?: { style: 'sng' | 'dbl' }
+    underline?: boolean // PptxGenJS uses boolean for underline in text runs
     color?: string
     fontFace?: string
     fontSize?: number
-    hyperlink?: { url: string }
+    // NOTE: hyperlink is NOT supported in text runs array
+    // Links are rendered as colored underlined text with URL in parentheses
   }
 }
 
@@ -40,23 +41,40 @@ export function inlineNodesToTextRuns(nodes: InlineNode[], theme: PresentationTh
             if (mark.type === 'bold') options.bold = true
             if (mark.type === 'italic') options.italic = true
             if (mark.type === 'strikethrough') options.strike = true
-            if (mark.type === 'underline') options.underline = { style: 'sng' }
+            if (mark.type === 'underline') options.underline = true
           }
         }
 
         runs.push({ text: textNode.value, options })
         break
       }
-      case 'link':
+      case 'link': {
+        // PptxGenJS doesn't support hyperlinks in text run arrays
+        // Render as colored underlined text with URL visible
+        const linkText = extractTextFromNodes(node.children)
+        const url = node.url
+
+        // Show link text
         runs.push({
-          text: extractTextFromNodes(node.children),
+          text: linkText,
           options: {
             color: theme.primaryColor.replace('#', ''),
-            underline: { style: 'sng' },
-            hyperlink: { url: node.url },
+            underline: true,
           },
         })
+
+        // Add URL in parentheses if different from text
+        if (url !== linkText && !linkText.includes(url)) {
+          runs.push({
+            text: ` (${url})`,
+            options: {
+              color: '9CA3AF',
+              fontSize: 14,
+            },
+          })
+        }
         break
+      }
       case 'code_inline':
         runs.push({
           text: node.value,
