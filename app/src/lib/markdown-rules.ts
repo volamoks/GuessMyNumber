@@ -405,44 +405,158 @@ async function fetchData<T>(
 `
 
 /**
- * Краткая шпаргалка для быстрого доступа
+ * Полная шпаргалка для презентаций с примерами
  */
-export const MARKDOWN_CHEATSHEET = `
-# Markdown Шпаргалка
+export const MARKDOWN_CHEATSHEET = `# Presentation Guide
 
-## Заголовки
-\`# H1\` | \`## H2\` | \`### H3\` | \`#### H4\` | \`##### H5\` | \`###### H6\`
+---
 
-## Текст
-\`**жирный**\` | \`*курсив*\` | \`~~зачёркнутый~~\` | \`\\\`код\\\`\`
+## 📝 Text Formatting
 
-## Списки
-\`- элемент\` — маркированный
-\`1. элемент\` — нумерованный
-\`- [ ] задача\` — чекбокс
+**Bold text** - используйте \`**текст**\`
+*Italic text* - используйте \`*текст*\`
+~~Strikethrough~~ - используйте \`~~текст~~\`
+Inline \`code\` - используйте \\\`код\\\`
+Combined: **_bold italic_** - используйте \`**_текст_**\`
 
-## Ссылки/Изображения
-\`[текст](url)\` — ссылка
-\`![alt](url)\` — изображение
+---
 
-## Цитаты
-\`> цитата\`
+## 📋 Списки
 
-## Код
-\\\`\\\`\\\`язык
-код
-\\\`\\\`\\\`
+**Маркированный:**
+- Item 1
+- Item 2
+  - Nested item
 
-## Таблицы
-\`| Заголовок | Заголовок |\`
-\`|-----------|-----------||\`
-\`| Ячейка    | Ячейка    |\`
+**Нумерованный:**
+1. First
+2. Second
+   1. Sub-item
 
-## Разделитель
-\`---\`
+**Task list:**
+- [x] Done
+- [ ] Todo
 
-## Дополнительно
-\`<kbd>Key</kbd>\` — клавиша
-\`<mark>выделение</mark>\` — маркер
-\`<details><summary>...</summary>...</details>\` — спойлер
+---
+
+## 📊 Таблицы
+
+| Feature | Status | Priority |
+|---------|--------|----------|
+| Auth | ✅ Done | High |
+| Dashboard | 🚧 WIP | High |
+| Analytics | 📋 Plan | Medium |
+
+**Выравнивание:**
+- \`:---\` - слева
+- \`:---:\` - центр
+- \`---:\` - справа
+
+---
+
+## 💻 Код
+
+**Inline:** используйте \\\`код\\\`
+
+**Блок кода:**
+\`\`\`javascript
+const greet = (name) => {
+  console.log(\`Hello, \${name}!\`)
+}
+\`\`\`
+
+Поддержка: js, ts, python, java, json, css, html
+
+---
+
+## 💬 Blockquotes
+
+> Important note here
+
+> **Pro tip:** Use for key takeaways
+
+**Синтаксис:** \`> текст\`
+
+---
+
+## 🔗 Ссылки
+
+[Link text](https://example.com)
+
+**Синтаксис:** \`[текст](url)\`
+
+**Примечание:** В PPTX ссылки показываются с URL в скобках
+
+---
+
+## 🎨 Разделители слайдов
+
+\`---\` - горизонтальная линия (новый слайд)
+
+Используйте между секциями для создания новых слайдов
+
+---
+
+## 📈 Charts & Layouts
+
+**Charts** (через adapters):
+- \`roadmapToChartData()\` - Bar chart
+- \`roadmapToPriorityChart()\` - Pie chart
+- \`canvasToPieChart()\` - Coverage
+
+**Custom Layouts:**
+- 3-Column Roadmap
+- 3x3 Canvas Grid
+- Two-Column
+
+**Shapes:**
+- \`renderHighlightBox()\` - Info/Warning/Success/Error
+- \`renderArrow()\` - Connectors
+- \`renderDivider()\` - Separators
+
+---
+
+## 💡 Best Practices
+
+1. **One idea per slide**
+2. **Use visuals** - tables, lists, charts
+3. **Keep it simple** - avoid text walls
+4. **Test export** - always preview PPTX
+5. **Consistent style** - stick to theme
+
+---
+
+## 🎯 Quick Tips
+
+- Use **H2** for slide titles
+- Use **lists** instead of paragraphs
+- Use **tables** for structured data
+- Use **code blocks** for syntax
+- Use **blockquotes** for highlights
+- Use **emojis** for visual appeal ✨
+
+---
+
+## 📦 Complete Example
+
+**Slide with mixed content:**
+
+## Feature Status
+
+| Feature | Q1 | Q2 |
+|---------|----|----|
+| Auth | ✅ | ✅ |
+| Dashboard | 🚧 | ✅ |
+
+**Next steps:**
+1. Complete dashboard
+2. Add analytics
+3. Launch mobile app
+
+> 🎯 **Goal:** Ship by Q3
+
+**Code sample:**
+\`\`\`typescript
+const progress = calculateProgress(features)
+\`\`\`
 `

@@ -1,11 +1,14 @@
 import { useState, useRef, useCallback } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { MarkdownEditor } from '@/components/presentation/MarkdownEditor'
 import { SlidePreview } from '@/components/presentation/SlidePreview'
 import { PresentationControls } from '@/components/presentation/PresentationControls'
 import { SlideThumbnails } from '@/components/presentation/SlideThumbnails'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BookOpen, X, GripVertical } from 'lucide-react'
+import { BookOpen, X, GripVertical, Copy } from 'lucide-react'
+import { MARKDOWN_CHEATSHEET } from '@/lib/markdown-rules'
+import { toast } from 'sonner'
 
 export function PresentationPage() {
   const [showCheatsheet, setShowCheatsheet] = useState(false)
@@ -80,39 +83,36 @@ export function PresentationPage() {
 
       {/* Cheatsheet Panel */}
       {showCheatsheet && (
-        <Card className="mx-4 mt-2 p-3 bg-muted/50 relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-1 right-1 h-6 w-6"
-            onClick={() => setShowCheatsheet(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <h4 className="font-semibold text-xs mb-1">Основы</h4>
-              <pre className="text-[10px] font-mono bg-background p-2 rounded whitespace-pre-wrap">
-{`# H1 | ## H2 | ### H3
-**жирный** | *курсив* | \`код\`
-- список | 1. нумер | - [ ] задача
-> цитата | [ссылка](url)
---- (разделить слайды)`}
-              </pre>
-            </div>
-            <div>
-              <h4 className="font-semibold text-xs mb-1">Таблицы и код</h4>
-              <pre className="text-[10px] font-mono bg-background p-2 rounded whitespace-pre-wrap">
-{`| Заголовок | Заголовок |
-|-----------|-----------|
-| Ячейка    | Ячейка    |
-
-\`\`\`js
-код
-\`\`\``}
-              </pre>
+        <Card className="mx-4 mt-2 p-4 bg-muted/50 relative max-h-[400px] overflow-y-auto">
+          <div className="flex items-center justify-between mb-3 sticky top-0 bg-muted/50 pb-2">
+            <h3 className="font-semibold text-sm">📖 Markdown Шпаргалка для Презентаций</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(MARKDOWN_CHEATSHEET)
+                  toast.success('Скопировано в буфер обмена!')
+                }}
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                <span className="text-xs">Копировать всё</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setShowCheatsheet(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </div>
+
+          {/* Markdown Preview with prose styling */}
+          <article className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown>{MARKDOWN_CHEATSHEET}</ReactMarkdown>
+          </article>
         </Card>
       )}
 
