@@ -31,6 +31,28 @@
 
 ✅ **Blockquotes** - Rendered as styled shape with left border
 
+✅ **Charts** - Full support for data visualization
+- Bar charts (`type: 'bar'`)
+- Pie charts (`type: 'pie'`)
+- Line charts (`type: 'line'`)
+- Area charts (`type: 'area'`)
+- Doughnut charts (`type: 'doughnut'`)
+- Custom colors and styling
+
+✅ **Custom Layouts** - Master slide layouts
+- Roadmap 3-column layout
+- Canvas 3x3 grid layout
+- Two-column layout
+- Title-only layout
+- Content with sidebar layout
+
+✅ **Shapes** - Decorative and structural elements
+- Rectangles, rounded rectangles
+- Arrows and connectors
+- Highlight boxes (info, warning, success, error)
+- Dividers and lines
+- Shadows and styling
+
 ## What is NOT Supported (Limitations)
 
 ❌ **Clickable Hyperlinks in Text Arrays**
@@ -104,3 +126,51 @@
 - All measurements in INCHES
 - Default slide: 10" x 5.625" (16:9)
 - Font sizes in POINTS
+
+## Enhanced Features
+
+### Using Charts
+```typescript
+import { roadmapToChartData, roadmapToPriorityChart } from '@/lib/presentation/adapters/roadmap-enhanced'
+import { canvasToPieChart, canvasToMetricsChart } from '@/lib/presentation/adapters/business-canvas-enhanced'
+
+// Generate chart from Roadmap data
+const chartData = roadmapToChartData(roadmapData)
+const priorityChart = roadmapToPriorityChart(roadmapData)
+
+// Generate chart from Canvas data
+const coverageChart = canvasToPieChart(canvasData)
+const metricsChart = canvasToMetricsChart(canvasData)
+```
+
+### Using Custom Layouts
+```typescript
+import { defineCustomLayouts, getRoadmapColumnPositions, getCanvasGridPositions } from '@/lib/presentation/export/layouts'
+
+// Define custom master slides
+defineCustomLayouts(pptx, theme)
+
+// Use roadmap 3-column layout
+const columns = getRoadmapColumnPositions()
+// columns[0] = { x: 0.5, y: 1.5, w: 2.8, h: 3.5 } // NOW column
+// columns[1] = { x: 3.4, y: 1.5, w: 2.8, h: 3.5 } // NEXT column
+// columns[2] = { x: 6.8, y: 1.5, w: 2.8, h: 3.5 } // LATER column
+
+// Use canvas 3x3 grid
+const grid = getCanvasGridPositions()
+// grid[0][0] = top-left cell, grid[0][1] = top-center, etc.
+```
+
+### Using Shapes
+```typescript
+import { renderHighlightBox, renderArrow, renderDivider } from '@/lib/presentation/export/renderers/shape'
+
+// Add colored highlight box
+renderHighlightBox(slide, context, width, height, 'info')  // or 'warning', 'success', 'error'
+
+// Add arrow between elements
+renderArrow(slide, context, fromX, fromY, toX, toY, color)
+
+// Add section divider
+renderDivider(slide, context, width)
+```
