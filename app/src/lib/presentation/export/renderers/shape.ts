@@ -12,7 +12,7 @@ export interface ShapeConfig {
   line?: {
     color: string
     width: number
-    dashType?: 'solid' | 'dash' | 'dot'
+    dashType?: 'solid' | 'dash' | 'sysDot'
   }
   shadow?: boolean
 }

@@ -3,7 +3,7 @@
  */
 
 import PptxGenJS from 'pptxgenjs'
-import type { PresentationAST, SlideNode, BlockNode } from '../types/ast'
+import type { PresentationAST, BlockNode } from '../types/ast'
 import type { ExportOptions, RenderContext, ExportResult } from '../types/export'
 import { DEFAULT_SLIDE_STYLE } from '../types/theme'
 import { parseMarkdownToAST } from '../parser'

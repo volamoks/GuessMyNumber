@@ -7,20 +7,7 @@ import type { InlineNode, TextNode } from '../../types/ast'
 import type { RenderContext, ElementPosition } from '../../types/export'
 import type { PresentationTheme } from '../../types/theme'
 
-export interface TextRun {
-  text: string
-  options?: {
-    bold?: boolean
-    italic?: boolean
-    strike?: boolean
-    underline?: boolean // PptxGenJS uses boolean for underline in text runs
-    color?: string
-    fontFace?: string
-    fontSize?: number
-    // NOTE: hyperlink is NOT supported in text runs array
-    // Links are rendered as colored underlined text with URL in parentheses
-  }
-}
+export type TextRun = PptxGenJS.TextProps
 
 /**
  * Конвертирует inline nodes в массив TextRun для PptxGenJS
@@ -41,7 +28,7 @@ export function inlineNodesToTextRuns(nodes: InlineNode[], theme: PresentationTh
             if (mark.type === 'bold') options.bold = true
             if (mark.type === 'italic') options.italic = true
             if (mark.type === 'strikethrough') options.strike = true
-            if (mark.type === 'underline') options.underline = true
+            if (mark.type === 'underline') options.underline = { style: 'sng' }
           }
         }
 
@@ -59,7 +46,7 @@ export function inlineNodesToTextRuns(nodes: InlineNode[], theme: PresentationTh
           text: linkText,
           options: {
             color: theme.primaryColor.replace('#', ''),
-            underline: true,
+            underline: { style: 'sng' },
           },
         })
 

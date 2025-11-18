@@ -6,11 +6,12 @@
  */
 
 // Re-export типов из нового модульного API
-export {
-  DEFAULT_THEMES,
-  type PresentationTheme,
-  type SlideNode,
-} from './presentation/types/theme'
+export { DEFAULT_THEMES } from './presentation/types/theme'
+export type { PresentationTheme } from './presentation/types/theme'
+export type { SlideNode } from './presentation/types/ast'
+
+// Import for local use
+import type { PresentationTheme } from './presentation/types/theme'
 
 // Старые типы для обратной совместимости
 export interface SlideContent {

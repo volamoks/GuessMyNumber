@@ -3,20 +3,9 @@
  */
 
 import type PptxGenJS from 'pptxgenjs'
-import type { ListNode, ListItemNode, BlockNode, ParagraphNode } from '../../types/ast'
+import type { ListNode, ListItemNode, ParagraphNode } from '../../types/ast'
 import type { RenderContext, RenderResult } from '../../types/export'
-import { inlineNodesToTextRuns, extractTextFromNodes, hexToColor } from './base'
-
-interface BulletTextItem {
-  text: string
-  options: {
-    bullet: boolean | { type?: string; code?: string }
-    indentLevel?: number
-    color?: string
-    fontSize?: number
-    fontFace?: string
-  }
-}
+import { extractTextFromNodes, hexToColor } from './base'
 
 /**
  * Рендерит список (ordered или unordered)
@@ -58,15 +47,15 @@ function flattenListItems(
   list: ListNode,
   context: RenderContext,
   indentLevel: number
-): BulletTextItem[] {
-  const items: BulletTextItem[] = []
+): PptxGenJS.TextProps[] {
+  const items: PptxGenJS.TextProps[] = []
 
   for (let i = 0; i < list.items.length; i++) {
     const item = list.items[i]
 
     // PptxGenJS bullet format
-    const bulletConfig = list.ordered
-      ? { type: 'number' as const }
+    const bulletConfig: PptxGenJS.TextPropsOptions['bullet'] = list.ordered
+      ? { type: 'number' }
       : true
 
     // Извлекаем текст из первого параграфа элемента списка

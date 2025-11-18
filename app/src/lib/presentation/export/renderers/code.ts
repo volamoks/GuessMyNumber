@@ -5,7 +5,6 @@
 import type PptxGenJS from 'pptxgenjs'
 import type { CodeBlockNode } from '../../types/ast'
 import type { RenderContext, RenderResult } from '../../types/export'
-import { hexToColor, calculateTextHeight } from './base'
 
 /**
  * Рендерит блок кода
@@ -64,7 +63,7 @@ export function renderCodeBlock(
 /**
  * Рендерит inline код в тексте
  */
-export function renderInlineCode(text: string, theme: { codeFontFamily: string }): string {
+export function renderInlineCode(text: string): string {
   // Для inline кода просто возвращаем текст с маркерами
   // Настоящее форматирование происходит в TextRuns
   return text
