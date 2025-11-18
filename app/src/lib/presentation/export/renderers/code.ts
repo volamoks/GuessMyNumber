@@ -50,7 +50,7 @@ export function renderCodeBlock(
       y: context.currentY + 0.05,
       w: 0.95,
       h: 0.25,
-      fontSize: 9,
+      fontSize: 7, // Уменьшено с 9 на 25%
       color: '94A3B8',
       align: 'right',
       valign: 'top',

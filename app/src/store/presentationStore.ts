@@ -2,6 +2,21 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Presentation, PresentationTheme, Slide } from '@/lib/presentation-types'
 import { DEFAULT_THEMES, SAMPLE_MARKDOWN } from '@/lib/presentation-types'
+import type { SlideStyle } from '@/lib/presentation/types/theme'
+import { DEFAULT_SLIDE_STYLE } from '@/lib/presentation/types/theme'
+import type { LogoSettings } from '@/lib/presentation/types/export'
+
+interface PresentationSettings {
+  // Fonts
+  slideStyle: SlideStyle
+
+  // Logo
+  logo: LogoSettings
+
+  // Background
+  backgroundImage?: string
+  backgroundOpacity: number // 0-100
+}
 
 interface PresentationStore {
   // Current presentation
@@ -12,6 +27,9 @@ interface PresentationStore {
 
   // Theme
   theme: PresentationTheme
+
+  // Settings
+  settings: PresentationSettings
 
   // UI state
   isEditing: boolean
@@ -29,6 +47,9 @@ interface PresentationStore {
   nextSlide: () => void
   prevSlide: () => void
   setTheme: (theme: PresentationTheme) => void
+  setSettings: (settings: Partial<PresentationSettings>) => void
+  updateSlideStyle: (style: Partial<SlideStyle>) => void
+  updateLogo: (logo: Partial<LogoSettings>) => void
   setIsEditing: (isEditing: boolean) => void
   setIsFullscreen: (isFullscreen: boolean) => void
   setIsExporting: (isExporting: boolean) => void
@@ -51,6 +72,17 @@ const initialState = {
   slides: [],
   currentSlideIndex: 0,
   theme: DEFAULT_THEMES[0],
+  settings: {
+    slideStyle: DEFAULT_SLIDE_STYLE,
+    logo: {
+      enabled: false,
+      url: '',
+      position: 'bottom-right' as const,
+      size: 1.0,
+      opacity: 100,
+    },
+    backgroundOpacity: 100,
+  },
   isEditing: true,
   isFullscreen: false,
   isExporting: false,
@@ -82,6 +114,28 @@ export const usePresentationStore = create<PresentationStore>()(
       },
 
       setTheme: (theme: PresentationTheme) => set({ theme }),
+
+      setSettings: (newSettings: Partial<PresentationSettings>) =>
+        set((state) => ({
+          settings: { ...state.settings, ...newSettings },
+        })),
+
+      updateSlideStyle: (style: Partial<SlideStyle>) =>
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            slideStyle: { ...state.settings.slideStyle, ...style },
+          },
+        })),
+
+      updateLogo: (logo: Partial<LogoSettings>) =>
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            logo: { ...state.settings.logo, ...logo },
+          },
+        })),
+
       setIsEditing: (isEditing: boolean) => set({ isEditing }),
       setIsFullscreen: (isFullscreen: boolean) => set({ isFullscreen }),
       setIsExporting: (isExporting: boolean) => set({ isExporting }),
@@ -161,6 +215,7 @@ export const usePresentationStore = create<PresentationStore>()(
       partialize: (state) => ({
         savedPresentations: state.savedPresentations,
         theme: state.theme,
+        settings: state.settings,
         markdown: state.markdown,
       }),
     }

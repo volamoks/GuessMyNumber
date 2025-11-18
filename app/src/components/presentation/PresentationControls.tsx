@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 
 export function PresentationControls() {
   const store = usePresentationStore()
-  const { slides, currentSlideIndex, theme, isExporting, currentPresentation } = store
+  const { slides, currentSlideIndex, theme, isExporting, currentPresentation, markdown, settings } = store
 
   const handleExport = async () => {
     if (slides.length === 0) {
@@ -22,7 +22,11 @@ export function PresentationControls() {
         title: currentPresentation?.title || 'Presentation',
         author: currentPresentation?.author,
         theme,
-      })
+        slideStyle: settings.slideStyle,
+        logo: settings.logo,
+        backgroundImage: settings.backgroundImage,
+        backgroundOpacity: settings.backgroundOpacity,
+      }, markdown)
       toast.success('Presentation exported successfully!')
     } catch (err) {
       console.error('Export failed:', err)

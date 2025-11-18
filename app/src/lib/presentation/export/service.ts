@@ -74,6 +74,24 @@ export async function exportASTToPptx(
       const slideNode = ast.slides[slideIndex]
       const pptxSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' })
 
+      // Добавляем фоновое изображение если указано
+      if (options.backgroundImage) {
+        try {
+          const opacity = (options.backgroundOpacity || 100) / 100
+          pptxSlide.addImage({
+            data: options.backgroundImage,
+            x: 0,
+            y: 0,
+            w: slideWidth,
+            h: slideHeight,
+            sizing: { type: 'cover', w: slideWidth, h: slideHeight },
+            transparency: Math.round((1 - opacity) * 100),
+          })
+        } catch (error) {
+          console.warn('Failed to add background image:', error)
+        }
+      }
+
       // Создаём контекст рендеринга
       const context: RenderContext = {
         theme: options.theme,
@@ -103,6 +121,50 @@ export async function exportASTToPptx(
       for (const node of slideNode.children) {
         const result = renderBlockNode(pptxSlide, node, context)
         context.currentY += result.height
+      }
+
+      // Добавляем логотип если указан
+      if (options.logo?.enabled && options.logo.url) {
+        try {
+          const logoSize = options.logo.size
+          const margin = 0.2 // отступ от края в дюймах
+
+          let logoX = margin
+          let logoY = margin
+
+          switch (options.logo.position) {
+            case 'top-left':
+              logoX = margin
+              logoY = margin
+              break
+            case 'top-right':
+              logoX = slideWidth - logoSize - margin
+              logoY = margin
+              break
+            case 'bottom-left':
+              logoX = margin
+              logoY = slideHeight - logoSize - margin
+              break
+            case 'bottom-right':
+              logoX = slideWidth - logoSize - margin
+              logoY = slideHeight - logoSize - margin
+              break
+          }
+
+          const opacity = (options.logo.opacity || 100) / 100
+
+          pptxSlide.addImage({
+            data: options.logo.url,
+            x: logoX,
+            y: logoY,
+            w: logoSize,
+            h: logoSize,
+            sizing: { type: 'contain', w: logoSize, h: logoSize },
+            transparency: Math.round((1 - opacity) * 100),
+          })
+        } catch (error) {
+          console.warn('Failed to add logo:', error)
+        }
       }
 
       // Добавляем номер слайда
@@ -164,6 +226,24 @@ export async function exportASTToBlob(
   for (const slideNode of ast.slides) {
     const pptxSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' })
 
+    // Добавляем фоновое изображение если указано
+    if (options.backgroundImage) {
+      try {
+        const opacity = (options.backgroundOpacity || 100) / 100
+        pptxSlide.addImage({
+          data: options.backgroundImage,
+          x: 0,
+          y: 0,
+          w: slideWidth,
+          h: slideHeight,
+          sizing: { type: 'cover', w: slideWidth, h: slideHeight },
+          transparency: Math.round((1 - opacity) * 100),
+        })
+      } catch (error) {
+        console.warn('Failed to add background image:', error)
+      }
+    }
+
     const context: RenderContext = {
       theme: options.theme,
       slideStyle,
@@ -189,6 +269,50 @@ export async function exportASTToBlob(
     for (const node of slideNode.children) {
       const result = renderBlockNode(pptxSlide, node, context)
       context.currentY += result.height
+    }
+
+    // Добавляем логотип если указан
+    if (options.logo?.enabled && options.logo.url) {
+      try {
+        const logoSize = options.logo.size
+        const margin = 0.2
+
+        let logoX = margin
+        let logoY = margin
+
+        switch (options.logo.position) {
+          case 'top-left':
+            logoX = margin
+            logoY = margin
+            break
+          case 'top-right':
+            logoX = slideWidth - logoSize - margin
+            logoY = margin
+            break
+          case 'bottom-left':
+            logoX = margin
+            logoY = slideHeight - logoSize - margin
+            break
+          case 'bottom-right':
+            logoX = slideWidth - logoSize - margin
+            logoY = slideHeight - logoSize - margin
+            break
+        }
+
+        const opacity = (options.logo.opacity || 100) / 100
+
+        pptxSlide.addImage({
+          data: options.logo.url,
+          x: logoX,
+          y: logoY,
+          w: logoSize,
+          h: logoSize,
+          sizing: { type: 'contain', w: logoSize, h: logoSize },
+          transparency: Math.round((1 - opacity) * 100),
+        })
+      } catch (error) {
+        console.warn('Failed to add logo:', error)
+      }
     }
   }
 

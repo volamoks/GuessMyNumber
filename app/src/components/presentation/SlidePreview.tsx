@@ -11,7 +11,7 @@ interface SlidePreviewProps {
 }
 
 export function SlidePreview({ slideIndex, className, showBorder = true, isThumbnail = false }: SlidePreviewProps) {
-  const { slides, currentSlideIndex, theme, markdown } = usePresentationStore()
+  const { slides, currentSlideIndex, theme, markdown, settings } = usePresentationStore()
   const index = slideIndex ?? currentSlideIndex
   const slide = slides[index]
 
@@ -39,6 +39,22 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
     )
   }
 
+  const getLogoPosition = () => {
+    const size = settings.logo.size * 72 // convert inches to px (72 DPI)
+    const margin = 16
+
+    switch (settings.logo.position) {
+      case 'top-left':
+        return { top: margin, left: margin, width: size, height: size }
+      case 'top-right':
+        return { top: margin, right: margin, width: size, height: size }
+      case 'bottom-left':
+        return { bottom: margin, left: margin, width: size, height: size }
+      case 'bottom-right':
+        return { bottom: margin, right: margin, width: size, height: size }
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -52,6 +68,17 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
         fontFamily: theme.fontFamily,
       }}
     >
+      {/* Background Image */}
+      {settings.backgroundImage && (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${settings.backgroundImage})`,
+            opacity: settings.backgroundOpacity / 100,
+          }}
+        />
+      )}
+
       <div className={cn(
         "absolute inset-0 flex flex-col overflow-auto",
         isThumbnail ? "p-2" : "p-6"
@@ -75,9 +102,23 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
             '--card': theme.backgroundColor,
             '--ring': theme.secondaryColor,
             color: theme.textColor,
+            fontSize: `${settings.slideStyle.bodyFontSize * (isThumbnail ? 0.5 : 1)}px`,
           } as React.CSSProperties}
           dangerouslySetInnerHTML={{ __html: slideHtml }}
         />
+
+        {/* Logo */}
+        {settings.logo.enabled && settings.logo.url && !isThumbnail && (
+          <img
+            src={settings.logo.url}
+            alt="Logo"
+            className="absolute object-contain"
+            style={{
+              ...getLogoPosition(),
+              opacity: settings.logo.opacity / 100,
+            }}
+          />
+        )}
 
         {/* Slide number */}
         {!isThumbnail && (

@@ -6,9 +6,10 @@
  */
 
 import type { Slide, PresentationTheme } from './presentation-types'
+import type { ExportOptions as FullExportOptions } from './presentation/types/export'
 import { exportMarkdownToPptx, exportASTToBlob } from './presentation'
 
-interface ExportOptions {
+interface ExportOptions extends Partial<FullExportOptions> {
   title: string
   author?: string
   theme: PresentationTheme

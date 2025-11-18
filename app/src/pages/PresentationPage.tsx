@@ -4,14 +4,16 @@ import { MarkdownEditor } from '@/components/presentation/MarkdownEditor'
 import { SlidePreview } from '@/components/presentation/SlidePreview'
 import { PresentationControls } from '@/components/presentation/PresentationControls'
 import { SlideThumbnails } from '@/components/presentation/SlideThumbnails'
+import { PresentationSettings } from '@/components/presentation/PresentationSettings'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BookOpen, X, GripVertical, Copy } from 'lucide-react'
+import { BookOpen, X, GripVertical, Copy, Settings } from 'lucide-react'
 import { MARKDOWN_CHEATSHEET } from '@/lib/markdown-rules'
 import { toast } from 'sonner'
 
 export function PresentationPage() {
   const [showCheatsheet, setShowCheatsheet] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [thumbnailsWidth, setThumbnailsWidth] = useState(180)
   const [editorWidth, setEditorWidth] = useState(50) // percentage of remaining space
   const containerRef = useRef<HTMLDivElement>(null)
@@ -71,15 +73,43 @@ export function PresentationPage() {
             Markdown to PPTX
           </p>
         </div>
-        <Button
-          variant={showCheatsheet ? 'secondary' : 'outline'}
-          size="sm"
-          onClick={() => setShowCheatsheet(!showCheatsheet)}
-        >
-          <BookOpen className="h-4 w-4 mr-2" />
-          Шпаргалка
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant={showSettings ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Настройки
+          </Button>
+          <Button
+            variant={showCheatsheet ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setShowCheatsheet(!showCheatsheet)}
+          >
+            <BookOpen className="h-4 w-4 mr-2" />
+            Шпаргалка
+          </Button>
+        </div>
       </header>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <Card className="mx-4 mt-2 p-4 bg-muted/50 relative max-h-[600px] overflow-y-auto">
+          <div className="flex items-center justify-between mb-3 sticky top-0 bg-muted/50 pb-2">
+            <h3 className="font-semibold text-sm">⚙️ Настройки презентации</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setShowSettings(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <PresentationSettings />
+        </Card>
+      )}
 
       {/* Cheatsheet Panel */}
       {showCheatsheet && (

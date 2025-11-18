@@ -56,7 +56,7 @@ export function inlineNodesToTextRuns(nodes: InlineNode[], theme: PresentationTh
             text: ` (${url})`,
             options: {
               color: '9CA3AF',
-              fontSize: 14,
+              fontSize: 11, // Уменьшено с 14 на 25%
             },
           })
         }

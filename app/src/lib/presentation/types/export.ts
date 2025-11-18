@@ -4,6 +4,14 @@
 
 import type { PresentationTheme, SlideStyle } from './theme'
 
+export interface LogoSettings {
+  enabled: boolean
+  url: string
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  size: number // width in inches
+  opacity: number // 0-100
+}
+
 export interface ExportOptions {
   title: string
   author?: string
@@ -18,6 +26,11 @@ export interface ExportOptions {
   includeSlideNumbers?: boolean
   includeDate?: boolean
   includePageBreaks?: boolean
+
+  // Настройки логотипа и фона
+  logo?: LogoSettings
+  backgroundImage?: string
+  backgroundOpacity?: number // 0-100
 }
 
 export type SlideSize = 'LAYOUT_16x9' | 'LAYOUT_16x10' | 'LAYOUT_4x3' | 'LAYOUT_WIDE'
