@@ -497,22 +497,26 @@ const greet = (name) => {
 
 ---
 
-## 📈 Charts & Layouts
+## 📈 Charts & Layouts (API)
 
-**Charts** (через adapters):
-- \`roadmapToChartData()\` - Bar chart
-- \`roadmapToPriorityChart()\` - Pie chart
-- \`canvasToPieChart()\` - Coverage
+⚠️ **Примечание:** Это TypeScript API, не markdown элементы!
 
-**Custom Layouts:**
-- 3-Column Roadmap
-- 3x3 Canvas Grid
-- Two-Column
+**Charts** - программное добавление графиков:
+- \`roadmapToChartData(data)\` → Bar chart
+- \`roadmapToPriorityChart(data)\` → Pie chart
+- \`canvasToPieChart(data)\` → Coverage chart
 
-**Shapes:**
-- \`renderHighlightBox()\` - Info/Warning/Success/Error
-- \`renderArrow()\` - Connectors
-- \`renderDivider()\` - Separators
+**Custom Layouts** - специальные макеты:
+- \`getRoadmapColumnPositions()\` → 3 колонки (NOW/NEXT/LATER)
+- \`getCanvasGridPositions()\` → 3x3 сетка (Business Canvas)
+- \`getTwoColumnPositions()\` → 2 колонки
+
+**Shapes** - фигуры и декор:
+- \`renderHighlightBox()\` → Info/Warning/Success/Error boxes
+- \`renderArrow()\` → Стрелки между элементами
+- \`renderDivider()\` → Разделители секций
+
+📚 Смотри \`EXAMPLES.md\` и \`QUICKSTART.md\` для кода
 
 ---
 
