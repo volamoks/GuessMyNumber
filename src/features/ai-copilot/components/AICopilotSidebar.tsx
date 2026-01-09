@@ -12,7 +12,7 @@ import { MARKDOWN_CHEATSHEET } from '@/features/presentation/utils/markdown-rule
 import { toast } from 'sonner'
 
 interface AICopilotSidebarProps {
-    contextType: 'cjm' | 'presentation' | 'roadmap' | 'business_canvas' | 'lean_canvas' | 'general'
+    contextType: 'cjm' | 'presentation' | 'roadmap' | 'business_canvas' | 'lean_canvas' | 'general' | 'transcription'
     contextData?: any
 }
 
@@ -65,7 +65,18 @@ export function AICopilotSidebar({ contextType, contextData }: AICopilotSidebarP
             let prompt = `Context: ${contextType}\n`
 
             if (contextData) {
-                prompt += `Current Data: ${JSON.stringify(contextData, null, 2)}\n\n`
+                if (contextType === 'transcription') {
+                    // optimized format for transcription
+                    const t = contextData
+                    prompt += `Meeting Title: ${t.fileName}\n`
+                    prompt += `Summary: ${t.summary?.summary || 'No summary'}\n`
+                    prompt += `Key Points: ${t.summary?.keyPoints?.join('; ') || 'None'}\n`
+                    // Limit text to avoid token limits (approx 50k chars)
+                    const text = t.transcription?.text || ''
+                    prompt += `Transcription Text:\n${text.substring(0, 50000)}\n\n`
+                } else {
+                    prompt += `Current Data: ${JSON.stringify(contextData, null, 2)}\n\n`
+                }
             }
 
             if (references.length > 0) {

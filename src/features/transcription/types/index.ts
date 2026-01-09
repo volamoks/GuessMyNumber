@@ -92,3 +92,12 @@ export interface WhisperConfig {
     model?: string
     language?: string
 }
+
+export interface SavedTranscription {
+    id: string
+    fileName: string
+    fileSize: number
+    createdAt: string
+    transcription: TranscriptionResult
+    summary?: TranscriptionSummary
+}

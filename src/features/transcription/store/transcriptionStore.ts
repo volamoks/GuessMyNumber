@@ -6,16 +6,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
-import type { TranscriptionResult, TranscriptionSummary } from '../types'
-
-export interface SavedTranscription {
-    id: string
-    fileName: string
-    fileSize: number
-    createdAt: string
-    transcription: TranscriptionResult
-    summary?: TranscriptionSummary
-}
+import type { TranscriptionResult, TranscriptionSummary, SavedTranscription } from '../types'
 
 interface TranscriptionStore {
     // Saved transcriptions history
