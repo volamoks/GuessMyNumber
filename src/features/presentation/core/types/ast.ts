@@ -132,6 +132,8 @@ export type BlockNode =
   | ImageNode
   | CanvasNode
   | RoadmapNode
+  | MermaidNode
+
 
 // Слайд
 export interface SlideNode {
@@ -168,6 +170,11 @@ export interface RoadmapNode extends ASTNode {
   data: any // Typed data from schemas
 }
 
+export interface MermaidNode extends ASTNode {
+  type: 'mermaid'
+  value: string
+}
+
 // Утилиты для работы с AST
 export function isBlockNode(node: ASTNode): node is BlockNode {
   return [
@@ -180,6 +187,7 @@ export function isBlockNode(node: ASTNode): node is BlockNode {
     'thematic_break',
     'html_block',
     'image',
+    'mermaid',
   ].includes(node.type)
 }
 

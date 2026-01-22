@@ -391,6 +391,12 @@ async function fetchData<T>(
 
 ### Архитектура
 
+\`\`\`mermaid
+flowchart TD
+    UI[React] --> API[Backend]
+    API --> DB[(Database)]
+\`\`\`
+
 Проект использует:
 - **React 19** — UI библиотека
 - **TypeScript** — типизация
@@ -498,6 +504,23 @@ const greet = (name) => {
 ---
 
 ## 📊 Charts & Diagrams
+ 
+**Diagrams (Mermaid):**
+\`\`\`mermaid
+graph TD
+    A[Start] --> B{Is it?}
+    B -- Yes --> C[OK]
+    C --> D[Rethink]
+    D --> B
+    B -- No --> E[End]
+\`\`\`
+
+\`\`\`mermaid
+sequenceDiagram
+    Alice->>John: Hello John, how are you?
+    John-->>Alice: Great!
+    Alice-)John: See you later!
+\`\`\`
 
 **Roadmap:**
 \`\`\`roadmap

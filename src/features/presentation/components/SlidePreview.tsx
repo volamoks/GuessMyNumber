@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { usePresentationStore } from '@/store'
 import { markdownToHtml } from '@/features/presentation/utils/markdown-slides'
+import { MermaidRenderer } from './MermaidRenderer'
 import { cn } from '@/lib/utils'
 
 interface SlidePreviewProps {
@@ -155,6 +156,9 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
           } as React.CSSProperties}
           dangerouslySetInnerHTML={{ __html: slideHtml }}
         />
+
+        {/* Mermaid Renderer */}
+        <MermaidRenderer content={slideHtml} />
 
         {/* Logo */}
         {settings.logo.enabled && settings.logo.url && !isThumbnail && (

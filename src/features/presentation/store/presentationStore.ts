@@ -91,7 +91,29 @@ export const usePresentationStore = create<PresentationStore>()(
     (set, get) => ({
       ...initialState,
 
-      setMarkdown: (markdown: string) => set({ markdown }),
+      setMarkdown: (markdown: string) => {
+        set({ markdown })
+
+        // Auto-update title from first H1 header
+        const match = markdown.match(/^#\s+(.+)$/m)
+        if (match && match[1]) {
+          const newTitle = match[1].trim()
+          const { currentPresentation } = get()
+
+          // Only update if we have a presentation context and title changed
+          // If no currentPresentation, we don't track title yet (until saved/created)
+          if (currentPresentation && currentPresentation.title !== newTitle) {
+            set({
+              currentPresentation: {
+                ...currentPresentation,
+                title: newTitle,
+                // We update updatedAt only on explicit save usually, but keeping it in sync is fine
+                // updatedAt: new Date() 
+              }
+            })
+          }
+        }
+      },
       setSlides: (slides: Slide[]) => set({ slides }),
       setCurrentSlideIndex: (index: number) => set({ currentSlideIndex: index }),
 

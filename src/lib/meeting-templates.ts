@@ -15,20 +15,31 @@ export const MEETING_TEMPLATES: MeetingTemplate[] = [
         
 Context: ${context}
 
+IMPORTANT INSTRUCTIONS:
+1. **Language**: Automatically detect the primary language of the transcript. Write your response in that SAME language.
+   - Note: The audio may contain a mix of languages (e.g., Russian and Uzbek). Treat them as a single context.
+   - If the content is mixed Russian/Uzbek, use Russian for the report structure.
+2. **Participants**: Do NOT HALLUCINATE or invent names. If participants are not explicitly named in the text, do not list them or use generic terms like "Speaker".
+3. **Detail Level**: MAXIMAL. Mimic the "Plaud Note" style.
+   - "Executive Summary" must be a deep dive (3-5 paragraphs), not just a blurb.
+   - "Key Discussion Points" must include context, nuance, and specific quotes/examples from the text.
+   - Do not summarize too briefly. Capture the full substance of the conversation.
+
 Structure the "summary" field exactly as follows in Markdown:
 # [Meeting Title]
 **Date:** [YYYY-MM-DD]
-**Participants:** [Names]
+**Participants:** [Names or "Not mentioned"]
 
 ## Executive Summary
-[Detailed summary, 3-4 paragraphs]
+[Comprehensive overview of the entire meeting. Include context, main problems discussed, and outcomes. Minimum 200 words.]
 
-## Key Discussion Points
-* [Point 1]
-* [Point 2]
+## Detailed Key Points
+* **[Topic/Point 1]**: [Detailed explanation of what was discussed, arguments made, and by whom (if known). Include specific details.]
+* **[Topic/Point 2]**: [Detailed explanation...]
 
-## Decisions Made
-* [Decision 1]
+## Action Items & Decisions
+* [Action/Decision 1]
+* [Action/Decision 2]
 
 Return JSON with fields: summary, keyPoints, mindmap, actionItems.`
     },
@@ -39,6 +50,11 @@ Return JSON with fields: summary, keyPoints, mindmap, actionItems.`
         systemPrompt: (context) => `You are an expert Agile assistant. Analyze this Daily Scrum/Standup.
         
 Context: ${context}
+
+IMPORTANT:
+1. **Language**: Auto-detect. Write response in that language (use Russian for mixed Russian/Uzbek).
+2. **Participants**: No hallucinations. Only named speakers.
+3. **Detail**: High. Capture specific blockers and tasks.
 
 Structure the "summary" field exactly as follows in Markdown:
 # Daily Scrum Report
@@ -64,6 +80,11 @@ Return JSON with fields: summary, keyPoints (list of blockers/risks), mindmap (t
         systemPrompt: (context) => `You are an expert HR/User Researcher. Analyze this interview.
         
 Context: ${context}
+
+IMPORTANT:
+1. **Language**: Auto-detect. Write response in that language.
+2. **Detail**: High. Capture specific quotes and candidate signals.
+3. **Participants**: No hallucinations.
 
 Structure the "summary" field exactly as follows in Markdown:
 # Interview Report: [Candidate/User Name]
@@ -95,6 +116,10 @@ Return JSON with fields: summary, keyPoints (strengths/weaknesses), mindmap (top
         systemPrompt: (context) => `You are an expert Educational Assistant. Analyze this lecture/workshop.
         
 Context: ${context}
+
+IMPORTANT:
+1. **Language**: Auto-detect. Write response in that language.
+2. **Detail**: High. Define concepts clearly.
 
 Structure the "summary" field exactly as follows in Markdown:
 # Lecture Notes: [Topic]

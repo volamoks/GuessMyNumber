@@ -62,6 +62,10 @@ export function markdownToHtml(markdown: string): string {
         return `<div class="text-red-500">Invalid Roadmap JSON</div>`
       }
     }
+    if (lang === 'mermaid') {
+      const id = `mermaid-${Math.random().toString(36).slice(2)}`
+      return `<div class="mermaid not-prose" id="${id}">${text}</div>`
+    }
     return `<pre><code class="language-${lang}">${text}</code></pre>`
   }
 

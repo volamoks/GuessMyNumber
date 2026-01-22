@@ -120,6 +120,17 @@ export function TranscriptionResults({ activeResult, onReAnalyze, isProcessing, 
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Analysis</CardTitle>
                             <div className="flex items-center gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(activeResult.summary?.summary || '')
+                                        toast.success('Саммери скопировано')
+                                    }}
+                                >
+                                    <Copy className="w-3 h-3 mr-2" />
+                                    Копировать
+                                </Button>
                                 <select
                                     className="h-8 rounded-md border border-input bg-background px-3 text-xs"
                                     value={selectedReAnalyzeTemplate}
@@ -223,10 +234,23 @@ export function TranscriptionResults({ activeResult, onReAnalyze, isProcessing, 
                 <TabsContent value="text" className="pt-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Полная транскрипция</CardTitle>
+                            <CardTitle className="flex justify-between items-center">
+                                Полная транскрипция
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(activeResult.transcription.text)
+                                        toast.success('Текст скопирован')
+                                    }}
+                                >
+                                    <Copy className="w-3 h-3 mr-2" />
+                                    Копировать
+                                </Button>
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="max-h-[600px] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed p-4 bg-muted/30 rounded-md">
+                            <div className="w-full whitespace-pre-wrap text-base leading-relaxed p-4 bg-muted/30 rounded-md">
                                 {activeResult.transcription.text}
                             </div>
                         </CardContent>
@@ -237,7 +261,7 @@ export function TranscriptionResults({ activeResult, onReAnalyze, isProcessing, 
                 <TabsContent value="json" className="pt-4">
                     <Card>
                         <CardContent>
-                            <pre className="text-xs bg-muted p-4 rounded-md overflow-auto max-h-[600px]">
+                            <pre className="text-xs bg-muted p-4 rounded-md overflow-auto">
                                 {JSON.stringify(activeResult, null, 2)}
                             </pre>
                         </CardContent>

@@ -209,6 +209,12 @@ Combining multiple elements:
    \`\`\`
 
 3. **Step 3**: Run the app
+4. **Step 4**: Visualize Architecture
+   \`\`\`mermaid
+   graph TD
+     App --> API
+     API --> DB
+   \`\`\`
 
 ---
 
@@ -334,6 +340,49 @@ Week 42
 1. Finalize QA for Phase 2
 2. Prepare marketing materials
 3. Schedule stakeholder review
+`
+  },
+  {
+    id: 'architecture',
+    name: 'Architecture Diagram',
+    description: 'Technical architecture with diagrams',
+    content: `# System Architecture
+Overview of the system components
+
+---
+
+# Architecture Diagram
+
+\`\`\`mermaid
+flowchart TD
+    Client[Web Client] --> Gateway[API Gateway]
+    Gateway --> ServiceA[Auth Service]
+    Gateway --> ServiceB[Data Service]
+    ServiceB --> DB[(Database)]
+    
+    style Client fill:#f9f,stroke:#333
+    style DB fill:#bbf,stroke:#333
+\`\`\`
+
+---
+
+# Data Flow sequence
+
+\`\`\`mermaid
+sequenceDiagram
+    Client->>Gateway: POST /login
+    Gateway->>ServiceA: Validate credentials
+    ServiceA-->>Gateway: Token
+    Gateway-->>Client: 200 OK (Token)
+\`\`\`
+
+---
+
+# Tech Stack
+
+* Frontend: React, Redux
+* Backend: Node.js, Express
+* Database: PostgreSQL
 `
   }
 ]

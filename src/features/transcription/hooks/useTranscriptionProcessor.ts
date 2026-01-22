@@ -57,6 +57,13 @@ export function useTranscriptionProcessor() {
                 model: analysisModel,
                 prompt: `${systemPrompt}
 
+Current Date: ${new Date().toLocaleDateString('ru-RU')}
+FileName: ${(audioBlob as any).name || 'Audio File'}
+
+INSTRUCTIONS:
+1. **Language**: Detect the language. If mixed Russian/Uzbek, use Russian for the report.
+2. **Participants**: strictly extracted from text. NO HALLUCINATIONS.
+
 You MUST return the result as a valid JSON object matching this structure:
 {
   "summary": "Full Markdown report with # Title, **Metadata**, and detailed sections.",
@@ -74,7 +81,9 @@ Do not include markdown naming like \`\`\`json.
 
             let object: any
             try {
+                // More robust JSON cleanup
                 let cleanJson = analysisJson.replace(/```json\n?|```/g, '').trim()
+                // If AI added conversational text, search for the first { and last }
                 const firstOpen = cleanJson.indexOf('{')
                 const lastClose = cleanJson.lastIndexOf('}')
                 if (firstOpen !== -1 && lastClose !== -1) {
@@ -83,9 +92,11 @@ Do not include markdown naming like \`\`\`json.
                 object = JSON.parse(cleanJson)
             } catch (e) {
                 console.error('JSON Parse Failed:', e)
+                console.log('Raw Analysis JSON:', analysisJson) // Debug log
+                toast.error("Не удалось разобрать ответ AI. Показан сырой результат.")
                 object = {
-                    summary: `(⚠️ Auto-parsing failed)\n\n${analysisJson}`,
-                    keyPoints: ["Check raw summary for details"],
+                    summary: `## Ошибка обработки JSON\n\nAI вернул некорректный формат. Вот сырой ответ:\n\n${analysisJson}`,
+                    keyPoints: ["Ошибка парсинга"],
                     actionItems: [],
                     mindmap: ""
                 }

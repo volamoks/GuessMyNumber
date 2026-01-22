@@ -23,6 +23,7 @@ import type {
   SlideNode,
   CanvasNode,
   RoadmapNode,
+  MermaidNode,
 } from '../types/ast'
 
 const generateId = () => Math.random().toString(36).substring(2, 15)
@@ -133,6 +134,9 @@ export function buildBlockNode(token: Token): BlockNode | null {
       if (codeToken.lang === 'roadmap') {
         return buildRoadmapNode(codeToken)
       }
+      if (codeToken.lang === 'mermaid') {
+        return buildMermaidNode(codeToken)
+      }
       return buildCodeBlockNode(codeToken)
     case 'table':
       return buildTableNode(token as Tokens.Table)
@@ -232,6 +236,13 @@ function buildRoadmapNode(token: Tokens.Code): RoadmapNode | null {
   } catch (e) {
     console.error('Failed to parse roadmap JSON', e)
     return null
+  }
+}
+
+function buildMermaidNode(token: Tokens.Code): MermaidNode {
+  return {
+    type: 'mermaid',
+    value: token.text,
   }
 }
 

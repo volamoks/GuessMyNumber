@@ -18,6 +18,7 @@ import {
   renderBlockquote,
   renderCanvas,
   renderRoadmap,
+  renderMermaid,
   hexToColor,
 } from './renderers'
 
@@ -122,7 +123,7 @@ export async function exportASTToPptx(
 
       // Рендерим содержимое слайда
       for (const node of slideNode.children) {
-        const result = renderBlockNode(pptxSlide, node, context)
+        const result = await renderBlockNode(pptxSlide, node, context)
         context.currentY += result.height
       }
 
@@ -300,7 +301,7 @@ export async function exportASTToBlob(
     }
 
     for (const node of slideNode.children) {
-      const result = renderBlockNode(pptxSlide, node, context)
+      const result = await renderBlockNode(pptxSlide, node, context)
       context.currentY += result.height
     }
 
@@ -389,11 +390,11 @@ export async function exportASTToBlob(
 /**
  * Рендерит блочный узел AST
  */
-function renderBlockNode(
+async function renderBlockNode(
   slide: PptxGenJS.Slide,
   node: BlockNode,
   context: RenderContext
-): { height: number } {
+): Promise<{ height: number }> {
   switch (node.type) {
     case 'heading':
       return renderHeading(slide, node, context)
@@ -419,6 +420,8 @@ function renderBlockNode(
       return renderCanvas(slide, node, context)
     case 'roadmap':
       return renderRoadmap(slide, node, context)
+    case 'mermaid':
+      return await renderMermaid(slide, node, context)
     default:
       return { height: 0 }
   }
