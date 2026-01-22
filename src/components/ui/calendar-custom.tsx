@@ -62,7 +62,7 @@ export function Calendar({ className, selected, onSelect }: CalendarProps) {
 
             {/* Days Grid */}
             <div className="grid grid-cols-7 gap-1">
-                {days.map((day, i) => {
+                {days.map((day) => {
                     const isSelected = selected && isSameDay(day, selected)
                     const isCurrentMonth = isSameMonth(day, currentMonth)
 

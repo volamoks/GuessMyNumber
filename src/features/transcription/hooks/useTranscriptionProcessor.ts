@@ -12,7 +12,6 @@ import { fileToGenerativePart } from '@/lib/audio-utils'
 export function useTranscriptionProcessor() {
     const [isProcessing, setIsProcessing] = useState(false)
     const { saveTranscription, setActiveTranscription, activeTranscriptionId, getTranscription, updateTranscription } = useTranscriptionStore()
-    const { isAIConfigured } = useAIStore()
 
     const processAudio = async (audioBlob: Blob, selectedTemplateId: string) => {
         if (!audioBlob) return

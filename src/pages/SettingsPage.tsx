@@ -224,7 +224,7 @@ function ModelCard({ model, onDelete, onEdit }: { model: AIModelConfig; onDelete
 }
 
 function ModelDialog({ open, onOpenChange, modelToEdit }: { open: boolean; onOpenChange: (open: boolean) => void; modelToEdit?: AIModelConfig }) {
-  const { addModel, updateModel, googleApiKey, openaiApiKey, openrouterApiKey, groqApiKey, deepseekApiKey, setApiKey } = useAIStore()
+  const { addModel, updateModel, googleApiKey, openaiApiKey, openrouterApiKey, groqApiKey, setApiKey } = useAIStore()
   const [provider, setProvider] = useState<AIProvider>(modelToEdit?.provider || 'google')
   const [name, setName] = useState(modelToEdit?.name || '')
   const [modelId, setModelId] = useState(modelToEdit?.modelId || '')
@@ -403,17 +403,6 @@ function ModelDialog({ open, onOpenChange, modelToEdit }: { open: boolean; onOpe
                   <SelectItem value="llama3-8b-8192">Llama 3 8B</SelectItem>
                   <SelectItem value="llama3-70b-8192">Llama 3 70B</SelectItem>
                   <SelectItem value="mixtral-8x7b-32768">Mixtral 8x7B</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          ) : provider === 'deepseek' ? (
-            <div className="space-y-2">
-              <Select value={modelId} onValueChange={setModelId}>
-                <SelectTrigger><SelectValue placeholder="Выберите DeepSeek модель" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="deepseek-chat">DeepSeek V3 (Chat)</SelectItem>
-                  <SelectItem value="deepseek-reasoner">DeepSeek R1 (Reasoner)</SelectItem>
-                  <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
                 </SelectContent>
               </Select>
             </div>
