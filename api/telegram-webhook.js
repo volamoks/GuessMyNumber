@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf';
 import { createClient } from '@supabase/supabase-js';
 import { Version3Client } from 'jira.js';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
 export const config = {
@@ -49,35 +49,37 @@ async function saveUserSettings(telegramId, updates) {
 bot.start((ctx) => {
     ctx.reply(
         "Welcome to the Jira AI Bot! 🤖\n\n" +
-        "I can summarize Jira issues for you using specific credentials.\n\n" +
+        "I can summarize Jira issues using OpenRouter AI.\n\n" +
         "Please run /setup to configure your access."
     );
 });
 
 // Setup Flow
 // Note: In a real production bot, we'd use Scenes (telegraf-scenes). 
-// For this MVP, we will use a simple format: /setup host email token ai_key
+// For this MVP, we will use a simple format: /setup host email token ai_key [model]
 bot.command('setup', async (ctx) => {
     const args = ctx.message.text.split(' ').slice(1);
 
-    if (args.length !== 4) {
+    if (args.length < 4) {
         return ctx.reply(
-            "⚠️ usage: /setup <host> <email> <jira_token> <gemini_key>\n\n" +
+            "⚠️ usage: /setup <host> <email> <jira_token> <openrouter_key> [model]\n\n" +
             "Example:\n" +
-            "/setup mycompany.atlassian.net me@email.com ATATT3... AIzaSy..."
+            "/setup mycompany.atlassian.net me@email.com JIRA_TOK... OR_KEY... google/gemini-2.0-flash-001"
         );
     }
 
-    const [host, email, token, geminiKey] = args;
+    const [host, email, token, openrouterKey, model] = args;
+    const aiModel = model || 'google/gemini-2.0-flash-001'; // Default model
 
     try {
         await saveUserSettings(ctx.from.id, {
             jira_host: host,
             jira_email: email,
             jira_token: token,
-            gemini_key: geminiKey
+            openrouter_key: openrouterKey,
+            ai_model: aiModel
         });
-        ctx.reply("✅ Credentials saved! You can now send me issue keys like 'PROJ-123'.");
+        ctx.reply(`✅ Credentials saved! Using model: ${aiModel}\nYou can now send me issue keys like 'PROJ-123'.`);
     } catch (e) {
         console.error('Setup error:', e);
         ctx.reply("❌ Failed to save credentials. Database error.");
@@ -149,11 +151,14 @@ bot.on('text', async (ctx) => {
         `;
 
         // 3. AI Analysis
-        // Create Google provider instance with user's key
-        const google = createGoogleGenerativeAI({ apiKey: user.gemini_key });
+        // Create OpenRouter provider instance with user's key
+        const openrouter = createOpenAI({
+            apiKey: user.openrouter_key,
+            baseURL: 'https://openrouter.ai/api/v1',
+        });
 
         const { text: aiResponse } = await generateText({
-            model: google('gemini-1.5-flash'), // Or generic model ID
+            model: openrouter(user.ai_model || 'google/gemini-2.0-flash-001'),
             prompt: `
                 You are a helpful project manager assistant.
                 Analyze this Jira issue status and give a concise summary (max 3 sentences).
