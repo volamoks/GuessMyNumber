@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { MarkdownEditor } from '@/features/presentation/components/MarkdownEditor'
 import { SlidePreview } from '@/features/presentation/components/SlidePreview'
@@ -29,19 +29,7 @@ export function PresentationPage() {
   const isDraggingThumbnails = useRef(false)
   const isDraggingEditor = useRef(false)
 
-  const { slides, markdown, setMarkdown } = usePresentationStore()
-
-  // Clear default template when loading a shared presentation
-  // This prevents the SAMPLE_MARKDOWN from being seeded to the server
-  useEffect(() => {
-    if (id) {
-      // Only clear if we still have the default sample content
-      // This prevents clearing user's actual edits on re-renders
-      if (markdown.includes('# Presentation Guide')) {
-        setMarkdown('')
-      }
-    }
-  }, [id]) // Only run when id changes
+  const { slides, markdown } = usePresentationStore()
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return

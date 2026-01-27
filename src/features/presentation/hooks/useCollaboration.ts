@@ -1,16 +1,28 @@
 import { useEffect, useState, useRef } from 'react'
 import * as Y from 'yjs'
-import SupabaseProvider from 'y-supabase/dist/index.js'
+import SupabaseProvider from 'y-supabase'
 import { supabase } from '@/lib/supabase'
 import { usePresentationStore } from '@/store'
+import { SAMPLE_MARKDOWN } from '../types'
 
 export function useCollaboration(documentId: string | undefined) {
     const { markdown, setMarkdown } = usePresentationStore()
     const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
-    const [ydoc] = useState(() => new Y.Doc())
+
+    // Store Yjs instances in refs to modify them inside effects
+    const docRef = useRef<Y.Doc | null>(null)
+    const providerRef = useRef<SupabaseProvider | null>(null)
+
+    // Track sync state
     const [isSynced, setIsSynced] = useState(false)
     const [isReady, setIsReady] = useState(false)
     const isRemoteUpdate = useRef(false)
+
+    // We use a separate ydoc Ref for the effect, but also keep one in state? 
+    // Actually the previous implementation used `new Y.Doc()` inside useEffect.
+    // Let's stick to refs for ydoc to avoid recreation if not needed, or create fresh in useEffect.
+    // The useEffect below creates `new Y.Doc()`. So we don't need ydoc state.
+
 
     useEffect(() => {
         if (!documentId) return
@@ -19,38 +31,27 @@ export function useCollaboration(documentId: string | undefined) {
         setIsSynced(false)
         setIsReady(false)
 
-        // Connect to Supabase
-        const provider = new SupabaseProvider(ydoc, supabase, {
-            channel: `presentation:${documentId}`,
-            id: documentId,
-            tableName: 'presentations', // Optional: if we want persistence via postgres
-            columnName: 'content',      // Optional
-        })
+        const ydoc = new Y.Doc()
+        docRef.current = ydoc
 
-        // Get shared type for markdown
+        const provider = new SupabaseProvider(
+            ydoc,
+            supabase,
+            {
+                channel: `presentation-${documentId}`,
+                tableName: 'presentations',
+                columnName: 'content',
+                id: documentId,
+            }
+        )
+
+        providerRef.current = provider
+
         const yText = ydoc.getText('markdown')
 
-        // Bind Yjs to Zustand
-        // 1. Listen to remote changes
-        yText.observe(event => {
-            if (event.transaction.origin === 'local') return
-
-            console.log('Remote update received')
-            isRemoteUpdate.current = true
-            const text = yText.toString()
-            setMarkdown(text)
-            // Reset flag after render cycle ideally, but immediate is ok if setMarkdown is sync
-            setTimeout(() => { isRemoteUpdate.current = false }, 0)
-        })
-
-        // 2. Handle provider status
         provider.on('status', (event: any) => {
-            // y-supabase emits an array [{ status: '...' }]
-            const newStatus = event?.[0]?.status
-            console.log('Collab status:', newStatus)
-            if (newStatus) {
-                setStatus(newStatus)
-            }
+            console.log('Collaboration status:', event.status)
+            setStatus(event.status)
         })
 
         provider.on('sync', (isSynced: boolean) => {
@@ -64,16 +65,16 @@ export function useCollaboration(documentId: string | undefined) {
                     console.log('Adopting remote content')
                     setMarkdown(content)
                     setIsReady(true)
-                } else if (markdown.trim().length > 0) {
-                    // Remote is empty, local has content. Seed remote.
+                } else if (markdown.trim().length > 0 && markdown !== SAMPLE_MARKDOWN) {
+                    // Remote is empty, local has content AND it is NOT the default template. Seed remote.
                     console.log('Seeding remote with local content')
                     ydoc.transact(() => {
                         yText.applyDelta([{ insert: markdown }])
                     }, 'local')
                     setIsReady(true)
                 } else {
-                    // Both empty? Ready to edit.
-                    console.log('Both empty, ready to edit')
+                    // Both empty or Local is Default? Ready to edit (but don't seed default).
+                    console.log('Remote empty & Local default/empty. Ready to edit.')
                     setIsReady(true)
                 }
             }
@@ -97,6 +98,9 @@ export function useCollaboration(documentId: string | undefined) {
         // Wait until we are synced AND ready (loaded remote content) before pushing local changes.
         // This prevents the local "default template" from overwriting remote content on load.
         if (!documentId || isRemoteUpdate.current || !isSynced || !isReady) return
+
+        const ydoc = docRef.current
+        if (!ydoc) return
 
         const yText = ydoc.getText('markdown')
         const currentYText = yText.toString()

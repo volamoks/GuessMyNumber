@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-
-// ... existing imports
-
-
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -24,6 +21,7 @@ import { CrossModuleImporter } from '@/components/shared/CrossModuleImporter'
 
 export function PresentationControls() {
   const store = usePresentationStore()
+  const navigate = useNavigate()
   const { slides, currentSlideIndex, theme, isExporting, currentPresentation, markdown, settings } = store
   const [showAIDialog, setShowAIDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
@@ -86,7 +84,7 @@ export function PresentationControls() {
     if (template) {
       if (confirm('This will replace your current content. Continue?')) {
         store.setMarkdown(template.content)
-        toast.success(`Loaded template: ${template.name}`)
+        toast.success(`Loaded template: ${template.name} `)
       }
     }
   }
@@ -181,7 +179,7 @@ export function PresentationControls() {
             </Button>
             <span className="text-sm font-medium px-3">
               {slides.length > 0 ? `${currentSlideIndex + 1} / ${slides.length}` : '0 / 0'}
-            </span>
+            </span >
             <Button
               variant="outline"
               size="sm"
@@ -190,7 +188,7 @@ export function PresentationControls() {
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </div>
+          </div >
 
           <div className="h-4 w-px bg-border" />
 
@@ -218,7 +216,7 @@ export function PresentationControls() {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div >
 
         <div className="flex items-center gap-2">
           {currentPresentation && (
@@ -328,7 +326,7 @@ export function PresentationControls() {
                 if (!window.location.pathname.includes(id)) {
                   // Use replaceState to avoid cluttering history, or pushState.
                   // reloading to ensure clean state for simplicity
-                  window.location.href = `/presentation/${id}`
+                  navigate(`/presentation/${id}`)
                 }
               } catch (e) {
                 console.error(e)
@@ -371,7 +369,7 @@ export function PresentationControls() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </div >
 
       <AIGeneratorDialog
         open={showAIDialog}
