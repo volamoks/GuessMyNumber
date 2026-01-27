@@ -3,7 +3,6 @@ import * as Y from 'yjs'
 import SupabaseProvider from 'y-supabase'
 import { supabase } from '@/lib/supabase'
 import { usePresentationStore } from '@/store'
-import { SAMPLE_MARKDOWN } from '../types'
 
 export function useCollaboration(documentId: string | undefined) {
     const { markdown, setMarkdown } = usePresentationStore()
@@ -72,16 +71,18 @@ export function useCollaboration(documentId: string | undefined) {
                     console.log('Adopting remote content')
                     setMarkdown(content)
                     setIsReady(true)
-                } else if (markdown.trim().length > 0 && markdown !== SAMPLE_MARKDOWN) {
-                    // Remote is empty, local has content AND it is NOT the default template. Seed remote.
-                    console.log('Seeding remote with local content')
+                } else if (markdown.trim().length > 0) {
+                    // Remote is empty, local has content (including default template). Seed remote.
+                    // This ensures that when someone follows a share link to a new document,
+                    // they see the default template instead of an empty page.
+                    console.log('Seeding remote with local content (including default template)')
                     ydoc.transact(() => {
                         yText.applyDelta([{ insert: markdown }])
                     }, 'local')
                     setIsReady(true)
                 } else {
-                    // Both empty or Local is Default? Ready to edit (but don't seed default).
-                    console.log('Remote empty & Local default/empty. Ready to edit.')
+                    // Both empty. Ready to edit.
+                    console.log('Both remote and local empty. Ready to edit.')
                     setIsReady(true)
                 }
             }
