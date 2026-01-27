@@ -34,6 +34,9 @@ export function useCollaboration(documentId: string | undefined) {
         setIsSynced(false)
         setIsReady(false)
 
+        // Capture current markdown at setup time to avoid dependency issues
+        const initialMarkdown = markdown
+
         try {
             const ydoc = new Y.Doc()
             docRef.current = ydoc
@@ -87,13 +90,14 @@ export function useCollaboration(documentId: string | undefined) {
                         if (content.length > 0) {
                             // Remote has content. Adopt it immediately.
                             console.log('[Collaboration] Adopting remote content')
+                            isRemoteUpdate.current = true
                             setMarkdown(content)
                             setIsReady(true)
-                        } else if (markdown.trim().length > 0) {
+                        } else if (initialMarkdown.trim().length > 0) {
                             // Remote is empty, local has content (including default template). Seed remote.
-                            console.log('[Collaboration] Seeding remote with local content (length:', markdown.length, ')')
+                            console.log('[Collaboration] Seeding remote with local content (length:', initialMarkdown.length, ')')
                             ydoc.transact(() => {
-                                yText.applyDelta([{ insert: markdown }])
+                                yText.applyDelta([{ insert: initialMarkdown }])
                             }, 'local')
                             setIsReady(true)
                         } else {
@@ -117,13 +121,14 @@ export function useCollaboration(documentId: string | undefined) {
 
                     if (content.length > 0) {
                         console.log('[Collaboration] Found content via manual check, adopting')
+                        isRemoteUpdate.current = true
                         setMarkdown(content)
                         setIsReady(true)
                         setIsSynced(true)
-                    } else if (markdown.trim().length > 0) {
-                        console.log('[Collaboration] No remote content, seeding with local (length:', markdown.length, ')')
+                    } else if (initialMarkdown.trim().length > 0) {
+                        console.log('[Collaboration] No remote content, seeding with local (length:', initialMarkdown.length, ')')
                         ydoc.transact(() => {
-                            yText.applyDelta([{ insert: markdown }])
+                            yText.applyDelta([{ insert: initialMarkdown }])
                         }, 'local')
                         setIsReady(true)
                         setIsSynced(true)
@@ -142,10 +147,6 @@ export function useCollaboration(documentId: string | undefined) {
                     console.log('[Collaboration] Remote Yjs change detected, content length:', content.length)
                     isRemoteUpdate.current = true
                     setMarkdown(content)
-                    // Reset flag after state update completes
-                    setTimeout(() => {
-                        isRemoteUpdate.current = false
-                    }, 0)
                 } catch (changeError) {
                     console.error('[Collaboration] Error handling Yjs change:', changeError)
                 }
@@ -182,7 +183,17 @@ export function useCollaboration(documentId: string | undefined) {
     useEffect(() => {
         // Wait until we are synced AND ready (loaded remote content) before pushing local changes.
         // This prevents the local "default template" from overwriting remote content on load.
-        if (!documentId || isRemoteUpdate.current || !isSynced || !isReady) return
+        if (!documentId || !isSynced || !isReady) return
+
+        // Skip if this change came from a remote update
+        if (isRemoteUpdate.current) {
+            console.log('[Collaboration] Skipping push - this was a remote update')
+            // Reset the flag after a short delay to allow state to settle
+            setTimeout(() => {
+                isRemoteUpdate.current = false
+            }, 100)
+            return
+        }
 
         const ydoc = docRef.current
         if (!ydoc) return
@@ -190,8 +201,9 @@ export function useCollaboration(documentId: string | undefined) {
         const yText = ydoc.getText('markdown')
         const currentYText = yText.toString()
 
+        // Only push if content actually differs
         if (markdown !== currentYText) {
-            console.log('Pushing local change to Yjs')
+            console.log('[Collaboration] Pushing local change to Yjs (length:', markdown.length, ')')
             ydoc.transact(() => {
                 yText.delete(0, yText.length)
                 yText.insert(0, markdown)
