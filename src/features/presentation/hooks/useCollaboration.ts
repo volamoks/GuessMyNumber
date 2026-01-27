@@ -13,12 +13,14 @@ export function useCollaboration(documentId: string | undefined) {
     const { markdown, setMarkdown } = usePresentationStore()
     const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
     const [ydoc] = useState(() => new Y.Doc())
+    const [isSynced, setIsSynced] = useState(false)
     const isRemoteUpdate = useRef(false)
 
     useEffect(() => {
         if (!documentId) return
 
         setStatus('connecting')
+        setIsSynced(false)
 
         // Connect to Supabase
         const provider = new SupabaseProvider(ydoc, supabase, {
@@ -51,13 +53,12 @@ export function useCollaboration(documentId: string | undefined) {
             console.log('Collab status:', newStatus)
             if (newStatus) {
                 setStatus(newStatus)
-                // Helper: On connect, if Yjs is empty but we have content (Creator), fill it.
-                // Wait for sync event to be sure we loaded remote first?
             }
         })
 
         provider.on('sync', (isSynced: boolean) => {
             console.log('Synced with backend:', isSynced)
+            setIsSynced(isSynced)
             if (isSynced && yText.toString() === '' && markdown.length > 50) {
                 // Heuristic: If remote is empty and we have "substantial" content, we are likely the creator seeding the doc.
                 // This is imperfect (what if I just deleted everything?) but solves the "Share Button" empty start.
@@ -87,7 +88,9 @@ export function useCollaboration(documentId: string | undefined) {
 
     // 3. Listen to local markdown changes and push to Yjs
     useEffect(() => {
-        if (!documentId || isRemoteUpdate.current) return
+        // Wait until we are synced before pushing local changes.
+        // This prevents the local "default template" from overwriting remote content on load.
+        if (!documentId || isRemoteUpdate.current || !isSynced) return
 
         const yText = ydoc.getText('markdown')
         const currentYText = yText.toString()
@@ -99,7 +102,7 @@ export function useCollaboration(documentId: string | undefined) {
                 yText.insert(0, markdown)
             }, 'local')
         }
-    }, [markdown, documentId])
+    }, [markdown, documentId, isSynced])
 
     return { status, connectedUsers: [] }
 }
