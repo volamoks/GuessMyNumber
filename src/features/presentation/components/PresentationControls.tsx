@@ -282,8 +282,8 @@ export function PresentationControls() {
               let id = currentPresentation?.id
 
               if (!id) {
-                store.createPresentation('Untitled')
-                id = crypto.randomUUID()
+                // Returns the ID of the newly created presentation
+                id = store.createPresentation('Untitled')
               }
 
               const toastId = toast.loading('Creating collaboration session...')
@@ -295,7 +295,7 @@ export function PresentationControls() {
                   .from('presentations')
                   .upsert({
                     id,
-                    title: 'Untitled Presentation',
+                    title: currentPresentation?.title || 'Untitled Presentation',
                   })
 
                 if (error) {
@@ -310,12 +310,13 @@ export function PresentationControls() {
                   }
                 }
 
-                navigator.clipboard.writeText(url)
+                await navigator.clipboard.writeText(url)
                 toast.success('Link copied! Ready to collaborate.', { id: toastId })
 
                 if (!window.location.pathname.includes(id)) {
-                  window.history.pushState({}, '', `/presentation/${id}`)
-                  window.location.reload()
+                  // Use replaceState to avoid cluttering history, or pushState.
+                  // reloading to ensure clean state for simplicity
+                  window.location.href = `/presentation/${id}`
                 }
               } catch (e) {
                 console.error(e)

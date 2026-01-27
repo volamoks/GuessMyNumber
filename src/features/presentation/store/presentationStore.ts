@@ -44,7 +44,7 @@ interface PresentationStore {
   setShowPreview: (showPreview: boolean) => void
 
   // Presentation management
-  createPresentation: (title: string) => void
+  createPresentation: (title: string) => string
   savePresentation: () => void
   loadPresentation: (id: string) => void
   deletePresentation: (id: string) => void
@@ -52,7 +52,12 @@ interface PresentationStore {
   reset: () => void
 }
 
-const generateId = () => Math.random().toString(36).substring(2, 15)
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return Math.random().toString(36).substring(2, 15)
+}
 
 const DEFAULT_SETTINGS: PresentationSettings = {
   layout: 'LAYOUT_16x9',
@@ -162,8 +167,9 @@ export const usePresentationStore = create<PresentationStore>()(
       createPresentation: (title: string) => {
         const { markdown, slides, theme, settings } = get()
         const now = new Date()
+        const id = generateId()
         const presentation: Presentation = {
-          id: generateId(),
+          id,
           title,
           createdAt: now,
           updatedAt: now,
@@ -173,6 +179,7 @@ export const usePresentationStore = create<PresentationStore>()(
           settings,
         }
         set({ currentPresentation: presentation })
+        return id
       },
 
       savePresentation: () => {
