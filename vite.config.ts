@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "y-supabase": path.resolve(__dirname, "node_modules/y-supabase/dist/index.js"),
     },
   },
   server: {
