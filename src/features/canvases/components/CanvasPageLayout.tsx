@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { History, Sparkles, Upload } from 'lucide-react'
 import { toast } from 'sonner'
-import { projectsService, type ProjectType } from '@/lib/projects-service'
+import type { ProjectType } from '@/lib/projects-service'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { useExport } from '@/hooks/useExport'
 import { useLoadExample } from '@/hooks/useLoadExample'
@@ -13,11 +13,9 @@ import { useCanvasOperations } from '@/features/canvases/hooks/useCanvasOperatio
 import { useProjectStore } from '@/store/projectStore'
 import { ActionToolbar } from '@/components/shared/ActionToolbar'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { UnifiedExportActions } from '@/components/shared/UnifiedExportActions'
 import { AIAnalysisResult } from '@/components/shared/AIAnalysisResult'
 import { useAIStore } from '@/store/aiStore'
 import type { Language } from '@/lib/services/ai-prompts'
-import { convertToSlideMarkdown } from '@/lib/markdown-converter'
 import { AICopilotSidebar } from '@/features/ai-copilot/components/AICopilotSidebar'
 
 interface CanvasPageLayoutProps<T> {
@@ -84,8 +82,6 @@ export function CanvasPageLayout<T>({
   const error = useProjectStore(state => state.error)
 
   const [showGenerator, setShowGenerator] = useState(false)
-  const [showVersions, setShowVersions] = useState(false)
-  const [versions, setVersions] = useState<any[]>([])
   const language: Language = 'ru'
 
   // Business logic hooks
@@ -170,14 +166,6 @@ export function CanvasPageLayout<T>({
     }
   }
 
-  const handleAnalyze = async () => {
-    if (!data || !hasKey) {
-      toast.error(data ? 'AI не настроен' : 'Нет данных для анализа')
-      return
-    }
-    await canvasOps.analyze(data, language)
-  }
-
   const handleImprove = async () => {
     if (!data || !hasKey) {
       toast.error(data ? 'AI не настроен' : 'Нет данных для улучшения')
@@ -207,47 +195,6 @@ export function CanvasPageLayout<T>({
     }
   }
 
-  const loadVersions = async () => {
-    if (!currentProjectId) return
-    const loadingToast = toast.loading('Загрузка версий...')
-    try {
-      const vers = await projectsService.getProjectVersions(currentProjectId)
-      setVersions(vers)
-      setShowVersions(true)
-      toast.success('Версии загружены', { id: loadingToast })
-    } catch {
-      toast.error('Ошибка при загрузке версий', { id: loadingToast })
-    }
-  }
-
-  const handleRestoreVersion = async (versionNumber: number) => {
-    if (!currentProjectId) return
-    if (!confirm(`Восстановить версию ${versionNumber}?`)) return
-    const loadingToast = toast.loading('Восстановление версии...')
-    try {
-      const restored = await projectsService.restoreVersion(currentProjectId, versionNumber)
-      if (restored) {
-        setData(restored.data as T)
-        setLastSavedData(restored.data as T)
-        toast.success('Версия восстановлена!', { id: loadingToast })
-        setShowVersions(false)
-      }
-    } catch {
-      toast.error('Ошибка при восстановлении', { id: loadingToast })
-    }
-  }
-
-  const handleCopySlides = async () => {
-    if (!data) return
-    try {
-      const markdown = convertToSlideMarkdown(data, projectType)
-      await navigator.clipboard.writeText(markdown)
-      toast.success('Markdown скопирован!')
-    } catch {
-      toast.error('Не удалось скопировать')
-    }
-  }
-
   return (
     <div className="min-h-screen bg-background/50 pb-20">
       <TitleUpdater title={data ? getTitle(data) : title} />
@@ -272,12 +219,6 @@ export function CanvasPageLayout<T>({
             <span className="text-xs text-muted-foreground animate-pulse mr-2">
               Saving...
             </span>
-          )}
-          {currentProjectId && (
-            <Button variant="ghost" size="sm" onClick={loadVersions}>
-              <History className="mr-2 h-4 w-4" />
-              Версии
-            </Button>
           )}
           <ActionToolbar
             onImportJSON={triggerImport}

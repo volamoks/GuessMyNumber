@@ -31,7 +31,7 @@ export function GanttFilters() {
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current)
     }
-    syncTimeoutRef.current = setTimeout(() => {
+    syncTimeoutRef.current = window.setTimeout(() => {
       if (store.selectedProjectKeys.length > 0) {
         syncTasks()
       }

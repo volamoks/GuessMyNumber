@@ -27,11 +27,6 @@ const effortConfig = {
   large: { label: 'Large', icon: '🔴' }
 }
 
-const statusConfig = {
-  planning: { label: 'Planning', color: 'bg-status-todo/10 text-status-todo border-status-todo/30' },
-  in_progress: { label: 'In Progress', color: 'bg-status-in-progress/10 text-status-in-progress border-status-in-progress/30' },
-  done: { label: 'Done', color: 'bg-status-done/10 text-status-done border-status-done/30' }
-}
 
 interface EditableFeatureCardProps {
   feature: RoadmapFeature
@@ -55,7 +50,7 @@ export function EditableFeatureCard({ feature, onUpdate, onDelete }: EditableFea
 
   const priorityMeta = (priorityConfig as any)[feature.priority] || priorityConfig.medium
   const categoryMeta = (categoryConfig as any)[feature.category] || categoryConfig.feature
-  const statusMeta = (statusConfig as any)[feature.status] || statusConfig.planning
+
   const effortMeta = (effortConfig as any)[feature.effort] || effortConfig.medium
 
   return (

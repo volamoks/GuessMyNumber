@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Plus, X, Users } from 'lucide-react'
@@ -64,7 +64,7 @@ const ROWS: RowConfig[] = [
 ]
 
 export function CJMGridView({ data, onUpdate }: CJMGridViewProps) {
-    const [editingCell, setEditingCell] = useState<{ stageIndex: number, rowId: string, itemIndex?: number } | null>(null)
+
 
     const handleUpdateStageName = (index: number, name: string) => {
         const newStages = [...data.stages]
@@ -84,9 +84,7 @@ export function CJMGridView({ data, onUpdate }: CJMGridViewProps) {
         const newItems = [...currentItems, 'New Item']
         handleUpdateCell(stageIndex, rowId, newItems)
         // Automatically start editing the new item
-        setTimeout(() => {
-            setEditingCell({ stageIndex, rowId, itemIndex: newItems.length - 1 })
-        }, 0)
+
     }
 
     const handleRemoveItem = (stageIndex: number, rowId: keyof CJMStage, itemIndex: number) => {

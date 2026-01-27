@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { projectsService, type Project, type ProjectType } from '@/lib/projects-service'
+import { projectsService, type ProjectType } from '@/lib/projects-service'
 import { toast } from 'sonner'
 
 interface ProjectState<T = any> {

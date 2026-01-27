@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Upload, Download, Sparkles, Loader2 } from 'lucide-react'
 import {
