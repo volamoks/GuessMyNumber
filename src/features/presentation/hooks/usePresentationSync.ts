@@ -46,6 +46,7 @@ export function usePresentationSync() {
                 .upsert({
                     id,
                     title: currentPresentation?.title || 'Untitled Presentation',
+                    content: store.markdown, // Save the actual markdown content
                 })
 
             if (error) {
