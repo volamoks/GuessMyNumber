@@ -24,95 +24,129 @@ export function useCollaboration(documentId: string | undefined) {
 
 
     useEffect(() => {
-        if (!documentId) return
+        if (!documentId) {
+            console.log('[Collaboration] No documentId, skipping setup')
+            return
+        }
 
+        console.log('[Collaboration] Setting up for documentId:', documentId)
         setStatus('connecting')
         setIsSynced(false)
         setIsReady(false)
 
-        const ydoc = new Y.Doc()
-        docRef.current = ydoc
+        try {
+            const ydoc = new Y.Doc()
+            docRef.current = ydoc
+            console.log('[Collaboration] Yjs Doc created')
 
-        const provider = new SupabaseProvider(
-            ydoc,
-            supabase,
-            {
-                channel: `presentation-${documentId}`,
-                tableName: 'presentations',
-                columnName: 'content',
-                id: documentId,
-            }
-        )
+            const provider = new SupabaseProvider(
+                ydoc,
+                supabase,
+                {
+                    channel: `presentation-${documentId}`,
+                    tableName: 'presentations',
+                    columnName: 'content',
+                    id: documentId,
+                }
+            )
+            console.log('[Collaboration] SupabaseProvider created')
 
-        providerRef.current = provider
+            providerRef.current = provider
 
-        const yText = ydoc.getText('markdown')
+            const yText = ydoc.getText('markdown')
+            console.log('[Collaboration] yText initialized')
 
-        provider.on('status', (event: any) => {
-            console.log('Collaboration status event:', event)
-            // y-supabase emits [{ status: 'connected' }] in some versions
-            const status = Array.isArray(event) ? event[0]?.status : event?.status
+            // Error handler
+            provider.on('error', (error: any) => {
+                console.error('[Collaboration] Provider error:', error)
+                setStatus('error')
+            })
 
-            if (status) {
-                setStatus(status)
-            } else {
-                console.warn('Unknown status event structure:', event)
-            }
-        })
+            provider.on('status', (event: any) => {
+                console.log('[Collaboration] Status event:', event)
+                // y-supabase emits [{ status: 'connected' }] in some versions
+                const status = Array.isArray(event) ? event[0]?.status : event?.status
 
-        provider.on('sync', (isSynced: boolean) => {
-            console.log('Synced with backend:', isSynced)
-            setIsSynced(isSynced)
-
-            if (isSynced) {
-                const content = yText.toString()
-                if (content.length > 0) {
-                    // Remote has content. Adopt it immediately.
-                    console.log('Adopting remote content')
-                    setMarkdown(content)
-                    setIsReady(true)
-                } else if (markdown.trim().length > 0) {
-                    // Remote is empty, local has content (including default template). Seed remote.
-                    // This ensures that when someone follows a share link to a new document,
-                    // they see the default template instead of an empty page.
-                    console.log('Seeding remote with local content (including default template)')
-                    ydoc.transact(() => {
-                        yText.applyDelta([{ insert: markdown }])
-                    }, 'local')
-                    setIsReady(true)
+                if (status) {
+                    setStatus(status)
+                    console.log('[Collaboration] Status updated to:', status)
                 } else {
-                    // Both empty. Ready to edit.
-                    console.log('Both remote and local empty. Ready to edit.')
-                    setIsReady(true)
+                    console.warn('[Collaboration] Unknown status event structure:', event)
+                }
+            })
+
+            provider.on('sync', (isSynced: boolean) => {
+                console.log('[Collaboration] Sync event, isSynced:', isSynced)
+                setIsSynced(isSynced)
+
+                if (isSynced) {
+                    try {
+                        const content = yText.toString()
+                        console.log('[Collaboration] Remote content length:', content.length)
+
+                        if (content.length > 0) {
+                            // Remote has content. Adopt it immediately.
+                            console.log('[Collaboration] Adopting remote content')
+                            setMarkdown(content)
+                            setIsReady(true)
+                        } else if (markdown.trim().length > 0) {
+                            // Remote is empty, local has content (including default template). Seed remote.
+                            console.log('[Collaboration] Seeding remote with local content (length:', markdown.length, ')')
+                            ydoc.transact(() => {
+                                yText.applyDelta([{ insert: markdown }])
+                            }, 'local')
+                            setIsReady(true)
+                        } else {
+                            // Both empty. Ready to edit.
+                            console.log('[Collaboration] Both remote and local empty. Ready to edit.')
+                            setIsReady(true)
+                        }
+                    } catch (syncError) {
+                        console.error('[Collaboration] Error during sync processing:', syncError)
+                        setStatus('error')
+                    }
+                }
+            })
+
+            // 2. Listen to remote Yjs changes and update local state
+            const handleYjsChange = () => {
+                try {
+                    const content = yText.toString()
+                    console.log('[Collaboration] Remote Yjs change detected, content length:', content.length)
+                    isRemoteUpdate.current = true
+                    setMarkdown(content)
+                    // Reset flag after state update completes
+                    setTimeout(() => {
+                        isRemoteUpdate.current = false
+                    }, 0)
+                } catch (changeError) {
+                    console.error('[Collaboration] Error handling Yjs change:', changeError)
                 }
             }
-        })
 
-        // 2. Listen to remote Yjs changes and update local state
-        const handleYjsChange = () => {
-            const content = yText.toString()
-            console.log('Remote Yjs change detected, updating local state')
-            isRemoteUpdate.current = true
-            setMarkdown(content)
-            // Reset flag after state update completes
-            setTimeout(() => {
-                isRemoteUpdate.current = false
-            }, 0)
-        }
+            yText.observe(handleYjsChange)
+            console.log('[Collaboration] yText observer attached')
 
-        yText.observe(handleYjsChange)
+            // Awareness (cursors/users)
+            const awareness = provider.awareness
+            awareness.on('change', () => {
+                // setConnectedUsers(...)
+            })
 
-        // Awareness (cursors/users)
-        const awareness = provider.awareness
-        awareness.on('change', () => {
-            // setConnectedUsers(...)
-        })
-
-        return () => {
-            yText.unobserve(handleYjsChange)
-            provider.destroy()
-            ydoc.destroy()
-            setIsReady(false)
+            return () => {
+                console.log('[Collaboration] Cleaning up for documentId:', documentId)
+                try {
+                    yText.unobserve(handleYjsChange)
+                    provider.destroy()
+                    ydoc.destroy()
+                    setIsReady(false)
+                } catch (cleanupError) {
+                    console.error('[Collaboration] Error during cleanup:', cleanupError)
+                }
+            }
+        } catch (setupError) {
+            console.error('[Collaboration] Error during setup:', setupError)
+            setStatus('error')
         }
     }, [documentId]) // Re-run if ID changes
 
