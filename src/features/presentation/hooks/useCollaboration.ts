@@ -50,8 +50,15 @@ export function useCollaboration(documentId: string | undefined) {
         const yText = ydoc.getText('markdown')
 
         provider.on('status', (event: any) => {
-            console.log('Collaboration status:', event.status)
-            setStatus(event.status)
+            console.log('Collaboration status event:', event)
+            // y-supabase emits [{ status: 'connected' }] in some versions
+            const status = Array.isArray(event) ? event[0]?.status : event?.status
+
+            if (status) {
+                setStatus(status)
+            } else {
+                console.warn('Unknown status event structure:', event)
+            }
         })
 
         provider.on('sync', (isSynced: boolean) => {

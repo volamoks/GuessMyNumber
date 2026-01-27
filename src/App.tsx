@@ -14,6 +14,7 @@ import { TranscriptionPage } from '@/features/transcription/pages/TranscriptionP
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 import { AuthPage } from '@/features/auth/pages/AuthPage'
+import { ROUTES } from '@/constants/routes'
 import { Loader2 } from 'lucide-react'
 
 // Private Route Component
@@ -41,16 +42,16 @@ function App() {
       <BrowserRouter>
         <Toaster />
         <Routes>
-          <Route path="/login" element={<AuthPage />} />
+          <Route path={ROUTES.LOGIN} element={<AuthPage />} />
           {/* Public/Shared Presentation Route - No Sidebar, No Auth required for guests */}
           <Route path="/presentation/:id" element={<PresentationPage />} />
 
-          <Route path="/" element={
+          <Route path={ROUTES.HOME} element={
             <PrivateRoute>
               <Layout />
             </PrivateRoute>
           }>
-            <Route index element={<Navigate to="/projects" replace />} />
+            <Route index element={<Navigate to={ROUTES.PROJECTS} replace />} />
             <Route path="projects" element={<ProjectsPage />} />
             <Route path="cjm" element={<CJMPage />} />
             <Route path="business-canvas" element={<BusinessCanvasPage />} />
@@ -59,7 +60,7 @@ function App() {
             <Route path="gantt" element={<GanttPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="prompts" element={<PromptsPage />} />
-            <Route path="ai-settings" element={<Navigate to="/settings" replace />} />
+            <Route path="ai-settings" element={<Navigate to={ROUTES.SETTINGS} replace />} />
             <Route path="test-supabase" element={<TestSupabasePage />} />
             <Route path="presentation" element={<PresentationPage />} />
             <Route path="transcription" element={<TranscriptionPage />} />

@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Mic, StopCircle, Upload, FileAudio, RefreshCw, Sparkles, Trash2, Info } from 'lucide-react'
 import { AudioVisualizer } from '@/components/ui/AudioVisualizer'
-import { formatDuration } from '@/lib/audio-utils'
+import { formatDuration } from '@/utils/audio-helpers'
 import { useAIStore } from '@/store/aiStore'
 
 interface TranscriptionControlsProps {

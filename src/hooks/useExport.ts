@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { exportToPDF, downloadJSON } from '@/lib/export-utils'
+import { downloadElementAsPDF, downloadAsJSON } from '@/utils/file-helpers'
 
 export function useExport() {
   const [isExporting, setIsExporting] = useState(false)
@@ -9,7 +9,7 @@ export function useExport() {
     setIsExporting(true)
     const loadingToast = toast.loading('Экспорт в PDF...')
     try {
-      await exportToPDF(elementId, fileName)
+      await downloadElementAsPDF(elementId, fileName)
       toast.success('PDF экспортирован!', { id: loadingToast })
     } catch (error) {
       toast.error('Ошибка при экспорте: ' + (error as Error).message, { id: loadingToast })
@@ -19,7 +19,7 @@ export function useExport() {
   }
 
   const handleExportJSON = <T,>(data: T, fileName: string) => {
-    downloadJSON(data, fileName)
+    downloadAsJSON(data, fileName)
     toast.success('JSON экспортирован!')
   }
 

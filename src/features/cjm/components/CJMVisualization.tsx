@@ -1,62 +1,21 @@
 import { useState } from 'react'
-import {
-  Timeline,
-  TimelineItem,
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-  TimelineTitle,
-  TimelineDescription,
-} from '@/components/ui/timeline'
+import { cn } from '@/lib/utils'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { cn } from '@/lib/utils'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { StickyNotesList } from '@/components/shared/StickyNotesList'
-import { EditableText } from '@/components/shared/EditableText'
-import {
-  User,
-  Target,
-  Smartphone,
-  Heart,
-  TrendingUp,
-  BarChart3,
-  Users,
-  Shield,
-  Cpu,
-  ThumbsUp,
-  ThumbsDown,
-  Lightbulb,
-} from 'lucide-react'
+import { User } from 'lucide-react'
 import { CJMGridView } from './CJMGridView'
-
-interface CJMStage {
-  name: string
-  customerActivities: string[]
-  customerGoals: string[]
-  touchpoints: string[]
-  experience: string[]
-  positives: string[]
-  negatives: string[]
-  ideasOpportunities: string[]
-  businessGoal: string
-  kpis: string[]
-  organizationalActivities: string[]
-  responsibility: string[]
-  technologySystems: string[]
-}
-
-interface CJMData {
-  title: string
-  persona: string
-  description?: string
-  stages: CJMStage[]
-}
+import type { CJMData } from '../types'
+import { useCJMOperations } from '../hooks/useCJMOperations'
+import { CJMTimeline } from './visualization/CJMTimeline'
+import { CustomerPerspective } from './visualization/CustomerPerspective'
+import { InsightsPerspective } from './visualization/InsightsPerspective'
+import { BusinessPerspective } from './visualization/BusinessPerspective'
 
 interface CJMVisualizationProps {
   data: CJMData
@@ -68,19 +27,7 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
   const [selectedStage, setSelectedStage] = useState<number>(0)
   const [viewMode, setViewMode] = useState<'timeline' | 'grid'>('grid')
 
-  const handleUpdateStage = (stageIndex: number, field: keyof CJMStage, value: string | string[]) => {
-    if (!onUpdate) return
-    const newStages = [...data.stages]
-    // @ts-ignore
-    newStages[stageIndex] = { ...newStages[stageIndex], [field]: value }
-    onUpdate({ ...data, stages: newStages })
-  }
-
-  const getStageStatus = (index: number): 'completed' | 'current' | 'upcoming' => {
-    if (index < selectedStage) return 'completed'
-    if (index === selectedStage) return 'current'
-    return 'upcoming'
-  }
+  const { handleUpdateStage } = useCJMOperations(data, onUpdate)
 
   if (!data || !data.stages) {
     return (
@@ -90,35 +37,42 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
     )
   }
 
+  // Use a helper for tabs to avoid narrowing warnings
+  const renderViewToggle = (currentMode: 'timeline' | 'grid') => (
+    <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
+      <button
+        onClick={() => setViewMode('timeline')}
+        className={cn(
+          "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+          currentMode === 'timeline' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        Timeline
+      </button>
+      <button
+        onClick={() => setViewMode('grid')}
+        className={cn(
+          "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+          currentMode === 'grid' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        Grid View
+      </button>
+    </div>
+  )
+
   if (viewMode === 'grid') {
     return (
       <div className="space-y-4">
         <div className="flex justify-end px-4">
-          <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
-            <button
-              onClick={() => setViewMode('timeline')}
-              className={cn(
-                "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-                false ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Timeline
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={cn(
-                "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-                true ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Grid View
-            </button>
-          </div>
+          {renderViewToggle('grid')}
         </div>
         <CJMGridView data={data} onUpdate={onUpdate!} />
       </div>
     )
   }
+
+  const currentStage = data.stages[selectedStage]
 
   return (
     <div id={visualizationId} className="space-y-8 bg-gradient-to-br from-slate-50/50 to-blue-50/50 dark:from-slate-900/30 dark:to-blue-950/30 p-6 rounded-xl">
@@ -134,80 +88,27 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
           </p>
         </div>
 
-        <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
-          <button
-            onClick={() => setViewMode('timeline')}
-            className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-              true ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Timeline
-          </button>
-          <button
-            onClick={() => setViewMode('grid')}
-            className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
-              false ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Grid View
-          </button>
-        </div>
+        {renderViewToggle('timeline')}
       </div>
 
-      {/* Horizontal Timeline */}
-      <div className="overflow-x-auto pb-4">
-        <div className="min-w-max px-4">
-          <Timeline>
-            {data.stages.map((stage, index) => (
-              <TimelineItem
-                key={index}
-                status={getStageStatus(index)}
-                isLast={index === data.stages.length - 1}
-              >
-                {/* Connector Line */}
-                {index < data.stages.length - 1 && (
-                  <TimelineConnector status={getStageStatus(index)} />
-                )}
+      <CJMTimeline
+        data={data}
+        selectedStage={selectedStage}
+        setSelectedStage={setSelectedStage}
+      />
 
-                {/* Timeline Dot */}
-                <div
-                  className="cursor-pointer transition-transform hover:scale-110"
-                  onClick={() => setSelectedStage(index)}
-                >
-                  <TimelineDot status={getStageStatus(index)}>
-                    <div className="text-white font-bold text-sm">{index + 1}</div>
-                  </TimelineDot>
-                </div>
-
-                {/* Stage Title */}
-                <TimelineContent>
-                  <TimelineTitle className="text-base">{stage.name}</TimelineTitle>
-                  <TimelineDescription>
-                    {stage.customerGoals.length} goals
-                  </TimelineDescription>
-                </TimelineContent>
-              </TimelineItem>
-            ))}
-          </Timeline>
-        </div>
-      </div>
-
-      {/* Selected Stage Details */}
-      {data.stages[selectedStage] && (
+      {currentStage && (
         <Card className="border-2 shadow-lg">
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                   <Badge className="bg-issue-story">Stage {selectedStage + 1}</Badge>
-                  {data.stages[selectedStage].name}
+                  {currentStage.name}
                 </h3>
               </div>
 
               <Accordion type="multiple" className="w-full" defaultValue={['customer-perspective']}>
-                {/* Customer Perspective */}
                 <AccordionItem value="customer-perspective">
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                     <div className="flex items-center gap-2">
@@ -216,63 +117,13 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="grid md:grid-cols-2 gap-4 p-4">
-                      {/* Customer Activities */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-blue-700 dark:text-blue-400">
-                          <User className="h-4 w-4" />
-                          Customer Activities
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].customerActivities}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'customerActivities', items)}
-                          colorScheme="blue"
-                        />
-                      </div>
-
-                      {/* Customer Goals */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-blue-700 dark:text-blue-400">
-                          <Target className="h-4 w-4" />
-                          Customer Goals
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].customerGoals}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'customerGoals', items)}
-                          colorScheme="blue"
-                        />
-                      </div>
-
-                      {/* Touchpoints */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-purple-700 dark:text-purple-400">
-                          <Smartphone className="h-4 w-4" />
-                          Touchpoints
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].touchpoints}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'touchpoints', items)}
-                          colorScheme="purple"
-                        />
-                      </div>
-
-                      {/* Experience */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-purple-700 dark:text-purple-400">
-                          <Heart className="h-4 w-4" />
-                          Experience
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].experience}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'experience', items)}
-                          colorScheme="purple"
-                        />
-                      </div>
-                    </div>
+                    <CustomerPerspective
+                      stage={currentStage}
+                      onUpdate={(field, val) => handleUpdateStage(selectedStage, field, val)}
+                    />
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Insights */}
                 <AccordionItem value="insights">
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                     <div className="flex items-center gap-2">
@@ -281,50 +132,13 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="grid md:grid-cols-3 gap-4 p-4">
-                      {/* Positives */}
-                      <div className="space-y-3 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 font-medium text-green-700 dark:text-green-400">
-                          <ThumbsUp className="h-4 w-4" />
-                          Positives
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].positives}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'positives', items)}
-                          colorScheme="green"
-                        />
-                      </div>
-
-                      {/* Negatives */}
-                      <div className="space-y-3 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 font-medium text-red-700 dark:text-red-400">
-                          <ThumbsDown className="h-4 w-4" />
-                          Negatives
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].negatives}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'negatives', items)}
-                          colorScheme="red"
-                        />
-                      </div>
-
-                      {/* Ideas & Opportunities */}
-                      <div className="space-y-3 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 font-medium text-yellow-700 dark:text-yellow-400">
-                          <Lightbulb className="h-4 w-4" />
-                          Ideas & Opportunities
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].ideasOpportunities}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'ideasOpportunities', items)}
-                          colorScheme="yellow"
-                        />
-                      </div>
-                    </div>
+                    <InsightsPerspective
+                      stage={currentStage}
+                      onUpdate={(field, val) => handleUpdateStage(selectedStage, field, val)}
+                    />
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Business Perspective */}
                 <AccordionItem value="business-perspective">
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                     <div className="flex items-center gap-2">
@@ -333,74 +147,10 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="grid md:grid-cols-2 gap-4 p-4">
-                      {/* Business Goal */}
-                      <div className="space-y-2 md:col-span-2">
-                        <div className="flex items-center gap-2 font-medium text-warning">
-                          <TrendingUp className="h-4 w-4" />
-                          Business Goal
-                        </div>
-                        <div className="text-sm bg-warning/10 p-3 rounded-lg border border-warning/30">
-                          <EditableText
-                            text={data.stages[selectedStage].businessGoal}
-                            onChange={(text) => handleUpdateStage(selectedStage, 'businessGoal', text)}
-                            placeholder="Business goal..."
-                          />
-                        </div>
-                      </div>
-
-                      {/* KPIs */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
-                          <BarChart3 className="h-4 w-4" />
-                          KPIs
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].kpis}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'kpis', items)}
-                          colorScheme="orange"
-                        />
-                      </div>
-
-                      {/* Organizational Activities */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
-                          <Users className="h-4 w-4" />
-                          Organizational Activities
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].organizationalActivities}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'organizationalActivities', items)}
-                          colorScheme="orange"
-                        />
-                      </div>
-
-                      {/* Responsibility */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
-                          <Shield className="h-4 w-4" />
-                          Responsibility
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].responsibility}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'responsibility', items)}
-                          colorScheme="orange"
-                        />
-                      </div>
-
-                      {/* Technology Systems */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 font-medium text-orange-700 dark:text-orange-400">
-                          <Cpu className="h-4 w-4" />
-                          Technology Systems
-                        </div>
-                        <StickyNotesList
-                          items={data.stages[selectedStage].technologySystems}
-                          onChange={(items) => handleUpdateStage(selectedStage, 'technologySystems', items)}
-                          colorScheme="orange"
-                        />
-                      </div>
-                    </div>
+                    <BusinessPerspective
+                      stage={currentStage}
+                      onUpdate={(field, val) => handleUpdateStage(selectedStage, field, val)}
+                    />
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

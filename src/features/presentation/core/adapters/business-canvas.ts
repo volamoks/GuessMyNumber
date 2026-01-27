@@ -3,9 +3,14 @@
  */
 
 import type { BusinessCanvasData } from '@/lib/schemas'
-import type { PresentationAST, SlideNode, BlockNode, ListNode, TableNode } from '../types/ast'
-
-const generateId = () => Math.random().toString(36).substring(2, 15)
+import type { PresentationAST } from '../types/ast'
+import {
+  createSlideNode,
+  createParagraphNode,
+  createListNode,
+  createTableNode,
+  createHeadingNode
+} from './ast-utils'
 
 interface CanvasBlock {
   key: keyof BusinessCanvasData
@@ -31,55 +36,34 @@ const CANVAS_BLOCKS: CanvasBlock[] = [
 export function businessCanvasToMarkdown(data: BusinessCanvasData): string {
   const slides: string[] = []
 
-  // Титульный слайд
   slides.push(`# ${data.title}\n\nBusiness Model Canvas`)
 
-  // Обзорный слайд с таблицей
-  slides.push(`## Business Model Overview
+  slides.push(`## Business Model Overview\n\n| Block | Items |\n|-------|-------|\n${CANVAS_BLOCKS.map(block => `| ${block.icon} ${block.title} | ${(data[block.key] as string[]).length} |`).join('\n')
+    }`)
 
-| Block | Items |
-|-------|-------|
-${CANVAS_BLOCKS.map(block => {
-    const items = data[block.key] as string[]
-    return `| ${block.icon} ${block.title} | ${items.length} |`
-  }).join('\n')}`)
-
-  // Слайды для каждого блока
   for (const block of CANVAS_BLOCKS) {
     const items = data[block.key] as string[]
     if (items.length > 0) {
-      slides.push(`## ${block.icon} ${block.title}
-
-${items.map(item => `- ${item}`).join('\n')}`)
+      slides.push(`## ${block.icon} ${block.title}\n\n${items.map(item => `- ${item}`).join('\n')}`)
     }
   }
 
-  // Value Proposition + Customer Segments (ключевая связь)
   const valueProps = data.valueProposition as string[]
   const segments = data.customerSegments as string[]
 
   if (valueProps.length > 0 && segments.length > 0) {
-    slides.push(`## Value-Customer Fit
-
-### Value Propositions
-${valueProps.map(item => `- ${item}`).join('\n')}
-
-### Target Customers
-${segments.map(item => `- ${item}`).join('\n')}`)
+    slides.push(`## Value-Customer Fit\n\n### Value Propositions\n${valueProps.map(item => `- ${item}`).join('\n')
+      }\n\n### Target Customers\n${segments.map(item => `- ${item}`).join('\n')
+      }`)
   }
 
-  // Сводка по финансам
   const costs = data.costStructure as string[]
   const revenue = data.revenueStreams as string[]
 
   if (costs.length > 0 || revenue.length > 0) {
-    slides.push(`## Financial Model
-
-### Cost Structure
-${costs.length > 0 ? costs.map(item => `- ${item}`).join('\n') : '- No costs defined'}
-
-### Revenue Streams
-${revenue.length > 0 ? revenue.map(item => `- ${item}`).join('\n') : '- No revenue streams defined'}`)
+    slides.push(`## Financial Model\n\n### Cost Structure\n${costs.length > 0 ? costs.map(item => `- ${item}`).join('\n') : '- No costs defined'
+      }\n\n### Revenue Streams\n${revenue.length > 0 ? revenue.map(item => `- ${item}`).join('\n') : '- No revenue streams defined'
+      }`)
   }
 
   return slides.join('\n\n---\n\n')
@@ -89,240 +73,53 @@ ${revenue.length > 0 ? revenue.map(item => `- ${item}`).join('\n') : '- No reven
  * Конвертирует Business Canvas данные напрямую в AST
  */
 export function businessCanvasToAST(data: BusinessCanvasData): PresentationAST {
-  const slides: SlideNode[] = []
-
-  // Титульный слайд
-  slides.push({
-    id: generateId(),
-    title: data.title,
-    children: [
-      {
-        type: 'paragraph',
-        children: [{ type: 'text', value: 'Business Model Canvas' }],
-      },
+  return {
+    slides: [
+      createSlideNode(data.title, [createParagraphNode('Business Model Canvas')], 'title'),
+      createOverviewSlide(data),
+      ...CANVAS_BLOCKS
+        .filter(b => (data[b.key] as string[]).length > 0)
+        .map(b => createSlideNode(`${b.icon} ${b.title}`, [createListNode(data[b.key] as string[])])),
+      ...createSpecialSlides(data)
     ],
-    layout: 'title',
-  })
+    metadata: { title: data.title },
+  }
+}
 
-  // Обзорная таблица
-  slides.push(createOverviewTableSlide(data))
+function createOverviewSlide(data: BusinessCanvasData) {
+  return createSlideNode('Business Model Overview', [
+    createTableNode(
+      ['Block', 'Items'],
+      CANVAS_BLOCKS.map(b => [`${b.icon} ${b.title}`, String((data[b.key] as string[]).length)])
+    )
+  ])
+}
 
-  // Слайды для каждого блока
-  for (const block of CANVAS_BLOCKS) {
-    const items = data[block.key] as string[]
-    if (items.length > 0) {
-      slides.push(createBlockSlide(block.title, block.icon, items))
-    }
+function createSpecialSlides(data: BusinessCanvasData) {
+  const slides = []
+  const vps = data.valueProposition as string[]
+  const css = data.customerSegments as string[]
+
+  if (vps.length > 0 && css.length > 0) {
+    slides.push(createSlideNode('Value-Customer Fit', [
+      createHeadingNode('Value Propositions', 3),
+      createListNode(vps),
+      createHeadingNode('Target Customers', 3),
+      createListNode(css)
+    ]))
   }
 
-  // Value-Customer Fit слайд
-  const valueProps = data.valueProposition as string[]
-  const segments = data.customerSegments as string[]
-
-  if (valueProps.length > 0 && segments.length > 0) {
-    slides.push(createValueCustomerFitSlide(valueProps, segments))
-  }
-
-  // Финансовый слайд
   const costs = data.costStructure as string[]
   const revenue = data.revenueStreams as string[]
 
   if (costs.length > 0 || revenue.length > 0) {
-    slides.push(createFinancialSlide(costs, revenue))
+    slides.push(createSlideNode('Financial Model', [
+      createHeadingNode('Cost Structure', 3),
+      createListNode(costs.length > 0 ? costs : ['No costs defined']),
+      createHeadingNode('Revenue Streams', 3),
+      createListNode(revenue.length > 0 ? revenue : ['No revenue streams defined'])
+    ]))
   }
 
-  return {
-    slides,
-    metadata: {
-      title: data.title,
-    },
-  }
-}
-
-function createOverviewTableSlide(data: BusinessCanvasData): SlideNode {
-  const table: TableNode = {
-    type: 'table',
-    headers: [
-      { type: 'table_cell', children: [{ type: 'text', value: 'Block' }], isHeader: true },
-      { type: 'table_cell', children: [{ type: 'text', value: 'Items' }], isHeader: true },
-    ],
-    rows: CANVAS_BLOCKS.map(block => {
-      const items = data[block.key] as string[]
-      return {
-        type: 'table_row',
-        cells: [
-          {
-            type: 'table_cell',
-            children: [{ type: 'text', value: `${block.icon} ${block.title}` }],
-          },
-          {
-            type: 'table_cell',
-            children: [{ type: 'text', value: String(items.length) }],
-          },
-        ],
-      }
-    }),
-  }
-
-  return {
-    id: generateId(),
-    title: 'Business Model Overview',
-    children: [table],
-    layout: 'content',
-  }
-}
-
-function createBlockSlide(title: string, icon: string, items: string[]): SlideNode {
-  const list: ListNode = {
-    type: 'list',
-    ordered: false,
-    items: items.map(item => ({
-      type: 'list_item',
-      children: [
-        {
-          type: 'paragraph',
-          children: [{ type: 'text', value: item }],
-        },
-      ],
-    })),
-  }
-
-  return {
-    id: generateId(),
-    title: `${icon} ${title}`,
-    children: [list],
-    layout: 'content',
-  }
-}
-
-function createValueCustomerFitSlide(valueProps: string[], segments: string[]): SlideNode {
-  const children: BlockNode[] = []
-
-  // Value Propositions
-  children.push({
-    type: 'heading',
-    level: 3,
-    children: [{ type: 'text', value: 'Value Propositions' }],
-  })
-
-  children.push({
-    type: 'list',
-    ordered: false,
-    items: valueProps.map(item => ({
-      type: 'list_item',
-      children: [
-        {
-          type: 'paragraph',
-          children: [{ type: 'text', value: item }],
-        },
-      ],
-    })),
-  })
-
-  // Customer Segments
-  children.push({
-    type: 'heading',
-    level: 3,
-    children: [{ type: 'text', value: 'Target Customers' }],
-  })
-
-  children.push({
-    type: 'list',
-    ordered: false,
-    items: segments.map(item => ({
-      type: 'list_item',
-      children: [
-        {
-          type: 'paragraph',
-          children: [{ type: 'text', value: item }],
-        },
-      ],
-    })),
-  })
-
-  return {
-    id: generateId(),
-    title: 'Value-Customer Fit',
-    children,
-    layout: 'content',
-  }
-}
-
-function createFinancialSlide(costs: string[], revenue: string[]): SlideNode {
-  const children: BlockNode[] = []
-
-  // Cost Structure
-  children.push({
-    type: 'heading',
-    level: 3,
-    children: [{ type: 'text', value: 'Cost Structure' }],
-  })
-
-  children.push({
-    type: 'list',
-    ordered: false,
-    items:
-      costs.length > 0
-        ? costs.map(item => ({
-            type: 'list_item' as const,
-            children: [
-              {
-                type: 'paragraph' as const,
-                children: [{ type: 'text' as const, value: item }],
-              },
-            ],
-          }))
-        : [
-            {
-              type: 'list_item' as const,
-              children: [
-                {
-                  type: 'paragraph' as const,
-                  children: [{ type: 'text' as const, value: 'No costs defined' }],
-                },
-              ],
-            },
-          ],
-  })
-
-  // Revenue Streams
-  children.push({
-    type: 'heading',
-    level: 3,
-    children: [{ type: 'text', value: 'Revenue Streams' }],
-  })
-
-  children.push({
-    type: 'list',
-    ordered: false,
-    items:
-      revenue.length > 0
-        ? revenue.map(item => ({
-            type: 'list_item' as const,
-            children: [
-              {
-                type: 'paragraph' as const,
-                children: [{ type: 'text' as const, value: item }],
-              },
-            ],
-          }))
-        : [
-            {
-              type: 'list_item' as const,
-              children: [
-                {
-                  type: 'paragraph' as const,
-                  children: [{ type: 'text' as const, value: 'No revenue streams defined' }],
-                },
-              ],
-            },
-          ],
-  })
-
-  return {
-    id: generateId(),
-    title: 'Financial Model',
-    children,
-    layout: 'content',
-  }
+  return slides
 }

@@ -1,0 +1,16 @@
+export const ROUTES = {
+    HOME: '/',
+    LOGIN: '/login',
+    PROJECTS: '/projects',
+    CJM: '/cjm',
+    BUSINESS_CANVAS: '/business-canvas',
+    LEAN_CANVAS: '/lean-canvas',
+    ROADMAP: '/roadmap',
+    GANTT: '/gantt',
+    SETTINGS: '/settings',
+    PROMPTS: '/prompts',
+    TEST_SUPABASE: '/test-supabase',
+    PRESENTATION: '/presentation',
+    TRANSCRIPTION: '/transcription',
+    PRESENTATION_VIEW: (id: string) => `/presentation/${id}`,
+} as const

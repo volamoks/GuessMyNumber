@@ -1,14 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { OperationType, Language } from '@/lib/services/ai-prompts'
-
-/**
- * Prompt template with multilingual support
- */
-export interface PromptTemplate {
-  ru: string
-  en: string
-}
+import type { OperationType, Language, PromptTemplate } from '../types'
+export type { OperationType, Language, PromptTemplate }
+import { PROMPTS as DEFAULT_PROMPTS } from '../constants/prompts'
 
 /**
  * AI Prompts Store State
@@ -49,10 +43,7 @@ interface AIPromptsState {
   isCustomized: (operation: OperationType) => boolean
 }
 
-/**
- * Default prompts - imported from ai-prompts service
- */
-import { PROMPTS as DEFAULT_PROMPTS } from '@/lib/services/ai-prompts'
+// DEFAULT_PROMPTS is already imported at the top from ../constants/prompts
 
 /**
  * AI Prompts Store

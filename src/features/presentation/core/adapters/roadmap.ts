@@ -3,9 +3,14 @@
  */
 
 import type { RoadmapData, RoadmapFeature } from '@/lib/schemas'
-import type { PresentationAST, SlideNode, BlockNode, ListNode, ListItemNode, TableNode } from '../types/ast'
-
-const generateId = () => Math.random().toString(36).substring(2, 15)
+import type { PresentationAST } from '../types/ast'
+import {
+  createSlideNode,
+  createParagraphNode,
+  createListNode,
+  createTableNode,
+  createTextNode
+} from './ast-utils'
 
 /**
  * Конвертирует Roadmap данные в markdown для презентации
@@ -13,45 +18,16 @@ const generateId = () => Math.random().toString(36).substring(2, 15)
 export function roadmapToMarkdown(data: RoadmapData): string {
   const slides: string[] = []
 
-  // Титульный слайд
   slides.push(`# ${data.title}\n\n${data.description || 'Product Roadmap'}`)
 
-  // Обзорный слайд
-  slides.push(`## Overview
+  slides.push(`## Overview\n\n- **Now**: ${data.now.length} features\n- **Next**: ${data.next.length} features\n- **Later**: ${data.later.length} features\n\nTotal: ${data.now.length + data.next.length + data.later.length} planned items`)
 
-- **Now**: ${data.now.length} features
-- **Next**: ${data.next.length} features
-- **Later**: ${data.later.length} features
+  if (data.now.length > 0) slides.push(`## Now - Current Focus\n\n${formatFeaturesMarkdown(data.now)}`)
+  if (data.next.length > 0) slides.push(`## Next - Coming Soon\n\n${formatFeaturesMarkdown(data.next)}`)
+  if (data.later.length > 0) slides.push(`## Later - Future Plans\n\n${formatFeaturesMarkdown(data.later)}`)
 
-Total: ${data.now.length + data.next.length + data.later.length} planned items`)
-
-  // Now слайд
-  if (data.now.length > 0) {
-    slides.push(`## Now - Current Focus
-
-${formatFeaturesList(data.now)}`)
-  }
-
-  // Next слайд
-  if (data.next.length > 0) {
-    slides.push(`## Next - Coming Soon
-
-${formatFeaturesList(data.next)}`)
-  }
-
-  // Later слайд
-  if (data.later.length > 0) {
-    slides.push(`## Later - Future Plans
-
-${formatFeaturesList(data.later)}`)
-  }
-
-  // Сводная таблица
-  slides.push(`## Feature Summary
-
-| Phase | Feature | Priority | Effort | Status |
-|-------|---------|----------|--------|--------|
-${formatFeaturesTable([...data.now, ...data.next, ...data.later])}`)
+  slides.push(`## Feature Summary\n\n| Phase | Feature | Priority | Effort | Status |\n|-------|---------|----------|--------|--------|\n${formatFeaturesTable([...data.now, ...data.next, ...data.later])
+    }`)
 
   return slides.join('\n\n---\n\n')
 }
@@ -60,187 +36,65 @@ ${formatFeaturesTable([...data.now, ...data.next, ...data.later])}`)
  * Конвертирует Roadmap данные напрямую в AST
  */
 export function roadmapToAST(data: RoadmapData): PresentationAST {
-  const slides: SlideNode[] = []
-
-  // Титульный слайд
-  slides.push({
-    id: generateId(),
-    title: data.title,
-    children: [
-      {
-        type: 'paragraph',
-        children: [{ type: 'text', value: data.description || 'Product Roadmap' }],
-      },
-    ],
-    layout: 'title',
-  })
-
-  // Обзорный слайд
-  slides.push({
-    id: generateId(),
-    title: 'Overview',
-    children: [createOverviewList(data)],
-    layout: 'content',
-  })
-
-  // Слайды для каждой фазы
-  if (data.now.length > 0) {
-    slides.push(createPhaseSlide('Now - Current Focus', data.now))
-  }
-
-  if (data.next.length > 0) {
-    slides.push(createPhaseSlide('Next - Coming Soon', data.next))
-  }
-
-  if (data.later.length > 0) {
-    slides.push(createPhaseSlide('Later - Future Plans', data.later))
-  }
-
-  // Сводная таблица
-  slides.push(createSummaryTableSlide([
+  const allFeatures = [
     ...data.now.map(f => ({ ...f, phase: 'Now' })),
     ...data.next.map(f => ({ ...f, phase: 'Next' })),
     ...data.later.map(f => ({ ...f, phase: 'Later' })),
-  ]))
+  ]
 
   return {
-    slides,
-    metadata: {
-      title: data.title,
-    },
+    slides: [
+      createSlideNode(data.title, [createParagraphNode(data.description || 'Product Roadmap')], 'title'),
+      createSlideNode('Overview', [
+        createListNode([
+          `Now: ${data.now.length} features`,
+          `Next: ${data.next.length} features`,
+          `Later: ${data.later.length} features`,
+          `Total: ${allFeatures.length} planned items`,
+        ])
+      ]),
+      ...(data.now.length > 0 ? [createPhaseSlide('Now - Current Focus', data.now)] : []),
+      ...(data.next.length > 0 ? [createPhaseSlide('Next - Coming Soon', data.next)] : []),
+      ...(data.later.length > 0 ? [createPhaseSlide('Later - Future Plans', data.later)] : []),
+      createSlideNode('Feature Summary', [
+        createTableNode(
+          ['Phase', 'Feature', 'Priority', 'Effort', 'Status'],
+          allFeatures.map(f => [f.phase, f.title, f.priority, f.effort, f.status])
+        )
+      ])
+    ],
+    metadata: { title: data.title },
   }
 }
 
-function formatFeaturesList(features: RoadmapFeature[]): string {
-  return features
-    .map(f => {
-      const priority = getPriorityEmoji(f.priority)
-      const status = getStatusEmoji(f.status)
-      return `- ${priority} **${f.title}** ${status}\n  ${f.description || 'No description'}\n  *Effort: ${f.effort} | Category: ${f.category}*`
-    })
-    .join('\n')
+function formatFeaturesMarkdown(features: RoadmapFeature[]): string {
+  return features.map(f =>
+    `- ${getPriorityEmoji(f.priority)} **${f.title}** ${getStatusEmoji(f.status)}\n  ${f.description || 'No description'}\n  *Effort: ${f.effort} | Category: ${f.category}*`
+  ).join('\n')
 }
 
 function formatFeaturesTable(features: RoadmapFeature[]): string {
-  return features
-    .map(f => `| ${getPhase(f)} | ${f.title} | ${f.priority} | ${f.effort} | ${f.status} |`)
-    .join('\n')
+  return features.map(f => `| ${getPhaseLabel(f)} | ${f.title} | ${f.priority} | ${f.effort} | ${f.status} |`).join('\n')
 }
 
-function getPhase(feature: RoadmapFeature): string {
-  // Определяем фазу на основе статуса
-  if (feature.status === 'done') return 'Now'
-  if (feature.status === 'in_progress') return 'Now'
-  return 'Later'
+function getPhaseLabel(f: RoadmapFeature): string {
+  return (f.status === 'done' || f.status === 'in_progress') ? 'Now' : 'Later'
 }
 
-function getPriorityEmoji(priority: string): string {
-  const map: Record<string, string> = {
-    high: '🔴',
-    medium: '🟡',
-    low: '🟢',
-  }
-  return map[priority] || '⚪'
-}
+const getPriorityEmoji = (p: string) => ({ high: '🔴', medium: '🟡', low: '🟢' }[p] || '⚪')
+const getStatusEmoji = (s: string) => ({ planning: '📋', in_progress: '🚧', done: '✅' }[s] || '📋')
 
-function getStatusEmoji(status: string): string {
-  const map: Record<string, string> = {
-    planning: '📋',
-    in_progress: '🚧',
-    done: '✅',
-  }
-  return map[status] || '📋'
-}
-
-function createOverviewList(data: RoadmapData): ListNode {
-  return {
-    type: 'list',
-    ordered: false,
-    items: [
-      createListItem(`Now: ${data.now.length} features`),
-      createListItem(`Next: ${data.next.length} features`),
-      createListItem(`Later: ${data.later.length} features`),
-      createListItem(`Total: ${data.now.length + data.next.length + data.later.length} planned items`),
-    ],
-  }
-}
-
-function createListItem(text: string): ListItemNode {
-  return {
-    type: 'list_item',
-    children: [
-      {
-        type: 'paragraph',
-        children: [{ type: 'text', value: text }],
-      },
-    ],
-  }
-}
-
-function createPhaseSlide(title: string, features: RoadmapFeature[]): SlideNode {
-  const children: BlockNode[] = []
-
-  const list: ListNode = {
-    type: 'list',
-    ordered: false,
-    items: features.map(f => ({
-      type: 'list_item',
+function createPhaseSlide(title: string, features: RoadmapFeature[]) {
+  return createSlideNode(title, [
+    createListNode(features.map(f => ({
+      type: 'list_item' as const,
       children: [
-        {
-          type: 'paragraph',
-          children: [
-            { type: 'text', value: f.title, marks: [{ type: 'bold' }] },
-            { type: 'text', value: ` (${f.priority} priority, ${f.effort} effort)` },
-          ],
-        },
-        ...(f.description
-          ? [
-              {
-                type: 'paragraph' as const,
-                children: [{ type: 'text' as const, value: f.description }],
-              },
-            ]
-          : []),
-      ],
-    })),
-  }
-
-  children.push(list)
-
-  return {
-    id: generateId(),
-    title,
-    children,
-    layout: 'content',
-  }
-}
-
-function createSummaryTableSlide(features: (RoadmapFeature & { phase: string })[]): SlideNode {
-  const table: TableNode = {
-    type: 'table',
-    headers: [
-      { type: 'table_cell', children: [{ type: 'text', value: 'Phase' }], isHeader: true },
-      { type: 'table_cell', children: [{ type: 'text', value: 'Feature' }], isHeader: true },
-      { type: 'table_cell', children: [{ type: 'text', value: 'Priority' }], isHeader: true },
-      { type: 'table_cell', children: [{ type: 'text', value: 'Effort' }], isHeader: true },
-      { type: 'table_cell', children: [{ type: 'text', value: 'Status' }], isHeader: true },
-    ],
-    rows: features.map(f => ({
-      type: 'table_row',
-      cells: [
-        { type: 'table_cell', children: [{ type: 'text', value: f.phase }] },
-        { type: 'table_cell', children: [{ type: 'text', value: f.title }] },
-        { type: 'table_cell', children: [{ type: 'text', value: f.priority }] },
-        { type: 'table_cell', children: [{ type: 'text', value: f.effort }] },
-        { type: 'table_cell', children: [{ type: 'text', value: f.status }] },
-      ],
-    })),
-  }
-
-  return {
-    id: generateId(),
-    title: 'Feature Summary',
-    children: [table],
-    layout: 'content',
-  }
+        createParagraphNode([
+          createTextNode(f.title, true),
+          createTextNode(` (${f.priority} priority, ${f.effort} effort)`)
+        ]),
+        ...(f.description ? [createParagraphNode(f.description)] : [])
+      ]
+    })))
+  ])
 }

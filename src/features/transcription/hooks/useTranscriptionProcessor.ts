@@ -7,7 +7,7 @@ import { useTranscriptionStore } from '../store/transcriptionStore'
 import { MEETING_TEMPLATES } from '@/lib/meeting-templates'
 import { getModel } from '@/lib/ai/vercel-ai'
 import { transcribeAudioDirect } from '@/lib/ai/direct-transcribe'
-import { fileToGenerativePart } from '@/lib/audio-utils'
+import { audioBlobToBase64 } from '@/utils/audio-helpers'
 
 export function useTranscriptionProcessor() {
     const [isProcessing, setIsProcessing] = useState(false)
@@ -29,7 +29,7 @@ export function useTranscriptionProcessor() {
 
         setIsProcessing(true)
         try {
-            const base64Audio = await fileToGenerativePart(audioBlob)
+            const base64Audio = await audioBlobToBase64(audioBlob)
             const { configuredModels, models } = useAIStore.getState()
             const activeModelId = models.transcription
             const activeConfig = configuredModels.find(m => m.id === activeModelId)

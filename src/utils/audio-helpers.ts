@@ -5,7 +5,7 @@
 /**
  * Convert Audio Blob to Base64 string for API consumption
  */
-export async function fileToGenerativePart(file: Blob): Promise<string> {
+export async function audioBlobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onloadend = () => {
@@ -13,7 +13,7 @@ export async function fileToGenerativePart(file: Blob): Promise<string> {
             resolve(base64String)
         }
         reader.onerror = reject
-        reader.readAsDataURL(file)
+        reader.readAsDataURL(blob)
     })
 }
 
