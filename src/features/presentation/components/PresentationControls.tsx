@@ -286,8 +286,18 @@ export function PresentationControls() {
                 id = store.createPresentation('Untitled')
               }
 
-              const toastId = toast.loading('Creating collaboration session...')
               const url = `${window.location.origin}/presentation/${id}`
+              const toastId = toast.loading('Creating collaboration session...')
+
+              // Safari requires clipboard write to be triggered directly by user user interaction
+              // so we must do it BEFORE any await calls (like Supabase)
+              try {
+                await navigator.clipboard.writeText(url)
+                toast.success('Link copied! Syncing to server...', { id: toastId })
+              } catch (clipErr) {
+                console.warn('Clipboard failed:', clipErr)
+                toast.error('Could not copy link manually. ID: ' + id, { id: toastId })
+              }
 
               // Ensure row exists in Supabase
               try {
@@ -301,17 +311,19 @@ export function PresentationControls() {
                 if (error) {
                   console.error('Supabase error:', error)
                   if (error.code === '42P01') { // undefined_table
-                    toast.error('SQL setup missing. Please run setup_supabase.sql', { id: toastId })
+                    toast.error('SQL setup missing. Run setup_complete.sql', { id: toastId })
                     return
                   }
                   if (error.message && error.message.includes('404')) {
-                    toast.error('Database table not found. Run SQL script!', { id: toastId })
+                    toast.error('Table not found. Run SQL script!', { id: toastId })
                     return
                   }
+                  toast.error('Sync failed: ' + error.message, { id: toastId })
+                } else {
+                  // Success - no need to update toast if we already said "Link copied"
+                  // unless we want to confirm sync
+                  // toast.success('Link copied and synced!', { id: toastId })
                 }
-
-                await navigator.clipboard.writeText(url)
-                toast.success('Link copied! Ready to collaborate.', { id: toastId })
 
                 if (!window.location.pathname.includes(id)) {
                   // Use replaceState to avoid cluttering history, or pushState.
