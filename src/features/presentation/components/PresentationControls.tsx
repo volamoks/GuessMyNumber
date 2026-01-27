@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '@/features/presentation/hooks/useCollaboration'
+import { supabase } from '@/lib/supabase'
 
 // ... existing imports
 

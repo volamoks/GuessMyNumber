@@ -1,19 +1,15 @@
 import { useEffect, useState, useRef } from 'react'
 import * as Y from 'yjs'
 import SupabaseProvider from 'y-supabase/dist/index.js'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import { usePresentationStore } from '@/store'
-
-// We need a stable supabase client instance
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-export const supabase = createClient(supabaseUrl, supabaseKey)
 
 export function useCollaboration(documentId: string | undefined) {
     const { markdown, setMarkdown } = usePresentationStore()
     const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
     const [ydoc] = useState(() => new Y.Doc())
     const [isSynced, setIsSynced] = useState(false)
+    const [isReady, setIsReady] = useState(false)
     const isRemoteUpdate = useRef(false)
 
     useEffect(() => {
@@ -21,6 +17,7 @@ export function useCollaboration(documentId: string | undefined) {
 
         setStatus('connecting')
         setIsSynced(false)
+        setIsReady(false)
 
         // Connect to Supabase
         const provider = new SupabaseProvider(ydoc, supabase, {
@@ -59,13 +56,25 @@ export function useCollaboration(documentId: string | undefined) {
         provider.on('sync', (isSynced: boolean) => {
             console.log('Synced with backend:', isSynced)
             setIsSynced(isSynced)
-            if (isSynced && yText.toString() === '' && markdown.length > 50) {
-                // Heuristic: If remote is empty and we have "substantial" content, we are likely the creator seeding the doc.
-                // This is imperfect (what if I just deleted everything?) but solves the "Share Button" empty start.
-                console.log('Seeding remote with local content')
-                ydoc.transact(() => {
-                    yText.applyDelta([{ insert: markdown }])
-                }, 'local')
+
+            if (isSynced) {
+                const content = yText.toString()
+                if (content.length > 0) {
+                    // Remote has content. Adopt it immediately.
+                    console.log('Adopting remote content')
+                    setMarkdown(content)
+                    setIsReady(true)
+                } else if (markdown.length > 50) {
+                    // Remote is empty, local has content. Seed remote.
+                    console.log('Seeding remote with local content')
+                    ydoc.transact(() => {
+                        yText.applyDelta([{ insert: markdown }])
+                    }, 'local')
+                    setIsReady(true)
+                } else {
+                    // Both empty? Ready to edit.
+                    setIsReady(true)
+                }
             }
         })
 
@@ -77,20 +86,16 @@ export function useCollaboration(documentId: string | undefined) {
 
         return () => {
             provider.destroy()
-            // We don't destroy ydoc here because we passed it to state, but we could if we want fresh every time ID changes.
-            // Actually strictly we should destroy ydoc if we created it in this scope.
-            // But we put it in useState lazy init for stability.
-            // Ideally we re-create ydoc if ID changes?
-            // For now, simple cleanup:
             ydoc.destroy()
+            setIsReady(false)
         }
     }, [documentId]) // Re-run if ID changes
 
     // 3. Listen to local markdown changes and push to Yjs
     useEffect(() => {
-        // Wait until we are synced before pushing local changes.
+        // Wait until we are synced AND ready (loaded remote content) before pushing local changes.
         // This prevents the local "default template" from overwriting remote content on load.
-        if (!documentId || isRemoteUpdate.current || !isSynced) return
+        if (!documentId || isRemoteUpdate.current || !isSynced || !isReady) return
 
         const yText = ydoc.getText('markdown')
         const currentYText = yText.toString()
@@ -102,7 +107,7 @@ export function useCollaboration(documentId: string | undefined) {
                 yText.insert(0, markdown)
             }, 'local')
         }
-    }, [markdown, documentId, isSynced])
+    }, [markdown, documentId, isSynced, isReady])
 
     return { status, connectedUsers: [] }
 }
