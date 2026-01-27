@@ -108,6 +108,33 @@ export function useCollaboration(documentId: string | undefined) {
                 }
             })
 
+            // Fallback: If sync event doesn't fire within 3 seconds, check manually
+            const syncTimeout = setTimeout(() => {
+                if (!isSynced) {
+                    console.warn('[Collaboration] Sync event did not fire after 3s, checking manually...')
+                    const content = yText.toString()
+                    console.log('[Collaboration] Manual check - content length:', content.length)
+
+                    if (content.length > 0) {
+                        console.log('[Collaboration] Found content via manual check, adopting')
+                        setMarkdown(content)
+                        setIsReady(true)
+                        setIsSynced(true)
+                    } else if (markdown.trim().length > 0) {
+                        console.log('[Collaboration] No remote content, seeding with local (length:', markdown.length, ')')
+                        ydoc.transact(() => {
+                            yText.applyDelta([{ insert: markdown }])
+                        }, 'local')
+                        setIsReady(true)
+                        setIsSynced(true)
+                    } else {
+                        console.log('[Collaboration] Both empty after manual check')
+                        setIsReady(true)
+                        setIsSynced(true)
+                    }
+                }
+            }, 3000)
+
             // 2. Listen to remote Yjs changes and update local state
             const handleYjsChange = () => {
                 try {
@@ -136,6 +163,7 @@ export function useCollaboration(documentId: string | undefined) {
             return () => {
                 console.log('[Collaboration] Cleaning up for documentId:', documentId)
                 try {
+                    clearTimeout(syncTimeout)
                     yText.unobserve(handleYjsChange)
                     provider.destroy()
                     ydoc.destroy()
