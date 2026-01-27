@@ -41,12 +41,13 @@ export function usePresentationSync() {
         }
 
         try {
+            // Note: We don't save 'content' here - y-supabase manages that field
+            // It stores Yjs binary state, not plain markdown text
             const { error } = await supabase
                 .from('presentations')
                 .upsert({
                     id,
                     title: currentPresentation?.title || 'Untitled Presentation',
-                    content: store.markdown, // Save the actual markdown content
                 })
 
             if (error) {
