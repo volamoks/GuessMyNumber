@@ -31,38 +31,20 @@ export function renderBlockquote(
     fullText,
     context.slideStyle.bodyFontSize,
     context.slideStyle.lineSpacing,
-    context.contentWidth - 0.5 // учитываем padding
+    context.contentWidth
   )
 
-  const totalHeight = Math.max(0.8, height + 0.4)
+  const totalHeight = Math.max(0.5, height + 0.2)
 
-  // Добавляем фон
-  slide.addShape('rect', {
+  // Добавляем текст как один элемент — bold italic
+  slide.addText(fullText, {
     x: context.slideStyle.padding,
     y: context.currentY,
     w: context.contentWidth,
     h: totalHeight,
-    fill: { color: 'F3F4F6' },
-  })
-
-  // Добавляем акцентную полосу слева
-  slide.addShape('rect', {
-    x: context.slideStyle.padding,
-    y: context.currentY,
-    w: 0.05, // Тонкая полоска
-    h: totalHeight,
-    fill: { color: hexToColor(context.theme.primaryColor) },
-  })
-
-  // Добавляем текст поверх фона
-  slide.addText(fullText, {
-    x: context.slideStyle.padding + 0.3,
-    y: context.currentY + 0.15,
-    w: context.contentWidth - 0.5,
-    h: totalHeight - 0.3,
     fontSize: context.slideStyle.bodyFontSize,
     color: hexToColor(context.theme.textColor),
-    transparency: 20, // ~CC is 80% opacity, so 20% transparency
+    bold: true,
     italic: true,
     valign: 'top',
     lineSpacing: context.slideStyle.lineSpacing * context.slideStyle.bodyFontSize,

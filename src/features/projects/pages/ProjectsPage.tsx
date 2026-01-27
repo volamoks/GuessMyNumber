@@ -127,12 +127,29 @@ export function ProjectsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-          Мои проекты
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Все ваши сохранённые Customer Journey Maps и Business Canvases
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              Мои проекты
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Все ваши сохранённые Customer Journey Maps и Business Canvases
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Select onValueChange={(value) => navigate(value)}>
+              <SelectTrigger className="w-[180px] bg-primary text-primary-foreground hover:bg-primary/90 border-0">
+                <SelectValue placeholder="+ Новый проект" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="/cjm">Customer Journey Map</SelectItem>
+                <SelectItem value="/business-canvas">Business Model Canvas</SelectItem>
+                <SelectItem value="/lean-canvas">Lean Canvas</SelectItem>
+                <SelectItem value="/roadmap">Product Roadmap</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Stats */}

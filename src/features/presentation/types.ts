@@ -45,6 +45,7 @@ export interface PresentationSettings {
   // Fonts
   fontFamily: string
   slideStyle: SlideStyle
+  autoFit?: boolean // Automatically scale content to fit slide
 
   // Branding
   logo: LogoSettings

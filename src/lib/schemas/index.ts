@@ -99,6 +99,8 @@ export const RoadmapFeatureSchema = z.object({
     .default('feature'),
   effort: z.enum(['small', 'medium', 'large']).default('medium'),
   status: z.enum(['planning', 'in_progress', 'done']).default('planning'),
+  startDate: z.string().nullable().optional(),
+  endDate: z.string().nullable().optional(),
 })
 
 /**

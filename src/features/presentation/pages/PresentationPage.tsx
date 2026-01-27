@@ -5,19 +5,26 @@ import { SlidePreview } from '@/features/presentation/components/SlidePreview'
 import { PresentationControls } from '@/features/presentation/components/PresentationControls'
 import { SlideThumbnails } from '@/features/presentation/components/SlideThumbnails'
 import { PresentationSettings } from '@/features/presentation/components/PresentationSettings'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { PresentationMode } from '@/features/presentation/components/PresentationMode'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BookOpen, X, GripVertical, Copy, Settings } from 'lucide-react'
+import { BookOpen, GripVertical, Copy, Settings } from 'lucide-react'
 import { MARKDOWN_CHEATSHEET } from '@/features/presentation/utils/markdown-rules'
 import { toast } from 'sonner'
 import { AICopilotSidebar } from '@/features/ai-copilot/components/AICopilotSidebar'
+import { useParams } from 'react-router-dom'
+import { useCollaboration } from '../hooks/useCollaboration'
 import { usePresentationStore } from '@/store'
 
 export function PresentationPage() {
+  const { id } = useParams<{ id: string }>()
+  const { status } = useCollaboration(id)
+
   const [showCheatsheet, setShowCheatsheet] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [thumbnailsWidth, setThumbnailsWidth] = useState(180)
-  const [editorWidth, setEditorWidth] = useState(50) // percentage of remaining space
+  const [editorWidth, setEditorWidth] = useState(40) // percentage of remaining space
   const containerRef = useRef<HTMLDivElement>(null)
   const isDraggingThumbnails = useRef(false)
   const isDraggingEditor = useRef(false)
@@ -37,7 +44,7 @@ export function PresentationPage() {
     if (isDraggingEditor.current) {
       const remainingWidth = containerRect.width - thumbnailsWidth
       const editorX = e.clientX - containerRect.left - thumbnailsWidth
-      const newPercent = Math.max(30, Math.min(70, (editorX / remainingWidth) * 100))
+      const newPercent = Math.max(10, Math.min(90, (editorX / remainingWidth) * 100))
       setEditorWidth(newPercent)
     }
   }, [thumbnailsWidth])
@@ -72,9 +79,19 @@ export function PresentationPage() {
       {/* Header */}
       <header className="border-b px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Presentation Builder</h1>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            Presentation Builder
+            {id && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border ${status === 'connected' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                status === 'connecting' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                  'bg-red-500/10 text-red-500 border-red-500/20'
+                }`}>
+                {status === 'connected' ? 'Online' : status}
+              </span>
+            )}
+          </h1>
           <p className="text-xs text-muted-foreground">
-            Markdown to PPTX
+            {id ? 'Collaborating via Supabase' : 'Markdown to PPTX'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -97,58 +114,47 @@ export function PresentationPage() {
         </div>
       </header>
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <Card className="mx-4 mt-2 p-4 bg-muted/50 relative max-h-[600px] overflow-y-auto">
-          <div className="flex items-center justify-between mb-3 sticky top-0 bg-muted/50 pb-2">
-            <h3 className="font-semibold text-sm">⚙️ Настройки презентации</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setShowSettings(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* Settings Dialog */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Presentation Settings
+            </DialogTitle>
+          </DialogHeader>
           <PresentationSettings />
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {/* Cheatsheet Panel */}
-      {showCheatsheet && (
-        <Card className="mx-4 mt-2 p-4 bg-muted/50 relative max-h-[400px] overflow-y-auto">
-          <div className="flex items-center justify-between mb-3 sticky top-0 bg-muted/50 pb-2">
-            <h3 className="font-semibold text-sm">📖 Markdown Шпаргалка для Презентаций</h3>
-            <div className="flex gap-2">
+      {/* Cheatsheet Dialog */}
+      <Dialog open={showCheatsheet} onOpenChange={setShowCheatsheet}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Markdown Cheatsheet
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
+                className="gap-2 mr-6" // Margin for close button
                 onClick={() => {
                   navigator.clipboard.writeText(MARKDOWN_CHEATSHEET)
-                  toast.success('Скопировано в буфер обмена!')
+                  toast.success('Copied all rules!')
                 }}
               >
-                <Copy className="h-3 w-3 mr-1" />
-                <span className="text-xs">Копировать всё</span>
+                <Copy className="h-4 w-4" />
+                Copy All
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setShowCheatsheet(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Markdown Preview with prose styling */}
-          <article className="prose prose-sm dark:prose-invert max-w-none">
+            </DialogTitle>
+          </DialogHeader>
+          <article className="prose prose-sm dark:prose-invert max-w-none border rounded-lg p-4 bg-muted/30">
             <ReactMarkdown>{MARKDOWN_CHEATSHEET}</ReactMarkdown>
           </article>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Controls */}
       <PresentationControls />
@@ -197,10 +203,17 @@ export function PresentationPage() {
           <div className="p-2 border-b bg-muted/50">
             <h3 className="font-semibold text-xs">Preview</h3>
           </div>
-          <div className="flex-1 p-4 flex items-center justify-center overflow-auto">
-            <div className="w-full max-w-4xl">
-              <SlidePreview className="shadow-lg" />
-            </div>
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            <SlidePreview
+              className="shadow-2xl transition-all duration-300 transform"
+              style={{
+                width: '100%',
+                maxHeight: '100%',
+                aspectRatio: '16/9',
+                // Fallback for browsers that handle aspect-ratio + max-height weirdly for width
+                margin: 'auto'
+              }}
+            />
           </div>
         </div>
       </div>
@@ -209,6 +222,8 @@ export function PresentationPage() {
         contextType="presentation"
         contextData={{ slides, markdown }}
       />
+
+      <PresentationMode />
     </div>
   )
 }

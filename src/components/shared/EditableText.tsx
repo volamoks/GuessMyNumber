@@ -7,9 +7,10 @@ interface EditableTextProps {
   text: string
   onChange: (newText: string) => void
   placeholder?: string
+  className?: string
 }
 
-export function EditableText({ text, onChange, placeholder = 'Введите текст...' }: EditableTextProps) {
+export function EditableText({ text, onChange, placeholder = 'Введите текст...', className }: EditableTextProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState('')
 
@@ -31,7 +32,7 @@ export function EditableText({ text, onChange, placeholder = 'Введите т�
   }
 
   return (
-    <div>
+    <div className={className}>
       {isEditing ? (
         <div className="space-y-2">
           <Textarea
@@ -57,12 +58,12 @@ export function EditableText({ text, onChange, placeholder = 'Введите т�
         </div>
       ) : (
         <div className="group relative">
-          <p 
-            className="text-sm font-medium leading-relaxed cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded px-2 py-1 -mx-2 -my-1 transition-colors" 
+          <p
+            className="text-sm font-medium leading-relaxed cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
             onClick={handleStartEdit}
             title="Кликните чтобы редактировать"
           >
-            {text}
+            {text || <span className="text-muted-foreground italic">{placeholder}</span>}
           </p>
           <Button
             size="sm"

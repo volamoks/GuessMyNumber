@@ -156,6 +156,17 @@ export function PresentationSettings() {
 
             <div className="border rounded-md p-3 space-y-3">
               <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Auto-Fit Content</Label>
+                  <p className="text-xs text-muted-foreground">Scale text to fit slide (PDF/Preview only)</p>
+                </div>
+                <Switch
+                  checked={settings.autoFit || false}
+                  onCheckedChange={(checked) => setSettings({ autoFit: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Show Date on Slides</Label>
                 <Switch
                   checked={settings.showDate || false}

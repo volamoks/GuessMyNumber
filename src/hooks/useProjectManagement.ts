@@ -74,17 +74,32 @@ export function useProjectManagement<T>(
   }
 
   const save = useCallback(
-    async (data: T): Promise<boolean> => {
+    async (data: T, options?: { silent?: boolean }): Promise<boolean> => {
       if (!currentProjectId || !saveFn) {
-        toast.error('Проект не выбран или функция сохранения недоступна')
+        if (!options?.silent) toast.error('Проект не выбран или функция сохранения недоступна')
         return false
       }
 
-      const result = await executeOperation(
-        async () => {
-          await saveFn(currentProjectId, data)
+      const operation = async () => {
+        await saveFn(currentProjectId, data)
+        return true
+      }
+
+      if (options?.silent) {
+        setIsSaving(true)
+        try {
+          await operation()
           return true
-        },
+        } catch (error) {
+          console.error('Auto-save error:', error)
+          return false
+        } finally {
+          setIsSaving(false)
+        }
+      }
+
+      const result = await executeOperation(
+        operation,
         setIsSaving,
         'Сохранение...',
         'Данные сохранены в проект!',

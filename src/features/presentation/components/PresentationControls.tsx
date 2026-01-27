@@ -1,4 +1,9 @@
 import { useState } from 'react'
+import { supabase } from '@/features/presentation/hooks/useCollaboration'
+
+// ... existing imports
+
+
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -9,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Download, ChevronLeft, ChevronRight, Save, FileText, Wand2, LayoutTemplate, Import, MoreHorizontal } from 'lucide-react'
+import { Download, ChevronLeft, ChevronRight, Save, FileText, Wand2, LayoutTemplate, Import, MoreHorizontal, Play, Share2 } from 'lucide-react'
 import { usePresentationStore } from '@/store'
 import { DEFAULT_THEMES, DEFAULT_TEMPLATES } from '@/features/presentation/types'
 import { exportToPptx } from '@/features/presentation/services/pptx-export'
@@ -29,13 +34,22 @@ export function PresentationControls() {
       return
     }
 
+    // Get title from markdown if current presentation title looks like a UUID or is empty
+    const h1Match = markdown.match(/^#\s+(.+)$/m)
+    const extractedTitle = h1Match ? h1Match[1].trim() : 'Presentation'
+
+    const currentTitle = currentPresentation?.title || extractedTitle
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentTitle) ||
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentTitle)
+    const finalTitle = isUuid ? extractedTitle : currentTitle
+
     store.setIsExporting(true)
     try {
       await exportToPptx(slides, {
-        title: currentPresentation?.title || 'Presentation',
+        title: finalTitle,
         author: settings.author || currentPresentation?.author,
         company: settings.company,
-        theme: theme, // Don't override fontFamily for now
+        theme: theme,
         slideStyle: settings.slideStyle,
         slideSize: settings.layout,
         logo: settings.logo,
@@ -44,10 +58,10 @@ export function PresentationControls() {
         footer: settings.footer,
         showDate: settings.showDate,
       }, markdown)
-      toast.success('Presentation exported successfully!')
+      toast.success('Презентация успешно экспортирована!')
     } catch (err) {
       console.error('Export failed:', err)
-      toast.error('Failed to export presentation')
+      toast.error('Ошибка при экспорте презентации')
     } finally {
       store.setIsExporting(false)
     }
@@ -81,6 +95,75 @@ export function PresentationControls() {
     // Append to existing markdown
     const newMarkdown = markdown + '\n\n---\n\n' + importedMarkdown
     store.setMarkdown(newMarkdown)
+  }
+
+  const handleExportPdf = async () => {
+    if (slides.length === 0) {
+      toast.error('No slides to export')
+      return
+    }
+
+    store.setIsExporting(true)
+    const toastId = toast.loading('Подготовка PDF...')
+
+    try {
+      const { jsPDF } = await import('jspdf')
+      const html2canvas = (await import('html2canvas')).default
+
+      // Create PDF in landscape 16:9
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [1920, 1080],
+      })
+
+      // Get title from markdown if current presentation title looks like a UUID or is empty
+      const h1Match = markdown.match(/^#\s+(.+)$/m)
+      const extractedTitle = h1Match ? h1Match[1].trim() : 'Presentation'
+
+      const currentTitle = currentPresentation?.title || extractedTitle
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentTitle) ||
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentTitle)
+      const finalTitle = isUuid ? extractedTitle : currentTitle
+
+      const originalIndex = currentSlideIndex
+
+      for (let i = 0; i < slides.length; i++) {
+        toast.loading(`Рендеринг слайда ${i + 1} из ${slides.length}...`, { id: toastId })
+
+        store.setCurrentSlideIndex(i)
+        await new Promise(resolve => setTimeout(resolve, 500)) // More time for heavy renders (Mermaid etc)
+
+        const mainPreview = document.querySelector('.flex-1.p-4.flex.items-center.justify-center.overflow-auto .aspect-video')
+
+        if (mainPreview) {
+          const canvas = await html2canvas(mainPreview as HTMLElement, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: theme.backgroundColor,
+          })
+
+          const imgData = canvas.toDataURL('image/jpeg', 0.95)
+
+          if (i > 0) pdf.addPage()
+          pdf.addImage(imgData, 'JPEG', 0, 0, 1920, 1080)
+        }
+      }
+
+      // Restore original slide
+      store.setCurrentSlideIndex(originalIndex)
+
+      const sanitizedTitle = finalTitle.replace(/[^\p{L}\p{N}\s_-]/gu, '').trim().replace(/\s+/g, '_') || 'Presentation'
+      pdf.save(`${sanitizedTitle}.pdf`)
+
+      toast.success('PDF успешно экспортирован!', { id: toastId })
+    } catch (err) {
+      console.error('PDF export failed:', err)
+      toast.error('Ошибка при экспорте PDF', { id: toastId })
+    } finally {
+      store.setIsExporting(false)
+    }
   }
 
   return (
@@ -147,6 +230,16 @@ export function PresentationControls() {
 
           <div className="flex items-center gap-1">
             <Button
+              variant="default"
+              size="sm"
+              onClick={() => store.setIsFullscreen(true)}
+              className="mr-1 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Play
+            </Button>
+
+            <Button
               variant="outline"
               size="sm"
               onClick={() => setShowAIDialog(true)}
@@ -185,20 +278,85 @@ export function PresentationControls() {
           <Button
             variant="outline"
             size="sm"
+            onClick={async () => {
+              let id = currentPresentation?.id
+
+              if (!id) {
+                store.createPresentation('Untitled')
+                id = crypto.randomUUID()
+              }
+
+              const toastId = toast.loading('Creating collaboration session...')
+              const url = `${window.location.origin}/presentation/${id}`
+
+              // Ensure row exists in Supabase
+              try {
+                const { error } = await supabase
+                  .from('presentations')
+                  .upsert({
+                    id,
+                    title: 'Untitled Presentation',
+                  })
+
+                if (error) {
+                  console.error('Supabase error:', error)
+                  if (error.code === '42P01') { // undefined_table
+                    toast.error('SQL setup missing. Please run setup_supabase.sql', { id: toastId })
+                    return
+                  }
+                  if (error.message && error.message.includes('404')) {
+                    toast.error('Database table not found. Run SQL script!', { id: toastId })
+                    return
+                  }
+                }
+
+                navigator.clipboard.writeText(url)
+                toast.success('Link copied! Ready to collaborate.', { id: toastId })
+
+                if (!window.location.pathname.includes(id)) {
+                  window.history.pushState({}, '', `/presentation/${id}`)
+                  window.location.reload()
+                }
+              } catch (e) {
+                console.error(e)
+                toast.error('Failed to create session. Check DB setup.', { id: toastId })
+              }
+            }}
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSave}
           >
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
 
-          <Button
-            onClick={handleExport}
-            size="sm"
-            disabled={isExporting || slides.length === 0}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                disabled={isExporting || slides.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExport}>
+                <FileText className="h-4 w-4 mr-2" />
+                PowerPoint (.pptx)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPdf}>
+                <FileText className="h-4 w-4 mr-2" />
+                PDF (.pdf)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

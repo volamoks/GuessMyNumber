@@ -57,7 +57,7 @@ export function AIGenerator({ onGenerate, isGenerating }: AIGeneratorProps) {
   }
 
   return (
-    <div className="p-4 border rounded-lg bg-muted/50 space-y-4">
+    <div className="space-y-4">
       <div className="space-y-2">
         <label className="text-sm font-medium">
           Язык генерации / Generation language
@@ -80,11 +80,11 @@ export function AIGenerator({ onGenerate, isGenerating }: AIGeneratorProps) {
             : 'Describe your business and target audience'}
         </label>
         <textarea
-          className="w-full min-h-[120px] p-3 rounded-md border bg-background"
+          className="w-full min-h-[120px] p-3 rounded-md border bg-background focus:ring-1 focus:ring-primary outline-none resize-none"
           placeholder={
             language === 'ru'
-              ? "Например: Мы продаем онлайн-курсы по программированию для начинающих разработчиков. Наша целевая аудитория - люди 20-35 лет, которые хотят сменить профессию..."
-              : "Example: We sell online programming courses for beginner developers. Our target audience is 20-35 year olds who want to change careers..."
+              ? "Например: Мы продаем онлайн-курсы по программированию для начинающих разработчиков..."
+              : "Example: We sell online programming courses..."
           }
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -120,7 +120,7 @@ export function AIGenerator({ onGenerate, isGenerating }: AIGeneratorProps) {
         ) : (
           <>
             <Sparkles className="mr-2 h-4 w-4" />
-            {language === 'ru' ? 'Сгенерировать CJM с AI' : 'Generate CJM with AI'}
+            {language === 'ru' ? 'Сгенерировать AI' : 'Generate with AI'}
           </>
         )}
       </Button>

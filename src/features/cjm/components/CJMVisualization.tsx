@@ -14,6 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { cn } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StickyNotesList } from '@/components/shared/StickyNotesList'
@@ -32,6 +33,7 @@ import {
   ThumbsDown,
   Lightbulb,
 } from 'lucide-react'
+import { CJMGridView } from './CJMGridView'
 
 interface CJMStage {
   name: string
@@ -64,10 +66,12 @@ interface CJMVisualizationProps {
 
 export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisualizationProps) {
   const [selectedStage, setSelectedStage] = useState<number>(0)
+  const [viewMode, setViewMode] = useState<'timeline' | 'grid'>('grid')
 
   const handleUpdateStage = (stageIndex: number, field: keyof CJMStage, value: string | string[]) => {
     if (!onUpdate) return
     const newStages = [...data.stages]
+    // @ts-ignore
     newStages[stageIndex] = { ...newStages[stageIndex], [field]: value }
     onUpdate({ ...data, stages: newStages })
   }
@@ -86,17 +90,70 @@ export function CJMVisualization({ data, visualizationId, onUpdate }: CJMVisuali
     )
   }
 
+  if (viewMode === 'grid') {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-end px-4">
+          <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
+            <button
+              onClick={() => setViewMode('timeline')}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                viewMode === 'timeline' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Timeline
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                viewMode === 'grid' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Grid View
+            </button>
+          </div>
+        </div>
+        <CJMGridView data={data} onUpdate={onUpdate!} />
+      </div>
+    )
+  }
+
   return (
     <div id={visualizationId} className="space-y-8 bg-gradient-to-br from-slate-50/50 to-blue-50/50 dark:from-slate-900/30 dark:to-blue-950/30 p-6 rounded-xl">
-      {/* Timeline Header */}
-      <div className="text-center space-y-2 pb-4">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Customer Journey
-        </h2>
-        <p className="text-muted-foreground flex items-center justify-center gap-2">
-          <User className="h-4 w-4" />
-          {data.persona}
-        </p>
+      {/* Header with Toggle */}
+      <div className="flex items-center justify-between pb-4">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Customer Journey
+          </h2>
+          <p className="text-muted-foreground flex items-center gap-2">
+            <User className="h-4 w-4" />
+            {data.persona}
+          </p>
+        </div>
+
+        <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
+          <button
+            onClick={() => setViewMode('timeline')}
+            className={cn(
+              "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+              viewMode === 'timeline' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Timeline
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={cn(
+              "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+              viewMode === 'grid' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Grid View
+          </button>
+        </div>
       </div>
 
       {/* Horizontal Timeline */}

@@ -42,6 +42,8 @@ function App() {
         <Toaster />
         <Routes>
           <Route path="/login" element={<AuthPage />} />
+          {/* Public/Shared Presentation Route - No Sidebar, No Auth required for guests */}
+          <Route path="/presentation/:id" element={<PresentationPage />} />
 
           <Route path="/" element={
             <PrivateRoute>

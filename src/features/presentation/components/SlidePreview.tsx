@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { usePresentationStore } from '@/store'
 import { markdownToHtml } from '@/features/presentation/utils/markdown-slides'
 import { MermaidRenderer } from './MermaidRenderer'
@@ -9,9 +9,10 @@ interface SlidePreviewProps {
   className?: string
   showBorder?: boolean
   isThumbnail?: boolean
+  style?: React.CSSProperties
 }
 
-export function SlidePreview({ slideIndex, className, showBorder = true, isThumbnail = false }: SlidePreviewProps) {
+export function SlidePreview({ slideIndex, className, showBorder = true, isThumbnail = false, style }: SlidePreviewProps) {
   const { slides, currentSlideIndex, theme, markdown, settings } = usePresentationStore()
   const index = slideIndex ?? currentSlideIndex
   const slide = slides[index]
@@ -27,6 +28,48 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
     if (!slideMarkdown) return ''
     return markdownToHtml(slideMarkdown)
   }, [slideMarkdown])
+
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  // Auto-fit logic
+  useEffect(() => {
+    if (!settings.autoFit || isThumbnail) {
+      if (scale !== 1) setScale(1)
+      return
+    }
+
+    // We use a small timeout to allow layout to settle (e.g. Mermaid rendering)
+    // In a real production app we'd use ResizeObserver on the content
+    const timer = setTimeout(() => {
+      const el = contentRef.current
+      if (!el) return
+
+      // Reset scale to measure natural height
+      // We can't easily reset state without trigger render loop, 
+      // so we rely on the fact that we measure scrollHeight relative to padding?
+      // Actually, if we apply transform to a child, the parent scrollHeight detects it?
+      // No, scrollHeight is pre-transform.
+
+      const parent = el.parentElement
+      if (!parent) return
+
+      // parent height is the constrained height (slide height - padding)
+      const availableHeight = parent.clientHeight
+      const contentHeight = el.scrollHeight
+
+      if (contentHeight > availableHeight) {
+        const newScale = availableHeight / contentHeight
+        // Add a little buffer and limit min scale
+        setScale(Math.max(0.3, newScale - 0.05))
+      } else {
+        setScale(1)
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [slideHtml, settings.autoFit, settings.slideStyle, isThumbnail, settings.layout]) // Re-run when content changes
+
 
   if (!slide) {
     return (
@@ -76,6 +119,8 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
     }
   }
 
+
+
   return (
     <div
       className={cn(
@@ -87,6 +132,7 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
         backgroundColor: theme.backgroundColor,
         color: theme.textColor,
         fontFamily: settings.fontFamily || theme.fontFamily,
+        ...style
       }}
     >
       {/* Background Image */}
@@ -101,13 +147,15 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
       )}
 
       <div className={cn(
-        "absolute inset-0 flex flex-col overflow-auto",
-        isThumbnail ? "p-2" : "p-6"
+        "absolute inset-0 flex flex-col",
+        isThumbnail ? "p-2" : "p-6",
+        settings.autoFit ? "overflow-hidden" : "overflow-auto" // Hide scrollbar if auto-fitting
       )}>
         {/* Rendered Markdown with prose styles */}
         <div
+          ref={contentRef}
           className={cn(
-            'prose prose-full',
+            'prose prose-full max-w-none transform-gpu origin-top', // origin-top to scale from top
             isThumbnail ? 'prose-slide' : 'prose-compact',
             // Force theme colors
             '[&_h1]:!text-[var(--primary)]',
@@ -153,6 +201,18 @@ export function SlidePreview({ slideIndex, className, showBorder = true, isThumb
 
             color: theme.textColor,
             fontSize: `${settings.slideStyle.bodyFontSize * (isThumbnail ? 0.5 : 1)}px`,
+
+            // Auto-scale styles
+            transform: settings.autoFit ? `scale(${scale})` : 'none',
+            width: settings.autoFit ? `${100 / scale}%` : '100%', // Compensate width if needed? 
+            // Actually if we scale down, width shrinks visually. 
+            // If we want width to remain full container width, we need width: 100/scale %.
+            // Let's try simple scale first. If I scale(0.5) a 1000px div, it looks like 500px wide.
+            // But we want it to look 1000px wide (relative to container) but strictly shrink content?
+            // No, standard text scaling means everything gets smaller.
+            // If we enable width compensation, layout reflows (text wraps differently), changing height.
+            // Simple scale is safer for preserving layout.
+            // So width 100% of parent is fine.
           } as React.CSSProperties}
           dangerouslySetInnerHTML={{ __html: slideHtml }}
         />

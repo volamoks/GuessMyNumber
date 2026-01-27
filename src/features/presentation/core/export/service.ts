@@ -216,8 +216,9 @@ export async function exportASTToPptx(
       }
     }
 
-    // Скачиваем файл
-    const fileName = `${options.title.replace(/[^a-zA-Z0-9]/g, '_')}.pptx`
+    // Скачиваем файл - поддержка кириллицы и fallback
+    const sanitizedTitle = options.title.replace(/[^\p{L}\p{N}\s_-]/gu, '').trim().replace(/\s+/g, '_') || 'Presentation'
+    const fileName = `${sanitizedTitle}.pptx`
     await pptx.writeFile({ fileName })
 
     return {
