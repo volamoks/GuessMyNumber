@@ -88,6 +88,20 @@ export function useCollaboration(documentId: string | undefined) {
             }
         })
 
+        // 2. Listen to remote Yjs changes and update local state
+        const handleYjsChange = () => {
+            const content = yText.toString()
+            console.log('Remote Yjs change detected, updating local state')
+            isRemoteUpdate.current = true
+            setMarkdown(content)
+            // Reset flag after state update completes
+            setTimeout(() => {
+                isRemoteUpdate.current = false
+            }, 0)
+        }
+
+        yText.observe(handleYjsChange)
+
         // Awareness (cursors/users)
         const awareness = provider.awareness
         awareness.on('change', () => {
@@ -95,6 +109,7 @@ export function useCollaboration(documentId: string | undefined) {
         })
 
         return () => {
+            yText.unobserve(handleYjsChange)
             provider.destroy()
             ydoc.destroy()
             setIsReady(false)
