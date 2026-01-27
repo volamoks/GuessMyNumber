@@ -64,7 +64,7 @@ export function useCollaboration(documentId: string | undefined) {
                     console.log('Adopting remote content')
                     setMarkdown(content)
                     setIsReady(true)
-                } else if (markdown.length > 50) {
+                } else if (markdown.trim().length > 0) {
                     // Remote is empty, local has content. Seed remote.
                     console.log('Seeding remote with local content')
                     ydoc.transact(() => {
@@ -73,6 +73,7 @@ export function useCollaboration(documentId: string | undefined) {
                     setIsReady(true)
                 } else {
                     // Both empty? Ready to edit.
+                    console.log('Both empty, ready to edit')
                     setIsReady(true)
                 }
             }
